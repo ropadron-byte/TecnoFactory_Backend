@@ -124,7 +124,6 @@
             <artifactId>testcontainers-mysql</artifactId>
             <scope>test</scope>
         </dependency>
-	</dependencies>
     <!-- Flyway (en Spring Boot 4 se necesita el starter) -->
     <dependency>
         <groupId>org.springframework.boot</groupId>
@@ -160,6 +159,9 @@
         <artifactId>mapstruct</artifactId>
         <version>1.6.3</version>
     </dependency>
+
+
+	</dependencies>
 
     <build>
         <plugins>
