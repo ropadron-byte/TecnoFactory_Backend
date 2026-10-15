@@ -1,3 +1,50 @@
 spring:
   application:
     name: TecnoFactory
+
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/tecnofactory}
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:root}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USER:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: 6379
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 10m
+
+jwt:
+  secret: ${JWT_SECRET:cambia-esta-clave-por-una-de-al-menos-32-caracteres}
+  expiration-ms: 3600000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
