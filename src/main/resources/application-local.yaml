@@ -1,3 +1,10 @@
 spring:
-  cache:
-    type: none
+  jpa:
+    hibernate:
+      ddl-auto: update
+  flyway:
+    enabled: false
+
+#spring:
+#  cache:
+#    type: none
