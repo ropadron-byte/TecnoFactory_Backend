@@ -63,3 +63,44 @@ config	CORS, Swagger, recursos estáticos	Configuración transversal
 exception	Errores propios y manejador global	Respuestas de error uniformes para React
 
 Flujo de una petición: Controller → Service → Repository → BD, y de vuelta con DTOs.
+
+COmandos para levantar Docker:
+docker compose up -d          # levantar MySQL en segundo plano
+docker compose ps             # ver estado (debe decir "healthy")
+docker compose logs -f db     # ver logs
+docker compose stop           # detener (conserva datos)
+docker compose down           # eliminar contenedor (conserva datos)
+docker compose down -v        # elimina contenedor Y datos (¡cuidado!)
+
+Para entrar a MySQL desde la terminal:
+docker exec -it tecnofactory-db mysql -uroot -p tecnofactory
+
+
+Instalar Docker en Ubuntu
+
+# 1. Preparar el repositorio
+sudo apt update
+sudo apt install -y ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+Components: stable
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+
+# 2. Instalar
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# 3. Usar Docker sin sudo
+sudo usermod -aG docker $USER
+newgrp docker
+
+# 4. Verificar
+docker run hello-world
+docker compose version
