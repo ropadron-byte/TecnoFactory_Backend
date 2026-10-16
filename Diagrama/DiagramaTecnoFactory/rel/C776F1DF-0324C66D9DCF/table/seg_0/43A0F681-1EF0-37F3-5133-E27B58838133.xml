@@ -1,16 +1,16 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
-<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="17B65E43-AEDB-0137-2EB5-37EFBC485948" name="PRODUCTOS">
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="43A0F681-1EF0-37F3-5133-E27B58838133" name="PRODUCTOS">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 02:33:28 UTC</createdTime>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
 <generatorID>714F3DF4-B59D-CB92-9A65-71FB4AD6A885</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <allowColumnReorder>false</allowColumnReorder>
 <existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
 <parsed>true</parsed>
 <columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
-<Column name="id_producto" id="67D6B2B6-5EB5-E84F-35AB-E8DBC3D3F883">
+<Column name="id_producto" id="56AADF41-C594-C0E6-8C37-777C423CEE12">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 02:33:28 UTC</createdTime>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
 <generatorID>BF3E27E4-A5AE-8EEB-355A-44787E559DB7</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -19,9 +19,9 @@
 <ownDataTypeParameters>,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
-<Column name="nombre" id="0C4CF790-351C-E055-BB72-14EA0B610C0C">
+<Column name="nombre" id="46866174-5556-1691-B0FF-9DC286B7054E">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 02:33:28 UTC</createdTime>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
 <generatorID>D5FB0D93-EC06-FD3C-9434-CA1055F8788C</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -31,9 +31,9 @@
 <ownDataTypeParameters>255,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
-<Column name="descripcion" id="C68C840B-28B7-42A5-4D61-1142620A727F">
+<Column name="descripcion" id="79537EE6-2611-4DEB-C792-456B0381543A">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 02:33:28 UTC</createdTime>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
 <generatorID>56D960E3-020C-2B83-4B9B-57B6E4F282AE</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <nullsAllowed>true</nullsAllowed>
@@ -44,9 +44,9 @@
 <ownDataTypeParameters>500,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
-<Column name="precio" id="B075C6A5-39F5-D540-AC07-91E2985D9BCE">
+<Column name="precio" id="A5C8F021-CE05-4E5C-A48F-1F38E31B3AD5">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 02:33:28 UTC</createdTime>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
 <generatorID>AF1984C6-5CAD-D5D2-339B-F737551C7208</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -55,9 +55,9 @@
 <ownDataTypeParameters>,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
-<Column name="stock" id="F04CF89E-3A0E-46BF-1D60-8A1B2A8BFE71">
+<Column name="stock" id="07E5FC45-D83A-9A3C-BF53-DD1D85D230CA">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 02:33:28 UTC</createdTime>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
 <generatorID>83146093-2691-AD9E-D1D6-3723C917394A</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -66,9 +66,9 @@
 <ownDataTypeParameters>,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
-<Column name="stockCritico" id="547B40A3-C078-48A8-A155-7793862876E3">
+<Column name="stockCritico" id="B4F87539-0B2A-3D65-B0F0-8C807B0B58E3">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 02:33:28 UTC</createdTime>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
 <generatorID>B71B081A-E3E8-4D75-2D09-D319737A3E9E</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -77,12 +77,11 @@
 <ownDataTypeParameters>,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
-<Column name="descuento" id="E00C6F9D-9423-EFCC-0427-D8BAF3C2DE01">
+<Column name="descuento" id="A7E42A45-08D3-BEA1-9897-571D650190A9">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 02:33:28 UTC</createdTime>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
 <generatorID>DE6D8904-87B8-2992-F765-9512C39DC0D3</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
-<nullsAllowed>true</nullsAllowed>
 <useDomainConstraints>false</useDomainConstraints>
 <use>1</use>
 <logicalDatatype>LOGDT019</logicalDatatype>
@@ -90,28 +89,18 @@
 <ownDataTypeParameters>,3,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
-<Column name="URLESTOTIENEQUESERUNAENTIDAD" id="4EA057B1-FC13-99D9-71D0-A99708BA9FDF">
-<createdBy>roman</createdBy>
-<createdTime>2026-10-16 02:33:28 UTC</createdTime>
-<generatorID>79B504AB-E764-E5F0-5D62-CD69B35C6B44</generatorID>
-<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
-<nullsAllowed>true</nullsAllowed>
-<use>0</use>
-<ownDataTypeParameters>,,</ownDataTypeParameters>
-<autoIncrementCycle>false</autoIncrementCycle>
-</Column>
 </columns>
 <indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
-<ind_PK_UK id="8D37D1F4-0A62-5FF0-4AEF-3300F9A88A64" name="PRODUCTOS_PK">
+<ind_PK_UK id="52D14C6B-F09D-E335-8C8E-D55771F210FF" name="PRODUCTOS_PK">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 02:33:28 UTC</createdTime>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
 <generatorID>89860015-C453-A0EB-BC52-0607A40CAA20</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <pk>true</pk>
 <indexState>Primary Constraint</indexState>
 <isSurrogateKey>false</isSurrogateKey>
 <indexColumnUsage>
-<colUsage columnID="67D6B2B6-5EB5-E84F-35AB-E8DBC3D3F883"/>
+<colUsage columnID="56AADF41-C594-C0E6-8C37-777C423CEE12"/>
 </indexColumnUsage>
 </ind_PK_UK>
 </indexes>

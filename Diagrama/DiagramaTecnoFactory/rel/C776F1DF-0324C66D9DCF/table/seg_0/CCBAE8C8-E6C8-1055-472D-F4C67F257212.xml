@@ -1,0 +1,66 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="CCBAE8C8-E6C8-1055-472D-F4C67F257212" name="PRODUCTO_CATEGORIA">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<generatorID>29E86D4B-0D8B-8BBD-668D-93975F1CD75A</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<allowColumnReorder>false</allowColumnReorder>
+<existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
+<parsed>true</parsed>
+<columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
+<Column name="PRODUCTOS_id_producto" id="40A12C04-6F77-C50A-4CB1-13D062F503E7">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<generatorID>987D6E63-893D-7AEB-88C0-5BA99BD0CF00</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT027</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<previousColumn>false</previousColumn>
+<autoIncrementCycle>false</autoIncrementCycle>
+<associations>
+<colAssociation fkAssociation="3A9C6944-5355-F44C-9B65-978E214E0AF3" referredColumn="56AADF41-C594-C0E6-8C37-777C423CEE12"/>
+</associations>
+</Column>
+<Column name="CATEGORIA_id_categoria" id="CFD1E1E7-88F6-E8D8-8968-6A89918415E2">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<generatorID>200AA421-0996-F6FF-3145-EAD6B0ECABE0</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT027</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<previousColumn>false</previousColumn>
+<autoIncrementCycle>false</autoIncrementCycle>
+<associations>
+<colAssociation fkAssociation="91655C9D-9471-0000-125B-FC59525646EB" referredColumn="658B5E1E-8248-3558-004B-9D29C1F95D9B"/>
+</associations>
+</Column>
+</columns>
+<indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
+<ind_PK_UK id="4A29348A-9D46-B225-D15D-1EFD2ED59F04" name="PRODUCTO_CATEGORIA_CATEGORIA_FK">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<generatorID>2DDAF4FC-3B44-401C-FABF-D523BACCC1B0</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<indexState>Foreign Key</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="CFD1E1E7-88F6-E8D8-8968-6A89918415E2"/>
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="53D89CAF-4D9F-0B86-F933-07A2186A5638" name="PRODUCTO_CATEGORIA_PRODUCTOS_FK">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<generatorID>84D32BBD-C4A0-F53B-FCD0-BACCDFB7C8FF</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<indexState>Foreign Key</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="40A12C04-6F77-C50A-4CB1-13D062F503E7"/>
+</indexColumnUsage>
+</ind_PK_UK>
+</indexes>
+</Table>

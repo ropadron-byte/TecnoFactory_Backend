@@ -1,0 +1,99 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="BC1405A9-3BF0-C617-A85E-748AA6D62BB1" name="DETALLE_BOLETA">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<generatorID>2D000139-3030-ACA1-D007-3EBA8AA713C8</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<allowColumnReorder>false</allowColumnReorder>
+<existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
+<parsed>true</parsed>
+<columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
+<Column name="id_detalle_boleta" id="E4C15F93-E535-5615-0F0B-AC3AE4FB3D64">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<generatorID>8BDFFBC7-81E7-2392-CB6B-00D1866F3D88</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT027</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="nombre" id="7C509A92-300E-CA00-274F-36A9D1D3EFC4">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<generatorID>E7F29012-C266-3C02-965F-4CF870144056</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<dataTypeSize>255</dataTypeSize>
+<ownDataTypeParameters>255,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="descripcion" id="9FB64AA9-9D0F-EC43-29CB-F7CA5E610FA9">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<generatorID>A339DDA2-771F-8832-8A1C-996089CEA16E</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<dataTypeSize>1000</dataTypeSize>
+<ownDataTypeParameters>1000,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="precio_unitario" id="FA1158E0-E325-62F7-334F-47EFAD798ECF">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<generatorID>FE51C2B2-7292-F17A-BAC3-97BE2822ADA3</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT027</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="descuento" id="95585FD1-5BB5-1485-7489-0F1DE1086413">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<generatorID>E88EEBC7-10D5-17F5-C10B-DA899DD7DE83</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT019</logicalDatatype>
+<dataTypePrecision>3</dataTypePrecision>
+<ownDataTypeParameters>,3,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="BOLETA_id_boleta" id="C926EF51-B30A-A52C-EEA3-80CA886B8959">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<generatorID>4C0E33B1-66BB-C071-DC3B-86225A6C5E03</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT027</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<previousColumn>false</previousColumn>
+<autoIncrementCycle>false</autoIncrementCycle>
+<associations>
+<colAssociation fkAssociation="EAB047BF-FA72-3471-19AA-5B19D2C1419A" referredColumn="1DDD552D-5AA4-75FD-55B9-66C0BD35AC40"/>
+</associations>
+</Column>
+</columns>
+<indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
+<ind_PK_UK id="7B4D1C31-1A30-BEFB-FAF0-47AABB56AF4A" name="DETALLE_BOLETA_BOLETA_FK">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<generatorID>D0BBEE83-78B7-AAF7-88B0-E432FDB75F9A</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<indexState>Foreign Key</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="C926EF51-B30A-A52C-EEA3-80CA886B8959"/>
+</indexColumnUsage>
+</ind_PK_UK>
+</indexes>
+</Table>
