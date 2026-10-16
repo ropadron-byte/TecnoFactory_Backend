@@ -1,4 +1,4 @@
-package com.factory.TecnoFactory;
+package com.factory.tecnofactory;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

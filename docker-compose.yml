@@ -20,5 +20,15 @@ services:
       timeout: 5s
       retries: 10
 
+#  backend:
+#    build: .
+#    environment:
+#      SPRING_PROFILES_ACTIVE: prod
+#      DB_URL: jdbc:mysql://db:3306/tecnofactory
+#      DB_USER: root
+#      DB_PASSWORD: ${DB_PASSWORD}
+#      JWT_SECRET: ${JWT_SECRET}
+
 volumes:
   mysql_data:
+

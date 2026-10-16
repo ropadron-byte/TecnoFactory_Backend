@@ -1,0 +1,50 @@
+spring:
+  datasource:
+    url: ${DB_URL}              # sin valor por defecto: si falta, la app no arranca
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate        # solo comprueba; nunca modifica la base
+    show-sql: false             # no imprime consultas
+
+  flyway:
+    enabled: true               # Flyway crea las tablas
+
+  cache:
+    type: none                  # hoy none porque aún no existe Redis; luego "redis"
+
+jwt:
+  secret: ${JWT_SECRET}         # sin valor por defecto
+
+springdoc:
+  api-docs:
+    enabled: false              # nadie ve la descripción de tu API
+  swagger-ui:
+    enabled: false              # sin pantalla de Swagger
+
+logging:
+  level:
+    root: WARN                  # solo advertencias y errores
+    com.factory: INFO           # tu código: eventos importantes
+
+management:
+  endpoint:
+    health:
+      show-details: never       # solo "UP" o "DOWN", sin componentes
+  endpoints:
+    web:
+      exposure:
+        include: health         # único endpoint de Actuator publicado
+  health:
+    redis:
+      enabled: false            # hasta que exista Redis
+    mail:
+      enabled: false            # hasta que exista un SMTP real
+
+server:
+  error:
+    include-message: never          # los errores no revelan mensajes internos
+    include-stacktrace: never       # ni rastros
+    include-binding-errors: never   # tu GlobalExceptionHandler decide qué mostrar

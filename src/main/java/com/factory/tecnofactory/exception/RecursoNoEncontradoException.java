@@ -1,4 +1,4 @@
-package com.factory.TecnoFactory.exception;
+package com.factory.tecnofactory.exception;
 
 public class RecursoNoEncontradoException {
 }

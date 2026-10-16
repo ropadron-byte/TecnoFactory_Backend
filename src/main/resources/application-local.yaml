@@ -1,10 +1,54 @@
+
 spring:
+  datasource:
+    url: ${DB_URL}              # URL de MySQL, viene de la variable de entorno
+    username: ${DB_USER}        # usuario de MySQL
+    password: ${DB_PASSWORD}    # clave de MySQL (la misma de tu .env)
+
   jpa:
     hibernate:
-      ddl-auto: update
-  flyway:
-    enabled: false
+      ddl-auto: update          # Hibernate crea y ajusta tablas desde tus entidades
+    show-sql: true              # imprime cada consulta SQL
+    properties:
+      hibernate:
+        format_sql: true        # el SQL sale en varias líneas, legible
 
-#spring:
-#  cache:
-#    type: none
+  flyway:
+    enabled: false              # sin migraciones mientras uses update
+
+  cache:
+    type: none                  # APAGADO. Cambia a "redis" cuando lo agregues al compose
+
+jwt:
+  secret: ${JWT_SECRET}         # clave que firma los tokens
+
+springdoc:
+  api-docs:
+    enabled: true               # endpoint que describe tu API
+  swagger-ui:
+    enabled: true               # pantalla de Swagger
+
+logging:
+  level:
+    root: INFO                  # librerías: eventos normales y errores
+    com.factory: DEBUG          # tu código: todo el detalle
+
+management:
+  endpoint:
+    health:
+      show-details: always      # /actuator/health muestra cada componente
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics   # endpoints de Actuator publicados
+  health:
+    redis:
+      enabled: false            # cambia a true cuando levantes Redis
+    mail:
+      enabled: false            # cambia a true cuando levantes Mailpit
+
+server:
+  error:
+    include-message: always         # el error trae su mensaje
+    include-stacktrace: on_param    # rastro solo con ?trace=true en la URL
+    include-binding-errors: always  # indica qué campo falló la validación
