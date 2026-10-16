@@ -849,3 +849,181 @@ DB_USER=root \
 DB_PASSWORD=la_misma_del_env \
 JWT_SECRET=una_clave_larga_de_al_menos_32_caracteres \
 ./mvnw spring-boot:run
+
+
+## 1. Cómo se usa Flyway
+
+No lo "ejecutas": **no hay ningún comando**. Solo haces tres cosas:
+
+1. Creas un archivo `.sql` con el nombre correcto en `src/main/resources/db/migration`.
+2. Escribes tu SQL dentro.
+3. Arrancas la aplicación.
+
+Al arrancar, Flyway se conecta a MySQL, ejecuta los archivos que aún no se han aplicado y deja registro. En el log debes ver algo como:
+
+```
+Successfully applied 1 migration to schema `tecnofactory`
+```
+
+Para ver el registro en la base:
+
+```sql
+SELECT version, description, script, success FROM flyway_schema_history;
+```
+
+## 2. El nombre del archivo importa
+
+```
+V1__crear_tablas_base.sql
+│ │ │
+│ │ └─ descripción: palabras con guion bajo
+│ └─── dos guiones bajos (obligatorio)
+└───── V mayúscula + número de versión
+```
+
+- Flyway las ejecuta **de menor a mayor versión**, comparando como números: `V2` va antes que `V10`.
+- No puede haber dos archivos con la misma versión.
+- Con un solo guion bajo o una `v` minúscula, el archivo se ignora y no lo ves hasta que faltan las tablas.
+
+## 3. Cómo funciona el versionamiento
+
+Flyway crea una tabla propia, `flyway_schema_history`, y en cada arranque compara esa tabla con tus archivos:
+
+| Columna | Qué guarda |
+| --- | --- |
+| `version` | Versión aplicada (1, 2, 3...) |
+| `description` | La descripción del nombre |
+| `checksum` | Una **huella del contenido** del archivo |
+| `installed_on` | Cuándo se aplicó |
+| `success` | Si terminó bien |
+
+Un ejemplo: la base está en la versión 2 y tienes tres archivos.
+
+```
+V1__...  ya aplicada   → se omite
+V2__...  ya aplicada   → se omite
+V3__...  nueva         → se ejecuta y se registra
+```
+
+Por eso la regla clave es: **un archivo ya aplicado no se edita**. Si lo cambias, la huella ya no coincide y Flyway se niega a arrancar:
+
+```
+Validate failed: Migration checksum mismatch for migration version 1
+```
+
+Cualquier cambio posterior va en una versión nueva, siempre **mayor** que la última aplicada. Si creas un `V2` cuando ya existe un `V3`, Flyway lo considera fuera de orden y falla.
+
+## 4. Mientras desarrollas tienes una excepción
+
+Si aún no has desplegado nada, puedes editar el `V1` cuantas veces quieras, siempre que reinicies la base antes de volver a arrancar:
+
+```bash
+docker compose down -v
+docker compose up -d
+```
+
+Cuando el esquema ya sea definitivo, o lo use otra persona o un servidor, deja de editarlo.
+
+## 5. Qué considerar al escribir las migraciones
+
+**MySQL no deshace los cambios de estructura si algo falla a medias.** Si un archivo tiene 5 sentencias y la tercera falla, las dos primeras ya quedaron aplicadas, y Flyway marca la migración como fallida (`success = 0`). Dos consecuencias:
+
+- Mantén cada migración pequeña y enfocada.
+- En desarrollo, si falla, corriges el SQL y reinicias la base con `down -v`.
+
+Otras reglas:
+
+| Qué cuidar | Por qué |
+| --- | --- |
+| Crea primero las tablas que otras referencian | Una clave foránea a una tabla que aún no existe falla (`categorias` antes que `productos`) |
+| Ponle nombre a tus restricciones (`CONSTRAINT fk_productos_categoria ...`) | Facilita borrarlas o modificarlas después |
+| Los tipos deben coincidir con tus entidades | Con `validate`, si no calzan la app no arranca |
+| Datos iniciales (roles, categorías base) van en una migración aparte, por ejemplo `V2__datos_iniciales.sql` | Mantiene el esquema separado de los datos |
+| Contraseñas iniciales, como un admin, siempre ya hasheadas con BCrypt | Nunca texto plano en un archivo que va a Git |
+| No cambies tablas a mano desde DBeaver | La base y los archivos se desincronizan; todo cambio va en una migración |
+| Cambios con datos (renombrar una columna) en pasos | Agregar la nueva, copiar los datos y recién después borrar la antigua |
+| No mezcles Hibernate `update` con Flyway | Se pisan; con Flyway, usa `ddl-auto: validate` |
+| Guarda los archivos en UTF-8 | Evita problemas con tildes y la ñ |
+
+Una secuencia típica de archivos se ve así:
+
+```
+V1__crear_tablas_base.sql
+V2__datos_iniciales.sql
+V3__agregar_isbn_a_libro.sql
+```
+
+Y el contenido de un cambio posterior es solo el cambio:
+
+```sql
+ALTER TABLE libro ADD COLUMN isbn VARCHAR(20);
+```
+
+## 6. Errores típicos y qué significan
+
+| Error | Causa | Solución |
+| --- | --- | --- |
+| `Migration checksum mismatch` | Editaste un archivo ya aplicado | En desarrollo, `down -v`; en producción, nunca editar, crear uno nuevo |
+| `Detected failed migration to version X` | Una ejecución anterior falló a medias | Corregir el SQL y reiniciar la base (en desarrollo) |
+| `Found non-empty schema(s) ... but no schema history table` | Había tablas creadas por Hibernate antes de usar Flyway | Reiniciar la base con `down -v` |
+| `Detected resolved migration not applied to database` | Creaste una versión menor que otra ya aplicada | Renombrarla con una versión mayor |
+| La app arranca pero no existen las tablas | Nombre mal escrito o carpeta equivocada | Revisar `V` mayúscula, dos guiones bajos y la ruta `db/migration` |
+| `Schema-validation: missing column ...` | La entidad y el script no coinciden | Corregir uno de los dos |
+
+## 7. Resumen en una frase
+
+Cada archivo `V#__...sql` es un paso numerado del historial de tu base, Flyway ejecuta solo los nuevos en orden, y la regla de oro es: **lo ya aplicado no se toca, solo se agregan versiones nuevas**.
+
+Cuando tengas tu primer script, pásamelo y lo reviso antes de que lo ejecutes.
+
+No exactamente. Las versiones **no son alternativas para volver a probar una anterior**: son capas que se apilan una encima de la otra. La base final es el resultado de aplicar V1, luego V2 y luego V3, siempre en ese orden.
+
+## La idea correcta
+
+Piensa en construir un edificio por pisos:
+
+| Versión | Qué construye |
+| --- | --- |
+| V1 | Los cimientos: las tablas |
+| V2 | Los muebles: los datos iniciales |
+| V3 | Una ventana nueva: una columna que faltaba |
+
+Si falla el piso 3, no "pruebas el piso 1": arreglas el piso 3, porque el edificio es la suma de los tres. Lo que sí ofrece el versionamiento es:
+
+- **Historial**: sabes qué se cambió, cuándo y en qué orden.
+- **Reproducibilidad**: en una base vacía, Flyway reconstruye todo en el mismo orden.
+- **Orden de aplicación**: cada entorno aplica solo lo que le falta.
+
+Flyway gratis **no deshace** migraciones. Si una falla, la solución es corregirla y reiniciar la base (en desarrollo), o escribir una versión nueva que arregle el error (en producción). El respaldo es tu verdadera red de seguridad.
+
+Si quisieras reconstruir la base hasta cierto punto, existe `spring.flyway.target: 2`, que aplica hasta V2 y se detiene. Se usa sobre una base vacía y rara vez lo vas a necesitar.
+
+## Lo que te confundió: esos nombres eran un ejemplo
+
+`V1__crear_tablas_base`, `V2__datos_iniciales` y `V3__agregar_isbn_a_libro` eran una muestra de cómo se ve un historial **después de semanas**. No tienes que crear los tres ahora.
+
+## La secuencia que debes seguir tú
+
+| Momento | Qué haces |
+| --- | --- |
+| **Hoy**, mientras diseñas | Un solo archivo: `V1__crear_tablas_base.sql` con todas las tablas. Lo editas libremente, y cada vez reinicias la base con `docker compose down -v` y `up -d` |
+| Cuando las tablas funcionen con tus entidades | Si necesitas datos de partida (roles, categorías base), los pones en `V2__datos_iniciales.sql` |
+| Cuando des el esquema por definitivo (antes de desplegar o de compartir la base) | **Congelas** V1 y V2: ya no se editan |
+| Desde ahí, cada cambio | Un archivo nuevo: `V3`, `V4`... |
+
+La regla práctica: **creas un archivo nuevo solo cuando el anterior ya se aplicó en algún lugar que no quieres reiniciar** (producción, una base compartida, datos que te importan). Mientras todo sea tu base local de pruebas, editas y reinicias.
+
+## Cuándo editar y cuándo crear uno nuevo
+
+| Situación | Qué haces |
+| --- | --- |
+| Me equivoqué en una tabla y aún no he desplegado nada | Edito `V1` y reinicio la base con `down -v` |
+| Quiero agregar una columna después de desplegar | Nuevo `V3` con un `ALTER TABLE` |
+| Quiero datos iniciales | `V2` (o el siguiente número libre) |
+| Una migración ya aplicada en producción tiene un error | Nueva versión que lo corrige; no se edita la antigua |
+
+## Por qué separar estructura y datos
+
+Aunque V1 y V2 se apliquen el mismo día, conviene tenerlos en archivos distintos: el esquema es la parte estable, y los datos iniciales suelen cambiar más. Así un cambio en los datos no obliga a tocar el archivo de las tablas.
+
+Para esta semana, tu trabajo se reduce a una cosa: escribir **un solo `V1__crear_tablas_base.sql`** con tu diseño. Pásamelo cuando lo tengas y lo reviso.

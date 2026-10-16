@@ -7,14 +7,14 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update          # Hibernate crea y ajusta tablas desde tus entidades
+      ddl-auto: validate          # Hibernate crea y ajusta tablas desde tus entidades
     show-sql: true              # imprime cada consulta SQL
     properties:
       hibernate:
         format_sql: true        # el SQL sale en varias líneas, legible
 
   flyway:
-    enabled: false              # sin migraciones mientras uses update
+    enabled: true            # sin migraciones mientras uses update
 
   cache:
     type: none                  # APAGADO. Cambia a "redis" cuando lo agregues al compose
