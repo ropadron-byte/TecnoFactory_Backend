@@ -1,20 +1,20 @@
 
 spring:
   datasource:
-    url: ${DB_URL}              # URL de MySQL, viene de la variable de entorno
-    username: ${DB_USER}        # usuario de MySQL
+    url: ${DB_URL:jdbc:mysql://localhost:3306/tecnofactory}              # URL de MySQL, viene de la variable de entorno
+    username: ${DB_USER:root}       # usuario de MySQL
     password: ${DB_PASSWORD}    # clave de MySQL (la misma de tu .env)
 
   jpa:
-    hibernate:
-      ddl-auto: validate          # Hibernate crea y ajusta tablas desde tus entidades
+  hibernate:
+    ddl-auto: validate          # Hibernate solo comprueba que las entidades coincidan con las tablas
     show-sql: true              # imprime cada consulta SQL
     properties:
       hibernate:
         format_sql: true        # el SQL sale en varias líneas, legible
 
   flyway:
-    enabled: true            # sin migraciones mientras uses update
+    enabled: true            # Flyway crea las tablas desde db/migration
 
   cache:
     type: none                  # APAGADO. Cambia a "redis" cuando lo agregues al compose

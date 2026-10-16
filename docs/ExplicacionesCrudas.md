@@ -1329,3 +1329,127 @@ DB_USER=root SPRING_PROFILES_ACTIVE=local ./mvnw spring-boot:run
 4. Arrancar la aplicación y comprobar que Flyway crea las tablas.
 
 Cuando tengas el script de V1 adaptado, pásamelo y lo reviso antes de arrancar. Del exportado que me enviaste, ya vi algunos puntos que corregir (por ejemplo, tablas sin clave primaria y los id sin `AUTO_INCREMENT`), así que puedo ir directo a eso.
+
+
+Porque Spring Boot **no lee el archivo `.env`**. Solo lo lee Docker Compose. Tu `application-local.yaml` pide los valores con variables de entorno, y esas variables tienen que existir en la terminal desde donde arrancas la aplicación.
+
+## Qué hace cada línea
+
+```bash
+set -a
+source .env
+set +a
+DB_USER=root SPRING_PROFILES_ACTIVE=local ./mvnw spring-boot:run
+```
+
+| Línea | Qué hace |
+| --- | --- |
+| `set -a` | Le dice a la terminal: "todas las variables que se definan desde ahora, expórtalas" (para que los programas que lances puedan verlas) |
+| `source .env` | Lee tu `.env` y define `DB_PASSWORD`, `JWT_SECRET`, etc. en esta terminal |
+| `set +a` | Apaga la exportación automática |
+| `DB_USER=root SPRING_PROFILES_ACTIVE=local ./mvnw ...` | Define dos variables **solo para ese comando** y arranca la aplicación |
+
+Es una forma de escribir menos, nada más. Sin esas tres primeras líneas tendrías que escribir esto cada vez:
+
+```bash
+DB_PASSWORD=5ce2937... JWT_SECRET=4FpGiQ... DB_USER=root ... ./mvnw spring-boot:run
+```
+
+## Por qué hacen falta esos valores
+
+Tu `application-local.yaml` tiene cosas como:
+
+```yaml
+password: ${DB_PASSWORD}
+secret: ${JWT_SECRET}
+```
+
+Esos `${...}` sin valor por defecto significan "obligatorio: tiene que venir del entorno". Si no existe, Spring se detiene con un error `Could not resolve placeholder`.
+
+Y `DB_USER` y `DB_URL` **no están en tu `.env`**. Por eso `DB_USER=root` va aparte en el comando. Si tu archivo local no tiene valor por defecto para `DB_URL`, añade también:
+
+```bash
+DB_URL=jdbc:mysql://localhost:3306/tecnofactory DB_USER=root SPRING_PROFILES_ACTIVE=local ./mvnw spring-boot:run
+```
+
+## Otras formas de evitarlo
+
+| Opción | Cómo |
+| --- | --- |
+| Agregar `DB_URL` y `DB_USER` a tu `.env` | Así solo haces `source .env` y arrancas. Es seguro: el compose solo usa las variables que nombra |
+| **IntelliJ**: *Run → Edit Configurations → Environment variables* | Pegas las variables una vez, y luego arrancas con el botón de ejecutar, sin tocar la terminal |
+
+La segunda es la más cómoda mientras desarrollas, y no necesitas ninguno de los comandos de arriba.
+
+
+La URL ya funciona: Spring llegó hasta MySQL. Ahora falla el usuario, por la misma razón que antes.
+
+## Qué dice el error
+
+```
+Access denied for user '${DB_USER}'@'172.18.0.1'
+```
+
+Spring le mandó a MySQL el texto literal `${DB_USER}` como nombre de usuario, porque esa variable no existe y la línea del `username` no tiene valor por defecto. MySQL, por supuesto, no conoce a ningún usuario llamado así.
+
+## Solución
+
+En `application-local.yaml`, cambia la línea del usuario igual que hiciste con la URL:
+
+```yaml
+    username: ${DB_USER:root}
+```
+
+Debe quedar así:
+
+```yaml
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/tecnofactory}
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD}
+```
+
+Guarda y arranca de nuevo:
+
+```bash
+SPRING_PROFILES_ACTIVE=local ./mvnw spring-boot:run
+```
+
+Como acabas de cargar el `.env` en esta terminal, no hace falta repetir el `source`. Si abriste una terminal nueva, repite el `set -a` / `source .env` / `set +a`.
+
+## Qué esperar después
+
+Si todo va bien, Flyway se conecta, mira la carpeta `db/migration` y aplica `V1`. Con el archivo vacío podría quejarse. Si el siguiente error menciona `V1__esquema_inicial.sql`, no te preocupes: es porque aún no tiene contenido. Pega ahí al menos una línea (`-- esquema inicial`) para seguir probando, y luego tu SQL real.
+
+
+Ya arrancó bien. El log confirma la cadena completa:
+
+| Línea del log | Qué significa |
+| --- | --- |
+| `HikariPool-1 - Added connection` | Spring se conectó a MySQL |
+| `Database: jdbc:mysql://localhost:3306/tecnofactory (MySQL 8.4)` | Flyway llegó a tu base |
+| `Creating Schema History table flyway_schema_history` | Flyway creó su tabla de control |
+| `Successfully applied 1 migration ... now at version v1` | Aplicó el `V1` |
+| `Initialized JPA EntityManagerFactory` | Hibernate arrancó con `validate` sin errores |
+| `Tomcat started on port 8080` | La API está arriba |
+| `^C ... BUILD SUCCESS` | Tú la detuviste con `Ctrl+C`; el cierre fue limpio |
+
+## Algo importante antes de escribir tu V1
+
+Flyway ya anotó el `V1` vacío como **aplicado**, con su huella (checksum). Si ahora escribes tus tablas dentro de ese mismo archivo y arrancas, Flyway detectará que el archivo cambió y se detendrá con un error `Validate failed: Migration checksum mismatch`.
+
+Como estás en desarrollo y la base está vacía, la solución es reiniciar la base antes de arrancar con tu SQL real:
+
+```bash
+docker compose down -v
+docker compose up -d
+docker compose ps
+```
+
+Espera a `healthy`, y arranca la aplicación. Eso también recrea los dos usuarios con el script. Es el caso que vimos de "en desarrollo editas el V1 y reinicias la base".
+
+## Lo que sigue pendiente
+
+- La línea `Using generated security password` indica que `SecurityConfig` sigue vacío, por lo que Swagger y Actuator piden usuario `user` con esa contraseña temporal. Se resuelve cuando hagamos la seguridad con JWT.
+- Tu script V1 con las tablas. Pásamelo cuando lo hayas adaptado a MySQL y lo reviso antes de aplicarlo.
