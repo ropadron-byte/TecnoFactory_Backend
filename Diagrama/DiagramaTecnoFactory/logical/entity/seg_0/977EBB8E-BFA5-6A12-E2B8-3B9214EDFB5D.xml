@@ -1,0 +1,88 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Entity class="oracle.dbtools.crest.model.design.logical.Entity" directorySegmentName="seg_0" id="977EBB8E-BFA5-6A12-E2B8-3B9214EDFB5D" name="IMAGEN_URL">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 02:28:25 UTC</createdTime>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<engineerTo>
+<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="true"/>
+</engineerTo>
+<adequatelyNormalized>NO</adequatelyNormalized>
+<expectedVolumes>0</expectedVolumes>
+<fwdEngineeringStrategyName>Single Table</fwdEngineeringStrategyName>
+<growthPercent>0</growthPercent>
+<growthType>Year</growthType>
+<maxVolumes>9999999</maxVolumes>
+<minVolumes>0</minVolumes>
+<normalForm>Third</normalForm>
+<attributes itemClass="oracle.dbtools.crest.model.design.logical.Attribute">
+<Attribute name="id_url" id="82FC892B-B176-FD67-1C3F-73BFF53BA5DF">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 02:28:39 UTC</createdTime>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<engineerTo>
+<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="true"/>
+</engineerTo>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT027</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
+<Attribute name="url" id="467B56A7-2E28-DC63-BE85-D443FBBE980F">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 02:28:57 UTC</createdTime>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<engineerTo>
+<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="true"/>
+</engineerTo>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<dataTypeSize>1000</dataTypeSize>
+<ownDataTypeParameters>1000,,</ownDataTypeParameters>
+</Attribute>
+<Attribute name="id_producto" id="EAD26792-67CF-66DE-93A8-7717C0398EB9">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 02:38:07 UTC</createdTime>
+<generatorID>17545670-C413-FC5F-51FF-0F26F053C94E</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<engineerTo>
+<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="true"/>
+</engineerTo>
+<nullsAllowed>true</nullsAllowed>
+<referedAttribute>BF3E27E4-A5AE-8EEB-355A-44787E559DB7</referedAttribute>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT027</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
+<Attribute name="id_categoria" id="86F45E90-B235-D88A-0362-406F6A71F56D">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 03:42:41 UTC</createdTime>
+<generatorID>A3A6C8FD-2F73-C0A9-C60A-D2901EDAD2C8</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<engineerTo>
+<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="true"/>
+</engineerTo>
+<nullsAllowed>true</nullsAllowed>
+<referedAttribute>4C8FF0CB-F96E-0247-45B0-35CB2E2133FB</referedAttribute>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT027</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
+</attributes>
+<identifiers itemClass="oracle.dbtools.crest.model.design.logical.CandidateKey">
+<identifier id="23A574CE-4D01-1FB7-D49B-80CF2E8B4EBF" name="URL PK">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 02:28:55 UTC</createdTime>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<engineerTo>
+<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="true"/>
+</engineerTo>
+<pk>true</pk>
+<usedAttributes>
+<attributeRef>82FC892B-B176-FD67-1C3F-73BFF53BA5DF</attributeRef>
+</usedAttributes>
+</identifier>
+</identifiers>
+</Entity>

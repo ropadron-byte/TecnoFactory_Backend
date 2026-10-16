@@ -1,0 +1,19 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Relation class="oracle.dbtools.crest.model.design.logical.Relation" name="fk_producto_imagen" directorySegmentName="seg_0" id="17545670-C413-FC5F-51FF-0F26F053C94E">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 02:38:07 UTC</createdTime>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<engineerTo>
+<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="true"/>
+</engineerTo>
+<sourcePk>89860015-C453-A0EB-BC52-0607A40CAA20</sourcePk>
+<identifying>false</identifying>
+<optionalSource>false</optionalSource>
+<optionalTarget>true</optionalTarget>
+<sourceCardinality>1</sourceCardinality>
+<sourceEntity>714F3DF4-B59D-CB92-9A65-71FB4AD6A885</sourceEntity>
+<targetCardinalityString>*</targetCardinalityString>
+<targetEntity>977EBB8E-BFA5-6A12-E2B8-3B9214EDFB5D</targetEntity>
+<transferable>true</transferable>
+<deleteRule>NO ACTION</deleteRule>
+</Relation>

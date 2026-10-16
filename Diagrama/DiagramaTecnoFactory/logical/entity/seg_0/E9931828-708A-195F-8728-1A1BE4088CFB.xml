@@ -159,6 +159,19 @@
 <dataTypePrecision>11</dataTypePrecision>
 <ownDataTypeParameters>,11,</ownDataTypeParameters>
 </Attribute>
+<Attribute name="contrasenia" id="266EE2E4-B3AE-F817-B8BE-ECFF12EABC91">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 03:38:35 UTC</createdTime>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<engineerTo>
+<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="true"/>
+</engineerTo>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<dataTypeSize>255</dataTypeSize>
+<ownDataTypeParameters>255,,</ownDataTypeParameters>
+</Attribute>
 </attributes>
 <identifiers itemClass="oracle.dbtools.crest.model.design.logical.CandidateKey">
 <identifier id="17ED6288-D601-FCD0-F8C4-252D81BCCCDB" name="USUARIO PK">
