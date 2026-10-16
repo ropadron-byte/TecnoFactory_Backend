@@ -1,0 +1,355 @@
+
+CREATE TABLE BLOG 
+    (
+     id_blog VARCHAR (255) NOT NULL , 
+     USUARIO_id_usuario BIGINT NOT NULL , 
+     titulo VARCHAR (255) NOT NULL , 
+     contenido TEXT NOT NULL 
+    )
+
+
+ALTER TABLE BLOG ADD CONSTRAINT BLOG_PK PRIMARY KEY CLUSTERED (id_blog)
+     WITH (
+     ALLOW_PAGE_LOCKS = ON , 
+     ALLOW_ROW_LOCKS = ON )
+
+
+CREATE TABLE BOLETA 
+    (
+     id_boleta BIGINT NOT NULL , 
+     USUARIO_id_usuario BIGINT NOT NULL , 
+     cantidad_productos NUMERIC (8) , 
+     fecha DATETIME NOT NULL , 
+     total_boleta BIGINT NOT NULL , 
+     estado BIT NOT NULL 
+    )
+
+
+ALTER TABLE BOLETA ADD CONSTRAINT BOLETA_PK PRIMARY KEY CLUSTERED (id_boleta)
+     WITH (
+     ALLOW_PAGE_LOCKS = ON , 
+     ALLOW_ROW_LOCKS = ON )
+
+
+CREATE TABLE CARRITO 
+    (
+     id_carrito BIGINT NOT NULL , 
+     USUARIO_id_usuario BIGINT NOT NULL 
+    )
+
+CREATE UNIQUE NONCLUSTERED INDEX 
+    CARRITO__IDX ON CARRITO 
+    ( 
+     USUARIO_id_usuario 
+    ) 
+
+
+ALTER TABLE CARRITO ADD CONSTRAINT CARRITO_PK PRIMARY KEY CLUSTERED (id_carrito)
+     WITH (
+     ALLOW_PAGE_LOCKS = ON , 
+     ALLOW_ROW_LOCKS = ON )
+
+
+CREATE TABLE CATERIA 
+    (
+     id_categoria BIGINT NOT NULL , 
+     nombre_categoria VARCHAR (255) NOT NULL , 
+     descripcion_categoria VARCHAR (255) NOT NULL 
+    )
+
+
+ALTER TABLE CATERIA ADD CONSTRAINT CATERIA_PK PRIMARY KEY CLUSTERED (id_categoria)
+     WITH (
+     ALLOW_PAGE_LOCKS = ON , 
+     ALLOW_ROW_LOCKS = ON )
+
+
+CREATE TABLE COMUNA 
+    (
+     id_comuna NUMERIC (4) NOT NULL , 
+     nombre_comuna VARCHAR (255) NOT NULL , 
+     REGION_id_region NUMERIC (3) NOT NULL 
+    )
+
+
+ALTER TABLE COMUNA ADD CONSTRAINT COMUNA_PK PRIMARY KEY CLUSTERED (id_comuna)
+     WITH (
+     ALLOW_PAGE_LOCKS = ON , 
+     ALLOW_ROW_LOCKS = ON )
+
+
+CREATE TABLE DETALLE_BOLETA 
+    (
+     id_detalle_boleta BIGINT , 
+     nombre VARCHAR (255) NOT NULL , 
+     descripcion VARCHAR (1000) NOT NULL , 
+     precio_unitario BIGINT NOT NULL , 
+     descuento NUMERIC (3) NOT NULL , 
+     BOLETA_id_boleta BIGINT NOT NULL 
+    )
+
+
+CREATE TABLE DETALLE_CARRITO 
+    (
+     PRODUCTOS_id_producto BIGINT NOT NULL , 
+     CARRITO_id_carrito BIGINT NOT NULL , 
+     cantidad NUMERIC (6) NOT NULL 
+    )
+
+
+CREATE TABLE IMAGEN_URL 
+    (
+     id_url BIGINT NOT NULL , 
+     url VARCHAR (1000) NOT NULL , 
+     PRODUCTOS_id_producto BIGINT , 
+     CATERIA_id_categoria BIGINT 
+    )
+
+
+ALTER TABLE IMAGEN_URL ADD CONSTRAINT IMAGEN_URL_PK PRIMARY KEY CLUSTERED (id_url)
+     WITH (
+     ALLOW_PAGE_LOCKS = ON , 
+     ALLOW_ROW_LOCKS = ON )
+
+
+CREATE TABLE PRODUCTO_CATERIA 
+    (
+     PRODUCTOS_id_producto BIGINT NOT NULL , 
+     CATERIA_id_categoria BIGINT NOT NULL 
+    )
+
+
+CREATE TABLE PRODUCTOS 
+    (
+     id_producto BIGINT NOT NULL , 
+     nombre VARCHAR (255) NOT NULL , 
+     descripcion VARCHAR (500) , 
+     precio BIGINT NOT NULL , 
+     stock BIGINT NOT NULL , 
+     stockCritico BIGINT NOT NULL , 
+     descuento NUMERIC (3) NOT NULL 
+    )
+
+
+ALTER TABLE PRODUCTOS ADD CONSTRAINT PRODUCTOS_PK PRIMARY KEY CLUSTERED (id_producto)
+     WITH (
+     ALLOW_PAGE_LOCKS = ON , 
+     ALLOW_ROW_LOCKS = ON )
+
+
+CREATE TABLE REGION 
+    (
+     id_region NUMERIC (3) NOT NULL , 
+     nombre_region VARCHAR (255) NOT NULL 
+    )
+
+
+ALTER TABLE REGION ADD CONSTRAINT REGION_PK PRIMARY KEY CLUSTERED (id_region)
+     WITH (
+     ALLOW_PAGE_LOCKS = ON , 
+     ALLOW_ROW_LOCKS = ON )
+
+
+CREATE TABLE TIPO_USUARIO 
+    (
+     id_tipo_usuario BIGINT NOT NULL , 
+     nombre_tipo_usuario VARCHAR (255) NOT NULL 
+    )
+
+
+ALTER TABLE TIPO_USUARIO ADD CONSTRAINT TIPO_USUARIO_PK PRIMARY KEY CLUSTERED (id_tipo_usuario)
+     WITH (
+     ALLOW_PAGE_LOCKS = ON , 
+     ALLOW_ROW_LOCKS = ON )
+
+
+CREATE TABLE USUARIO 
+    (
+     id_usuario BIGINT NOT NULL , 
+     run NUMERIC (9) NOT NULL , 
+     run_dv CHAR (1) NOT NULL , 
+     nombre VARCHAR (255) NOT NULL , 
+     apellidos VARCHAR (255) NOT NULL , 
+     correo VARCHAR (255) NOT NULL , 
+     fecha_nacimiento DATETIME NOT NULL , 
+     direccion VARCHAR (255) NOT NULL , 
+     TIPO_USUARIO_id_tipo_usuario BIGINT NOT NULL , 
+     COMUNA_id_comuna NUMERIC (4) NOT NULL , 
+     telefono NUMERIC (11) NOT NULL , 
+     contrasenia VARCHAR (255) NOT NULL 
+    )
+
+
+ALTER TABLE USUARIO ADD CONSTRAINT USUARIO_PK PRIMARY KEY CLUSTERED (id_usuario)
+     WITH (
+     ALLOW_PAGE_LOCKS = ON , 
+     ALLOW_ROW_LOCKS = ON )
+
+
+ALTER TABLE BLOG 
+    ADD CONSTRAINT BLOG_USUARIO_FK FOREIGN KEY 
+    ( 
+     USUARIO_id_usuario
+    ) 
+    REFERENCES USUARIO 
+    ( 
+     id_usuario 
+    ) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION 
+
+
+ALTER TABLE BOLETA 
+    ADD CONSTRAINT BOLETA_USUARIO_FK FOREIGN KEY 
+    ( 
+     USUARIO_id_usuario
+    ) 
+    REFERENCES USUARIO 
+    ( 
+     id_usuario 
+    ) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION 
+
+
+ALTER TABLE CARRITO 
+    ADD CONSTRAINT CARRITO_USUARIO_FK FOREIGN KEY 
+    ( 
+     USUARIO_id_usuario
+    ) 
+    REFERENCES USUARIO 
+    ( 
+     id_usuario 
+    ) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION 
+
+
+ALTER TABLE COMUNA 
+    ADD CONSTRAINT COMUNA_REGION_FK FOREIGN KEY 
+    ( 
+     REGION_id_region
+    ) 
+    REFERENCES REGION 
+    ( 
+     id_region 
+    ) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION 
+
+
+ALTER TABLE DETALLE_BOLETA 
+    ADD CONSTRAINT DETALLE_BOLETA_BOLETA_FK FOREIGN KEY 
+    ( 
+     BOLETA_id_boleta
+    ) 
+    REFERENCES BOLETA 
+    ( 
+     id_boleta 
+    ) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION 
+
+
+ALTER TABLE DETALLE_CARRITO 
+    ADD CONSTRAINT DETALLE_CARRITO_CARRITO_FK FOREIGN KEY 
+    ( 
+     CARRITO_id_carrito
+    ) 
+    REFERENCES CARRITO 
+    ( 
+     id_carrito 
+    ) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION 
+
+
+ALTER TABLE DETALLE_CARRITO 
+    ADD CONSTRAINT DETALLE_CARRITO_PRODUCTOS_FK FOREIGN KEY 
+    ( 
+     PRODUCTOS_id_producto
+    ) 
+    REFERENCES PRODUCTOS 
+    ( 
+     id_producto 
+    ) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION 
+
+
+ALTER TABLE IMAGEN_URL 
+    ADD CONSTRAINT IMAGEN_URL_CATERIA_FK FOREIGN KEY 
+    ( 
+     CATERIA_id_categoria
+    ) 
+    REFERENCES CATERIA 
+    ( 
+     id_categoria 
+    ) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION 
+
+
+ALTER TABLE IMAGEN_URL 
+    ADD CONSTRAINT IMAGEN_URL_PRODUCTOS_FK FOREIGN KEY 
+    ( 
+     PRODUCTOS_id_producto
+    ) 
+    REFERENCES PRODUCTOS 
+    ( 
+     id_producto 
+    ) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION 
+
+
+ALTER TABLE PRODUCTO_CATERIA 
+    ADD CONSTRAINT PRODUCTO_CATERIA_CATERIA_FK FOREIGN KEY 
+    ( 
+     CATERIA_id_categoria
+    ) 
+    REFERENCES CATERIA 
+    ( 
+     id_categoria 
+    ) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION 
+
+
+ALTER TABLE PRODUCTO_CATERIA 
+    ADD CONSTRAINT PRODUCTO_CATERIA_PRODUCTOS_FK FOREIGN KEY 
+    ( 
+     PRODUCTOS_id_producto
+    ) 
+    REFERENCES PRODUCTOS 
+    ( 
+     id_producto 
+    ) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION 
+
+
+ALTER TABLE USUARIO 
+    ADD CONSTRAINT USUARIO_COMUNA_FK FOREIGN KEY 
+    ( 
+     COMUNA_id_comuna
+    ) 
+    REFERENCES COMUNA 
+    ( 
+     id_comuna 
+    ) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION 
+
+
+ALTER TABLE USUARIO 
+    ADD CONSTRAINT USUARIO_TIPO_USUARIO_FK FOREIGN KEY 
+    ( 
+     TIPO_USUARIO_id_tipo_usuario
+    ) 
+    REFERENCES TIPO_USUARIO 
+    ( 
+     id_tipo_usuario 
+    ) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION 
