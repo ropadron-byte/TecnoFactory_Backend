@@ -1,16 +1,18 @@
 spring:
+
   datasource:
-    url: ${DB_URL}              # sin valor por defecto: si falta, la app no arranca
+    url: ${DB_URL} # sin valor por defecto: si falta, la app no arranca
     username: ${DB_USER}
     password: ${DB_PASSWORD}
+
+  flyway:
+    user: ${FLYWAY_USER} # Flyway crea las tablas
+    password: ${FLYWAY_PASSWORD}
 
   jpa:
     hibernate:
       ddl-auto: validate        # solo comprueba; nunca modifica la base
     show-sql: false             # no imprime consultas
-
-  flyway:
-    enabled: true               # Flyway crea las tablas
 
   cache:
     type: none                  # hoy none porque aún no existe Redis; luego "redis"

@@ -1027,3 +1027,305 @@ La regla práctica: **creas un archivo nuevo solo cuando el anterior ya se aplic
 Aunque V1 y V2 se apliquen el mismo día, conviene tenerlos en archivos distintos: el esquema es la parte estable, y los datos iniciales suelen cambiar más. Así un cambio en los datos no obliga a tocar el archivo de las tablas.
 
 Para esta semana, tu trabajo se reduce a una cosa: escribir **un solo `V1__crear_tablas_base.sql`** con tu diseño. Pásamelo cuando lo tengas y lo reviso.
+
+
+Se puede, y es la forma correcta de hacerlo. Son tres cambios: crear los usuarios en MySQL, pasarle las claves al contenedor y decirle a Spring cuál usar para cada cosa.
+
+## Los tres usuarios que tendrás
+
+| Usuario | Para qué | Permisos |
+| --- | --- | --- |
+| `root` | Solo administración manual (tú) | Todos. La aplicación **nunca** lo usa |
+| `tecnofactory_migrator` | Solo lo usa Flyway | Todos, **sobre `tecnofactory`** (crear y modificar tablas) |
+| `tecnofactory_app` | Lo usa la API en su día a día | Solo `SELECT, INSERT, UPDATE, DELETE` |
+
+## Paso 1: variables en el `.env`
+
+```env
+DB_PASSWORD=clave_de_root
+MIGRATOR_PASSWORD=clave_del_migrator
+APP_DB_PASSWORD=clave_del_app
+JWT_SECRET=...
+```
+
+Usa tres claves **distintas**.
+
+## Paso 2: `docker-compose.yml`, servicio `db`
+
+```yaml
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: tecnofactory
+      MYSQL_USER: tecnofactory_migrator
+      MYSQL_PASSWORD: ${MIGRATOR_PASSWORD}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql-init:/docker-entrypoint-initdb.d:ro
+```
+
+| Línea | Qué hace |
+| --- | --- |
+| `MYSQL_USER` / `MYSQL_PASSWORD` | MySQL crea este usuario automáticamente con **todos los permisos sobre `tecnofactory`**: sirve de migrator |
+| `APP_DB_PASSWORD` | Pasa la clave del usuario limitado al contenedor, para que el script la lea |
+| `./docker/mysql-init:/docker-entrypoint-initdb.d:ro` | MySQL ejecuta automáticamente todo lo que haya en esa carpeta la **primera vez** que crea la base. `:ro` la monta como solo lectura |
+
+## Paso 3: el script que crea el usuario limitado
+
+Crea `docker/mysql-init/01-crear-usuario-app.sh`:
+
+```bash
+#!/bin/bash
+mysql -uroot -p"$MYSQL_ROOT_PASSWORD" <<EOF
+CREATE USER 'tecnofactory_app'@'%' IDENTIFIED BY '${APP_DB_PASSWORD}';
+GRANT SELECT, INSERT, UPDATE, DELETE ON tecnofactory.* TO 'tecnofactory_app'@'%';
+FLUSH PRIVILEGES;
+EOF
+```
+
+| Línea | Qué hace |
+| --- | --- |
+| `mysql -uroot -p"$MYSQL_ROOT_PASSWORD"` | Entra como root, usando la clave que ya existe en el contenedor |
+| `CREATE USER ... IDENTIFIED BY` | Crea el usuario con su clave |
+| `GRANT SELECT, INSERT, UPDATE, DELETE ON tecnofactory.*` | Le da solo esos 4 permisos, sobre todas las tablas de `tecnofactory`, incluidas las que Flyway cree después |
+| `FLUSH PRIVILEGES` | Aplica los cambios |
+
+Dale permiso de ejecución: `chmod +x docker/mysql-init/01-crear-usuario-app.sh`
+
+## Paso 4: `application-prod.yaml`
+
+```yaml
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  flyway:
+    user: ${FLYWAY_USER}
+    password: ${FLYWAY_PASSWORD}
+```
+
+La aplicación usa `spring.datasource.*` y Flyway usa `spring.flyway.*`. Si no defines las de Flyway, usa las del datasource, por eso hay que definirlas aparte.
+
+En el servicio `backend` del compose, pasa los valores:
+
+```yaml
+      DB_USER: tecnofactory_app
+      DB_PASSWORD: ${APP_DB_PASSWORD}
+      FLYWAY_USER: tecnofactory_migrator
+      FLYWAY_PASSWORD: ${MIGRATOR_PASSWORD}
+```
+
+## Dos advertencias
+
+- **Los scripts de `initdb.d` solo corren al crear el volumen por primera vez.** Como ya tienes uno, para probarlo en desarrollo debes hacer `docker compose down -v` y `up -d`. En un volumen existente, tendrías que ejecutar el `CREATE USER` y el `GRANT` a mano.
+- Esto es para **prod**. En `local` puedes seguir con `root` para no complicarte, o aplicar lo mismo si quieres que ambos entornos se comporten igual (y detectar tempranamente cualquier permiso que falte).
+
+Cómo comprobar que funciona:
+
+```bash
+docker exec -it tecnofactory-db mysql -utecnofactory_app -p tecnofactory
+```
+
+Dentro, un `SELECT` debe funcionar y un `DROP TABLE producto;` debe dar error de permisos.
+
+
+## 1. Generar contraseñas
+
+```bash
+openssl rand -hex 32
+```
+
+Te entrega 64 caracteres aleatorios. Ejecútalo una vez por cada clave (`DB_PASSWORD`, `MIGRATOR_PASSWORD`, `APP_DB_PASSWORD`, `JWT_SECRET`) y pega cada resultado en el `.env`.
+
+Usa `-hex` y no `-base64`: genera solo letras y números. Los símbolos como `$`, `#`, `'` o `@` dan problemas en `.env`, en Docker Compose y en el script de arriba.
+
+## 2. Otras formas de crear el usuario limitado
+
+| Forma | Ventaja | Desventaja |
+| --- | --- | --- |
+| **Ejecutarlo a mano una vez** | Funciona con tu volumen actual, sin `down -v` ni archivos extra | Es un paso manual que hay que recordar |
+| Script `.sh` en `initdb.d` (el anterior) | Es automático y reproducible en cualquier servidor nuevo | Solo corre al crear el volumen |
+| Archivo `.sql` en `initdb.d` | Más corto | No lee variables, así que la clave quedaría escrita en el archivo |
+| Migración de Flyway | Todo queda en un solo lugar | La clave quedaría en el repositorio y el migrator necesitaría permiso de crear usuarios |
+
+Te recomiendo la primera para empezar. Entras al MySQL del contenedor:
+
+```bash
+docker exec -it tecnofactory-db mysql -uroot -p
+```
+
+Te pide la clave de root. Dentro, pegas esto (cambiando la clave):
+
+```sql
+CREATE USER 'tecnofactory_app'@'%' IDENTIFIED BY 'pega_aqui_la_clave';
+GRANT SELECT, INSERT, UPDATE, DELETE ON tecnofactory.* TO 'tecnofactory_app'@'%';
+FLUSH PRIVILEGES;
+```
+
+Al hacerlo dentro del cliente interactivo, la clave no queda guardada en el historial de la terminal. El script `.sh` queda como mejora para cuando despliegues en un servidor nuevo.
+
+## 3. Bloque `backend` listo para pegar
+
+Va dentro de `services:`, con 2 espacios de sangría, al mismo nivel que `db:`:
+
+```yaml
+  backend:
+    build: .
+    container_name: tecnofactory-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:mysql://db:3306/tecnofactory
+      DB_USER: tecnofactory_app
+      DB_PASSWORD: ${APP_DB_PASSWORD}
+      FLYWAY_USER: tecnofactory_migrator
+      FLYWAY_PASSWORD: ${MIGRATOR_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+```
+
+Lo nuevo respecto a tu bloque:
+
+| Línea | Qué hace |
+| --- | --- |
+| `depends_on` con `service_healthy` | El backend espera a que MySQL esté listo, usando el healthcheck que ya tienes |
+| `ports: "8080:8080"` | Hace accesible la API desde tu máquina |
+| `restart: unless-stopped` | Lo reinicia si se cae |
+| `DB_USER` / `DB_PASSWORD` | Ahora usan el usuario limitado en vez de `root` |
+| `FLYWAY_USER` / `FLYWAY_PASSWORD` | El usuario con permisos de estructura, solo para las migraciones |
+
+Déjalo comentado o no hagas `docker compose up` con él hasta que tengas listos el `Dockerfile`, el `V1` con tus tablas y el `SecurityConfig`. Sin eso, el backend no arrancará en `prod`.
+
+No pasó nada grave, pero pegaste en la terminal el **contenido** del archivo, y eso no es un comando para tu máquina. Por eso salieron los dos errores:
+
+| Error | Qué significa |
+| --- | --- |
+| `No se ha encontrado la orden «mysql»` | Tu computador no tiene el cliente de MySQL, y no lo necesita. Ese comando está pensado para correr **dentro del contenedor**, no en tu máquina |
+| `SCRIPT: no se encontró la orden` | `SCRIPT` es la palabra que cierra el bloque. Solo funciona si pegas desde la primera línea (`cat > ... <<'SCRIPT'`), y esa línea no llegó a ejecutarse |
+
+**No instales `mysql-client-core-8.0`**, no te hace falta.
+
+## Cómo hacerlo bien
+
+**1. Vuelve a la raíz del proyecto** (estás dentro de `docker/mysql-init`):
+
+```bash
+cd ~/Escritorio/Proyectos/TecnoFactory
+```
+
+**2. Pega el bloque completo de una vez**, desde `cat` hasta `SCRIPT` inclusive:
+
+```bash
+mkdir -p docker/mysql-init
+cat > docker/mysql-init/01-crear-usuario-app.sh <<'SCRIPT'
+#!/bin/bash
+mysql -uroot -p"$MYSQL_ROOT_PASSWORD" <<EOF
+CREATE USER 'tecnofactory_app'@'%' IDENTIFIED BY '${APP_DB_PASSWORD}';
+GRANT SELECT, INSERT, UPDATE, DELETE ON tecnofactory.* TO 'tecnofactory_app'@'%';
+FLUSH PRIVILEGES;
+EOF
+SCRIPT
+```
+
+Aquí `cat` escribe todo lo que está entre esas dos líneas dentro del archivo, sin ejecutarlo.
+
+**3. Dale permiso de ejecución y comprueba el resultado:**
+
+```bash
+chmod +x docker/mysql-init/01-crear-usuario-app.sh
+cat docker/mysql-init/01-crear-usuario-app.sh
+```
+
+El segundo comando te muestra el contenido del archivo: debe verse igual que el script, sin la línea `SCRIPT` ni la línea del `cat`.
+
+## Alternativa sin terminal
+
+Puedes crear el archivo desde IntelliJ: clic derecho sobre `docker/mysql-init`, *New → File*, nombre `01-crear-usuario-app.sh`, y pega solo el contenido (desde `#!/bin/bash` hasta el último `EOF`). Luego ejecuta el `chmod +x` del paso 3.
+
+Después de eso, sigue en el Paso 3 de la guía anterior (el compose).
+
+
+Revisé los dos archivos. El script está bien, pero al compose le falta una línea importante.
+
+## Qué falta: `MYSQL_ROOT_PASSWORD`
+
+En `environment` borraste la clave de root. Sin ella, MySQL no arranca (se queja de que no hay contraseña definida), y además tu healthcheck usa `${DB_PASSWORD}`, que es esa misma clave. Agrega la línea al principio:
+
+```yaml
+    environment:
+        MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+        MYSQL_DATABASE: tecnofactory
+        MYSQL_USER: tecnofactory_migrator
+        MYSQL_PASSWORD: ${MIGRATOR_PASSWORD}
+        APP_DB_PASSWORD: ${APP_DB_PASSWORD}
+        TZ: America/Santiago
+```
+
+Tus 8 espacios de sangría funcionan (YAML acepta cualquiera, mientras sea coherente en el bloque), aunque el resto del archivo usa 4.
+
+## Lo que está bien
+
+| Archivo | Revisión |
+| --- | --- |
+| `01-crear-usuario-app.sh` | Correcto: crea el usuario y le da solo los 4 permisos |
+| Volumen de `initdb.d` | Correcto |
+| `command`, `healthcheck`, `ports` | Correctos |
+| Bloque `backend` comentado | Correcto, déjalo así hasta tener el `Dockerfile` |
+
+## Siguiente paso
+
+Con ese arreglo, completa el `.env` y prueba desde cero:
+
+```bash
+chmod +x docker/mysql-init/01-crear-usuario-app.sh
+docker compose down -v
+docker compose up -d
+docker compose ps
+```
+
+El `chmod` es por si el archivo se guardó sin permiso de ejecución al subirlo o editarlo (si ya lo tiene, no hace daño). Espera a que `ps` muestre `healthy` y luego comprueba con el usuario limitado:
+
+```bash
+docker exec -it tecnofactory-db mysql -utecnofactory_app -p tecnofactory
+```
+
+Si entra con la clave `APP_DB_PASSWORD`, todo quedó bien.
+
+
+Todo salió como debía:
+
+| Comprobación | Resultado |
+| --- | --- |
+| Contenedor `healthy` | Correcto |
+| El script `01-crear-usuario-app.sh` se ejecutó | Correcto, aparece `running ... 01-crear-usuario-app.sh` en los logs |
+| `tecnofactory_app` **no** puede crear tablas | Correcto, es lo que querías |
+| `tecnofactory_migrator` **sí** puede crear y borrar tablas | Correcto (el `CREATE`/`DROP` que pegaste) |
+
+Con esto tu base queda como en producción: un usuario para la estructura (Flyway) y otro con permisos mínimos para la API, creados automáticamente al levantar Docker.
+
+## Antes de ejecutar la aplicación en `local`
+
+Recuerda que `application-local.yaml` usa `DB_USER` y `DB_PASSWORD` de tu terminal. Mientras desarrollas, puedes seguir con `root` para no complicarte:
+
+```bash
+set -a
+source .env
+set +a
+DB_USER=root SPRING_PROFILES_ACTIVE=local ./mvnw spring-boot:run
+```
+
+(`DB_PASSWORD` ya es la clave de root, porque la cargó el `source .env`.) Si ya tienes `DB_URL`, déjalo como `jdbc:mysql://localhost:3306/tecnofactory`.
+
+## Lo que sigue
+
+1. Terminar tu diseño en Data Modeler y adaptar el script a MySQL.
+2. Pegarlo en `V1__crear_tablas_base.sql`.
+3. En `application-local.yaml`, cambiar `ddl-auto` a `validate` y `flyway.enabled` a `true`.
+4. Arrancar la aplicación y comprobar que Flyway crea las tablas.
+
+Cuando tengas el script de V1 adaptado, pásamelo y lo reviso antes de arrancar. Del exportado que me enviaste, ya vi algunos puntos que corregir (por ejemplo, tablas sin clave primaria y los id sin `AUTO_INCREMENT`), así que puedo ir directo a eso.

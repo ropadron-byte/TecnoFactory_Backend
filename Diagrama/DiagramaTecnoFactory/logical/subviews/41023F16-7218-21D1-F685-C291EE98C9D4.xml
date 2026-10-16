@@ -42,21 +42,6 @@
 <hideElementsInCurrentOnly>false</hideElementsInCurrentOnly>
 <bounds x="246" y="329" width="255" height="278"/>
 </OView>
-<OView class="oracle.dbtools.crest.swingui.TVNote" oid="7567D389-9F74-0630-2CAA-6EF107D60527" otype="Note" vid="8F067ED7-C2F6-A71D-C465-57000C2B4A13">
-<hideElementsInCurrentOnly>false</hideElementsInCurrentOnly>
-<bounds x="1167" y="232" width="151" height="170"/>
-<comment>  run: &apos;&apos;,
-  nombre: &apos;&apos;,
-  apellidos: &apos;&apos;,
-  correo: &apos;&apos;,
-  contrasena: &apos;&apos;,
-  confirmar: &apos;&apos;,
-  telefono: &apos;&apos;,
-  fecha_nacimiento: &apos;&apos;,
-  region: &apos;&apos;,
-  comuna: &apos;&apos;,
-  direccion: &apos;&apos;,</comment>
-</OView>
 <OView class="oracle.dbtools.crest.swingui.logical.TVEntity" oid="977EBB8E-BFA5-6A12-E2B8-3B9214EDFB5D" otype="Entity" vid="A59660B8-DA0C-EB43-41FE-873E04BAB472">
 <hideElementsInCurrentOnly>false</hideElementsInCurrentOnly>
 <bounds x="29" y="404" width="170" height="111"/>
