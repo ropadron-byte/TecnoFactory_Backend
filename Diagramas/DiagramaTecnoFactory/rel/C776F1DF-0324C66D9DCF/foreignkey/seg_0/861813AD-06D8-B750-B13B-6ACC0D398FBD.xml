@@ -1,0 +1,17 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<FKIndexAssociation class="oracle.dbtools.crest.model.design.relational.FKIndexAssociation" directorySegmentName="seg_0" id="861813AD-06D8-B750-B13B-6ACC0D398FBD" containerWithKeyObject="3E8E7063-7641-CE40-A8D8-1C05CF8F1546" localFKIndex="8857BA2E-0E2F-DCFD-A062-A37AE6B35808" name="Relation_4_URL_FK">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 02:33:28 UTC</createdTime>
+<generatorID>9C413906-E1F7-2E16-0967-03B33A0C4C26</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<referredTableLongName>URL</referredTableLongName>
+<deleteRule>NO ACTION</deleteRule>
+<referredTableID>8BA71D4A-CE27-A383-32CE-B7EC51B59261</referredTableID>
+<keyObject>467A80ED-1C47-A4A7-2894-8F5E94F4C602</keyObject>
+<referredKeyID>467A80ED-1C47-A4A7-2894-8F5E94F4C602</referredKeyID>
+<mandatory>true</mandatory>
+<refColNames>id_url</refColNames>
+<transferable>true</transferable>
+<rely>false</rely>
+<columnDependencyConstraintGenerateInDDL>true</columnDependencyConstraintGenerateInDDL>
+</FKIndexAssociation>

@@ -1,0 +1,19 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Relation class="oracle.dbtools.crest.model.design.logical.Relation" name="fk_categoria_producto_categoria" directorySegmentName="seg_0" id="2DDAF4FC-3B44-401C-FABF-D523BACCC1B0">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 02:45:22 UTC</createdTime>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<engineerTo>
+<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="true"/>
+</engineerTo>
+<sourcePk>2E605093-1B2C-E4BC-FABB-D94D2899EC2F</sourcePk>
+<identifying>false</identifying>
+<optionalSource>true</optionalSource>
+<optionalTarget>false</optionalTarget>
+<sourceCardinality>1</sourceCardinality>
+<sourceEntity>065FAAFB-010A-648E-6BA1-C2C965635BA6</sourceEntity>
+<targetCardinalityString>*</targetCardinalityString>
+<targetEntity>29E86D4B-0D8B-8BBD-668D-93975F1CD75A</targetEntity>
+<transferable>true</transferable>
+<deleteRule>NO ACTION</deleteRule>
+</Relation>
