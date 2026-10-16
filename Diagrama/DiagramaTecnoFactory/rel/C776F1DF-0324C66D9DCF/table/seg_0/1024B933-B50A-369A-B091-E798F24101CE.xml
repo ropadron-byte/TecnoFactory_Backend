@@ -1,28 +1,29 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
-<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="EAE64B66-D41A-F8D4-FF86-3CC478478E17" name="TIPO_USUARIO">
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="1024B933-B50A-369A-B091-E798F24101CE" name="REGION">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
-<generatorID>AD13BF64-C51F-33EF-1EC7-19F2410F1BAF</generatorID>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
+<generatorID>6CEBE766-4C78-63A5-9C08-74F1629DB66A</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <allowColumnReorder>false</allowColumnReorder>
 <existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
 <parsed>true</parsed>
 <columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
-<Column name="id_tipo_usuario" id="67490517-78D6-AFE0-F88A-918A66E273EC">
+<Column name="id_region" id="989398AB-B87A-C821-9F96-FE4D70C9CC85">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
-<generatorID>7C5402D9-7D0F-DA9A-511C-52637EBB0340</generatorID>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
+<generatorID>9CE26D8B-D4DB-19D1-6AF1-0BAE2119168B</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
 <use>1</use>
-<logicalDatatype>LOGDT027</logicalDatatype>
-<ownDataTypeParameters>,,</ownDataTypeParameters>
+<logicalDatatype>LOGDT019</logicalDatatype>
+<dataTypePrecision>3</dataTypePrecision>
+<ownDataTypeParameters>,3,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
-<Column name="nombre_tipo_usuario" id="AA4D1634-ACA9-D0DB-32CB-BF362CCE590B">
+<Column name="nombre_region" id="729D377B-B654-1AAD-7CEB-6E7378FE2BB5">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
-<generatorID>28CAE4DB-7A71-FEDF-DE19-170E864FFB57</generatorID>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
+<generatorID>2FD5C1F3-F6D5-44CC-9E5F-8E08E1DEA31A</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
 <use>1</use>
@@ -33,16 +34,16 @@
 </Column>
 </columns>
 <indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
-<ind_PK_UK id="479284D0-92C1-33DD-4854-C10729D070B1" name="TIPO_USUARIO_PK">
+<ind_PK_UK id="DFC461FB-CDF0-B880-AA68-C8F5A0436E24" name="REGION_PK">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
-<generatorID>691A0E14-255E-85F9-1DB2-BF536C0F5740</generatorID>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
+<generatorID>4203A708-1573-B67D-E2D3-8A9503743021</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <pk>true</pk>
 <indexState>Primary Constraint</indexState>
 <isSurrogateKey>false</isSurrogateKey>
 <indexColumnUsage>
-<colUsage columnID="67490517-78D6-AFE0-F88A-918A66E273EC"/>
+<colUsage columnID="989398AB-B87A-C821-9F96-FE4D70C9CC85"/>
 </indexColumnUsage>
 </ind_PK_UK>
 </indexes>

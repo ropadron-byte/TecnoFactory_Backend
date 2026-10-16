@@ -1,16 +1,16 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
-<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="CCBAE8C8-E6C8-1055-472D-F4C67F257212" name="PRODUCTO_CATEGORIA">
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="C8935306-E164-FBC9-3F4F-75BA00D63C9E" name="PRODUCTO_CATEGORIA">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>29E86D4B-0D8B-8BBD-668D-93975F1CD75A</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <allowColumnReorder>false</allowColumnReorder>
 <existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
 <parsed>true</parsed>
 <columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
-<Column name="PRODUCTOS_id_producto" id="40A12C04-6F77-C50A-4CB1-13D062F503E7">
+<Column name="PRODUCTOS_id_producto" id="1AFB31D3-8F3F-7D39-8483-7569FBE33A60">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>987D6E63-893D-7AEB-88C0-5BA99BD0CF00</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -20,12 +20,12 @@
 <previousColumn>false</previousColumn>
 <autoIncrementCycle>false</autoIncrementCycle>
 <associations>
-<colAssociation fkAssociation="3A9C6944-5355-F44C-9B65-978E214E0AF3" referredColumn="56AADF41-C594-C0E6-8C37-777C423CEE12"/>
+<colAssociation fkAssociation="28616656-9EEC-0E6E-35F2-C8DD6ADA7879" referredColumn="C9329179-AF67-AD6E-B7A9-BBA6745884A4"/>
 </associations>
 </Column>
-<Column name="CATEGORIA_id_categoria" id="CFD1E1E7-88F6-E8D8-8968-6A89918415E2">
+<Column name="CATEGORIA_id_categoria" id="59BDF174-1BA6-61F3-3DFB-4869F0F155DC">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>200AA421-0996-F6FF-3145-EAD6B0ECABE0</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -35,31 +35,31 @@
 <previousColumn>false</previousColumn>
 <autoIncrementCycle>false</autoIncrementCycle>
 <associations>
-<colAssociation fkAssociation="91655C9D-9471-0000-125B-FC59525646EB" referredColumn="658B5E1E-8248-3558-004B-9D29C1F95D9B"/>
+<colAssociation fkAssociation="6054BB46-5693-D8A3-6669-6FCA270A2419" referredColumn="E7B2D712-5AF4-D7A7-111B-C2D8E0310C79"/>
 </associations>
 </Column>
 </columns>
 <indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
-<ind_PK_UK id="4A29348A-9D46-B225-D15D-1EFD2ED59F04" name="PRODUCTO_CATEGORIA_CATEGORIA_FK">
+<ind_PK_UK id="6E350796-3E73-CB93-E8ED-DC528468C215" name="PRODUCTO_CATEGORIA_CATEGORIA_FK">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>2DDAF4FC-3B44-401C-FABF-D523BACCC1B0</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <indexState>Foreign Key</indexState>
 <isSurrogateKey>false</isSurrogateKey>
 <indexColumnUsage>
-<colUsage columnID="CFD1E1E7-88F6-E8D8-8968-6A89918415E2"/>
+<colUsage columnID="59BDF174-1BA6-61F3-3DFB-4869F0F155DC"/>
 </indexColumnUsage>
 </ind_PK_UK>
-<ind_PK_UK id="53D89CAF-4D9F-0B86-F933-07A2186A5638" name="PRODUCTO_CATEGORIA_PRODUCTOS_FK">
+<ind_PK_UK id="25C0FE3F-1B0D-CE66-ADD7-0274DAB94DC7" name="PRODUCTO_CATEGORIA_PRODUCTOS_FK">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>84D32BBD-C4A0-F53B-FCD0-BACCDFB7C8FF</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <indexState>Foreign Key</indexState>
 <isSurrogateKey>false</isSurrogateKey>
 <indexColumnUsage>
-<colUsage columnID="40A12C04-6F77-C50A-4CB1-13D062F503E7"/>
+<colUsage columnID="1AFB31D3-8F3F-7D39-8483-7569FBE33A60"/>
 </indexColumnUsage>
 </ind_PK_UK>
 </indexes>

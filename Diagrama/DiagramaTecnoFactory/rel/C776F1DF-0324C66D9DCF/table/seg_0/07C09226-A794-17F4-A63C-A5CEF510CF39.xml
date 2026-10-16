@@ -1,16 +1,16 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
-<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="4E4B13FD-5CCD-DFA7-F54F-6053501DBF32" name="BLOG">
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="07C09226-A794-17F4-A63C-A5CEF510CF39" name="BLOG">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>C691E31C-5A60-0B27-5BF4-2E84D8F075FA</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <allowColumnReorder>false</allowColumnReorder>
 <existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
 <parsed>true</parsed>
 <columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
-<Column name="id_blog" id="306A4D84-136E-ADE0-48DF-6988EFFB74F6">
+<Column name="id_blog" id="3DDA49EC-70EA-8F1D-EEC0-93254A5572FD">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>FDD63867-719E-E190-7E3D-39E35F4B6E76</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -20,9 +20,9 @@
 <ownDataTypeParameters>255,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
-<Column name="USUARIO_id_usuario" id="24D91D31-A5CC-CB1A-3886-65C02BA6B6D8">
+<Column name="USUARIO_id_usuario" id="0BA611DD-A6B1-9465-4D4C-6E7B6D382003">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>EE0DE24F-1344-26BD-758A-721ECAB7C6DD</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -32,12 +32,12 @@
 <previousColumn>false</previousColumn>
 <autoIncrementCycle>false</autoIncrementCycle>
 <associations>
-<colAssociation fkAssociation="86BCB67F-5CF2-0453-7080-F7E5EDC2FDE1" referredColumn="B3B3B3E0-65C1-E59C-CE9C-EB3756826EB3"/>
+<colAssociation fkAssociation="94522968-5571-A5C2-401F-FD3FBC52BDDB" referredColumn="E5DA0B42-1DE0-40FC-7560-24B9FE8AD8FA"/>
 </associations>
 </Column>
-<Column name="titulo" id="67AEF2FF-1E66-9C20-DD4F-B7D0C8F87656">
+<Column name="titulo" id="3A91D41E-0277-A5EB-5665-6A07BD709876">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>61FBF100-C9AC-E2B2-7C8A-D238A6329A6D</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -47,9 +47,9 @@
 <ownDataTypeParameters>255,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
-<Column name="contenido" id="14DF0071-6C1B-8D8F-62CE-64262AB07BDA">
+<Column name="contenido" id="8E6C95B4-FEC9-9914-4D41-86C9976D3066">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>AF2EFAF7-9D38-60AB-0671-B754BE539703</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -58,29 +58,41 @@
 <ownDataTypeParameters>,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
+<Column name="visible" id="1C26A55B-3A21-F7CF-78FB-E3777376B635">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
+<generatorID>B8C3D2C2-9176-C614-5108-66661CB4F939</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT006</logicalDatatype>
+<dataTypeSize>1</dataTypeSize>
+<ownDataTypeParameters>1,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
 </columns>
 <indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
-<ind_PK_UK id="D08E5EF5-FE1C-D76E-E00C-52AB923F936A" name="BLOG_PK">
+<ind_PK_UK id="CE1F8513-5795-2ECC-0F03-11C35BEBEC9E" name="BLOG_PK">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>916D342E-D29E-0DEC-6515-325059594A5E</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <pk>true</pk>
 <indexState>Primary Constraint</indexState>
 <isSurrogateKey>false</isSurrogateKey>
 <indexColumnUsage>
-<colUsage columnID="306A4D84-136E-ADE0-48DF-6988EFFB74F6"/>
+<colUsage columnID="3DDA49EC-70EA-8F1D-EEC0-93254A5572FD"/>
 </indexColumnUsage>
 </ind_PK_UK>
-<ind_PK_UK id="9DFAB27A-76D5-03AD-C6B1-C0A6E77043A3" name="BLOG_USUARIO_FK">
+<ind_PK_UK id="E7B48F87-5423-55F8-DC88-87397C15C702" name="BLOG_USUARIO_FK">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>EDE32093-C8F7-9185-6BC3-72391203872F</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <indexState>Foreign Key</indexState>
 <isSurrogateKey>false</isSurrogateKey>
 <indexColumnUsage>
-<colUsage columnID="24D91D31-A5CC-CB1A-3886-65C02BA6B6D8"/>
+<colUsage columnID="0BA611DD-A6B1-9465-4D4C-6E7B6D382003"/>
 </indexColumnUsage>
 </ind_PK_UK>
 </indexes>

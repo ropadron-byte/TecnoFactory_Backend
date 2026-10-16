@@ -1,16 +1,16 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
-<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="236E5AF1-CEAC-B5E8-564A-8B9FBC0E8091" name="CATEGORIA">
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="4131ED07-15CA-E3B8-EEDC-87C96A4F68BF" name="CATEGORIA">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>065FAAFB-010A-648E-6BA1-C2C965635BA6</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <allowColumnReorder>false</allowColumnReorder>
 <existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
 <parsed>true</parsed>
 <columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
-<Column name="id_categoria" id="658B5E1E-8248-3558-004B-9D29C1F95D9B">
+<Column name="id_categoria" id="E7B2D712-5AF4-D7A7-111B-C2D8E0310C79">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>4C8FF0CB-F96E-0247-45B0-35CB2E2133FB</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -19,9 +19,9 @@
 <ownDataTypeParameters>,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
-<Column name="nombre_categoria" id="BF9B2B76-84F4-357C-760C-1A970F994E7D">
+<Column name="nombre_categoria" id="D1515359-34C8-8317-9A1F-A414C0A56729">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>27562C36-6F8B-E377-45F6-EF7372FFA5AC</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -31,9 +31,9 @@
 <ownDataTypeParameters>255,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
-<Column name="descripcion_categoria" id="AAD1BF82-84D0-1D2E-27E4-50CD575687F5">
+<Column name="descripcion_categoria" id="19ADE657-65B7-B54C-EFCA-7DBC81F15A72">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>57712FD3-84D3-9357-6EB6-68ABBF4D1416</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -45,16 +45,16 @@
 </Column>
 </columns>
 <indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
-<ind_PK_UK id="EA9CFC03-DC94-A3BF-C62B-5550921EA72E" name="CATEGORIA_PK">
+<ind_PK_UK id="145572BB-9550-23F5-C873-91D4A139EFDC" name="CATEGORIA_PK">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>2E605093-1B2C-E4BC-FABB-D94D2899EC2F</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <pk>true</pk>
 <indexState>Primary Constraint</indexState>
 <isSurrogateKey>false</isSurrogateKey>
 <indexColumnUsage>
-<colUsage columnID="658B5E1E-8248-3558-004B-9D29C1F95D9B"/>
+<colUsage columnID="E7B2D712-5AF4-D7A7-111B-C2D8E0310C79"/>
 </indexColumnUsage>
 </ind_PK_UK>
 </indexes>

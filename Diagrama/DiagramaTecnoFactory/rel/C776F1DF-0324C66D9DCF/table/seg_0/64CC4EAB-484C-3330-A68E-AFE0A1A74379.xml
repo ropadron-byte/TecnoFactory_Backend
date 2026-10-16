@@ -1,16 +1,16 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
-<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="7A835565-0FD2-5BEB-2CD8-5D2A2983FF65" name="CARRITO">
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="64CC4EAB-484C-3330-A68E-AFE0A1A74379" name="CARRITO">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>0D67737D-DF0F-9D1C-AEAF-321083E0BE9D</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <allowColumnReorder>false</allowColumnReorder>
 <existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
 <parsed>true</parsed>
 <columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
-<Column name="id_carrito" id="A4B28225-8529-900A-FF87-2085DDD23233">
+<Column name="id_carrito" id="73532BB8-031F-9EE6-37C8-061298B27773">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>03F2553E-4926-7D62-3112-B5EA25F45CA6</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -19,9 +19,9 @@
 <ownDataTypeParameters>,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
-<Column name="USUARIO_id_usuario" id="84673774-6E17-7ECA-DC6E-B540580F0448">
+<Column name="USUARIO_id_usuario" id="1A4882E2-39AB-C2A7-DF75-052560BC75DC">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>F3A05920-91B8-96DF-7B84-44257FD0E7E6</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -31,43 +31,43 @@
 <previousColumn>false</previousColumn>
 <autoIncrementCycle>false</autoIncrementCycle>
 <associations>
-<colAssociation fkAssociation="F2030235-F6F1-636B-5F70-CD49B915D4AE" referredColumn="B3B3B3E0-65C1-E59C-CE9C-EB3756826EB3"/>
+<colAssociation fkAssociation="E58098CE-1975-54FD-3913-8BAAA07FB2BA" referredColumn="E5DA0B42-1DE0-40FC-7560-24B9FE8AD8FA"/>
 </associations>
 </Column>
 </columns>
 <indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
-<ind_PK_UK id="3D1A991E-07F2-22CA-F08C-E5B898FD1C10" name="CARRITO_PK">
+<ind_PK_UK id="810BA7CF-7D34-6C87-BA1F-9722841C3FDE" name="CARRITO_PK">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>47771AA8-344C-468D-F223-24BA94A42A7D</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <pk>true</pk>
 <indexState>Primary Constraint</indexState>
 <isSurrogateKey>false</isSurrogateKey>
 <indexColumnUsage>
-<colUsage columnID="A4B28225-8529-900A-FF87-2085DDD23233"/>
+<colUsage columnID="73532BB8-031F-9EE6-37C8-061298B27773"/>
 </indexColumnUsage>
 </ind_PK_UK>
-<ind_PK_UK id="7C7E1FE2-0FD1-27BC-CBA2-400A6F1F46BA" name="CARRITO__IDX">
+<ind_PK_UK id="12F3CF8C-9A78-DCE6-1EB9-6229D7E540D5" name="CARRITO__IDX">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <indexState>Unique Plain Index</indexState>
 <isSurrogateKey>false</isSurrogateKey>
 <relationGeneratorID>D97A9B5B-6318-520C-40DF-D9022BED0092</relationGeneratorID>
 <indexColumnUsage>
-<colUsage columnID="84673774-6E17-7ECA-DC6E-B540580F0448"/>
+<colUsage columnID="1A4882E2-39AB-C2A7-DF75-052560BC75DC"/>
 </indexColumnUsage>
 </ind_PK_UK>
-<ind_PK_UK id="3AD0BB26-D1FE-F537-C4B2-EB5316A17CA8" name="CARRITO_USUARIO_FK">
+<ind_PK_UK id="BE1C3AFF-112A-1F68-92BB-A73EEB8D4C44" name="CARRITO_USUARIO_FK">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>D97A9B5B-6318-520C-40DF-D9022BED0092</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <indexState>Foreign Key</indexState>
 <isSurrogateKey>false</isSurrogateKey>
 <indexColumnUsage>
-<colUsage columnID="84673774-6E17-7ECA-DC6E-B540580F0448"/>
+<colUsage columnID="1A4882E2-39AB-C2A7-DF75-052560BC75DC"/>
 </indexColumnUsage>
 </ind_PK_UK>
 </indexes>

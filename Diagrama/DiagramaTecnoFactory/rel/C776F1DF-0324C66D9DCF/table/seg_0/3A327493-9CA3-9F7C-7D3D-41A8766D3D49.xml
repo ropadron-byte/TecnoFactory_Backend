@@ -1,16 +1,16 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
-<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="CFAD578E-A0BB-A151-F1BC-11D30F0AECD9" name="COMUNA">
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="3A327493-9CA3-9F7C-7D3D-41A8766D3D49" name="COMUNA">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>3441CE30-26EB-6437-59D8-C63E783D1466</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <allowColumnReorder>false</allowColumnReorder>
 <existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
 <parsed>true</parsed>
 <columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
-<Column name="id_comuna" id="6A380841-7128-DA4A-8DCC-02EF62EC4B25">
+<Column name="id_comuna" id="300CF349-4408-2E0C-B0C1-6971B0686DD8">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>DF49B37F-A21F-768F-9264-6EB0CC9CCD5B</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -20,9 +20,9 @@
 <ownDataTypeParameters>,4,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
-<Column name="nombre_comuna" id="391F515B-91CC-CDF0-9118-131BA59EF1EF">
+<Column name="nombre_comuna" id="08EF3907-8CCF-093B-414D-AC572665EA17">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>667E2155-4786-098F-CD98-94B33D933626</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -32,9 +32,9 @@
 <ownDataTypeParameters>255,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
-<Column name="REGION_id_region" id="2A13EE1A-BEE1-A80A-7109-99051CC270BA">
+<Column name="REGION_id_region" id="345FAC2E-766A-9BCC-A1E3-0ADC6CC7CF26">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>57217E8F-0F22-782B-8E3C-3212F78CC0AE</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -45,32 +45,32 @@
 <previousColumn>false</previousColumn>
 <autoIncrementCycle>false</autoIncrementCycle>
 <associations>
-<colAssociation fkAssociation="88BA4EB8-48BE-0201-2892-FE6B381349F9" referredColumn="C77CFDD8-0BCD-1E60-B5C4-FFFF9E8B8ACB"/>
+<colAssociation fkAssociation="CEF12643-9F0B-0FC4-F3FD-F84278104B53" referredColumn="989398AB-B87A-C821-9F96-FE4D70C9CC85"/>
 </associations>
 </Column>
 </columns>
 <indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
-<ind_PK_UK id="23F7AAD9-89BA-6F34-4E24-0773AAB93B84" name="COMUNA_PK">
+<ind_PK_UK id="C99E9228-5F34-BF44-157C-1E5AF4C386F4" name="COMUNA_PK">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>51A945C7-2E75-4627-2C80-C145ED4BED64</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <pk>true</pk>
 <indexState>Primary Constraint</indexState>
 <isSurrogateKey>false</isSurrogateKey>
 <indexColumnUsage>
-<colUsage columnID="6A380841-7128-DA4A-8DCC-02EF62EC4B25"/>
+<colUsage columnID="300CF349-4408-2E0C-B0C1-6971B0686DD8"/>
 </indexColumnUsage>
 </ind_PK_UK>
-<ind_PK_UK id="30CDCA9B-0CEE-846E-2E27-2A3DF48ED3AD" name="COMUNA_REGION_FK">
+<ind_PK_UK id="5AF275C4-419B-DC14-2E55-28B0FD59891C" name="COMUNA_REGION_FK">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>ADFC95EF-DCFD-C865-2365-166A7785F777</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <indexState>Foreign Key</indexState>
 <isSurrogateKey>false</isSurrogateKey>
 <indexColumnUsage>
-<colUsage columnID="2A13EE1A-BEE1-A80A-7109-99051CC270BA"/>
+<colUsage columnID="345FAC2E-766A-9BCC-A1E3-0ADC6CC7CF26"/>
 </indexColumnUsage>
 </ind_PK_UK>
 </indexes>

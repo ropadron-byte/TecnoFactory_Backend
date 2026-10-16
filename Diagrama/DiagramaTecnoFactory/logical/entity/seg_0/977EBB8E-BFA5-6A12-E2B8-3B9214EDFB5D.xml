@@ -70,6 +70,22 @@
 <logicalDatatype>LOGDT027</logicalDatatype>
 <ownDataTypeParameters>,,</ownDataTypeParameters>
 </Attribute>
+<Attribute name="id_blog" id="F5AF9A0B-9BED-BB91-4DB1-204CBCB94BE7">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 23:17:26 UTC</createdTime>
+<generatorID>91867C5B-6F63-F344-E273-DFFA1C396B0A</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<engineerTo>
+<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="true"/>
+</engineerTo>
+<nullsAllowed>true</nullsAllowed>
+<referedAttribute>FDD63867-719E-E190-7E3D-39E35F4B6E76</referedAttribute>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<dataTypeSize>255</dataTypeSize>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
 </attributes>
 <identifiers itemClass="oracle.dbtools.crest.model.design.logical.CandidateKey">
 <identifier id="23A574CE-4D01-1FB7-D49B-80CF2E8B4EBF" name="URL PK">

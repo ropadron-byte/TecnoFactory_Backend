@@ -1,0 +1,17 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<FKIndexAssociation class="oracle.dbtools.crest.model.design.relational.FKIndexAssociation" directorySegmentName="seg_0" id="5E3A8363-711E-F277-A497-AECFC3F84FA0" containerWithKeyObject="A0840212-CE04-1C45-C96E-F3335EEF881B" localFKIndex="15D5ED50-BC63-FA08-E656-0AD61EFE4729" name="IMAGEN_URL_CATEGORIA_FK">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
+<generatorID>A3A6C8FD-2F73-C0A9-C60A-D2901EDAD2C8</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<referredTableLongName>CATEGORIA</referredTableLongName>
+<deleteRule>NO ACTION</deleteRule>
+<referredTableID>4131ED07-15CA-E3B8-EEDC-87C96A4F68BF</referredTableID>
+<keyObject>145572BB-9550-23F5-C873-91D4A139EFDC</keyObject>
+<referredKeyID>145572BB-9550-23F5-C873-91D4A139EFDC</referredKeyID>
+<mandatory>false</mandatory>
+<refColNames>id_categoria</refColNames>
+<transferable>true</transferable>
+<rely>false</rely>
+<columnDependencyConstraintGenerateInDDL>true</columnDependencyConstraintGenerateInDDL>
+</FKIndexAssociation>

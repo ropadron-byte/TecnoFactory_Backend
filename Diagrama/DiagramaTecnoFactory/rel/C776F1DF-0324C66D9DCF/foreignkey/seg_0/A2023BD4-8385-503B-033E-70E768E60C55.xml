@@ -1,0 +1,17 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<FKIndexAssociation class="oracle.dbtools.crest.model.design.relational.FKIndexAssociation" directorySegmentName="seg_0" id="A2023BD4-8385-503B-033E-70E768E60C55" containerWithKeyObject="2D55D2B0-A9C8-00A0-BA87-A5773A21C372" localFKIndex="2FBE8DEA-6062-85ED-621F-9F504B96B0C5" name="DETALLE_CARRITO_CARRITO_FK">
+<createdBy>roman</createdBy>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
+<generatorID>53770373-118D-006D-822E-FEF83CD0BDD8</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<referredTableLongName>CARRITO</referredTableLongName>
+<deleteRule>NO ACTION</deleteRule>
+<referredTableID>64CC4EAB-484C-3330-A68E-AFE0A1A74379</referredTableID>
+<keyObject>810BA7CF-7D34-6C87-BA1F-9722841C3FDE</keyObject>
+<referredKeyID>810BA7CF-7D34-6C87-BA1F-9722841C3FDE</referredKeyID>
+<mandatory>true</mandatory>
+<refColNames>id_carrito</refColNames>
+<transferable>true</transferable>
+<rely>false</rely>
+<columnDependencyConstraintGenerateInDDL>true</columnDependencyConstraintGenerateInDDL>
+</FKIndexAssociation>

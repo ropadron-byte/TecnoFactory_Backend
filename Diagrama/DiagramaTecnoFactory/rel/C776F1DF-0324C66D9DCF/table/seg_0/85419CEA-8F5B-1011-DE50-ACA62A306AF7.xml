@@ -1,16 +1,16 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
-<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="429C81C5-AF18-0BC9-9E6C-EA12F1BDED28" name="BOLETA">
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="85419CEA-8F5B-1011-DE50-ACA62A306AF7" name="BOLETA">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>A095324D-6FF1-B9CC-3473-7ACF194669D2</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <allowColumnReorder>false</allowColumnReorder>
 <existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
 <parsed>true</parsed>
 <columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
-<Column name="id_boleta" id="1DDD552D-5AA4-75FD-55B9-66C0BD35AC40">
+<Column name="id_boleta" id="283F16A0-1E99-3763-E75C-1FA987CD5F4B">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>BE66F6E8-D136-2FCF-4E60-1EDDBE3C65E4</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -19,9 +19,9 @@
 <ownDataTypeParameters>,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
-<Column name="USUARIO_id_usuario" id="FEB96B1B-C7D6-66C5-2096-605294084B42">
+<Column name="USUARIO_id_usuario" id="4EF9AE07-EA8A-962A-9253-F2568374ECAF">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>8C482BD4-0BBA-9C6F-6B26-6470C5E2A0F8</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -31,12 +31,12 @@
 <previousColumn>false</previousColumn>
 <autoIncrementCycle>false</autoIncrementCycle>
 <associations>
-<colAssociation fkAssociation="B6F75CC8-31BF-46E6-7E54-71EBD356F74F" referredColumn="B3B3B3E0-65C1-E59C-CE9C-EB3756826EB3"/>
+<colAssociation fkAssociation="EC45AC73-AEDE-A350-96FC-1A49406A600B" referredColumn="E5DA0B42-1DE0-40FC-7560-24B9FE8AD8FA"/>
 </associations>
 </Column>
-<Column name="cantidad_productos" id="8F559F7D-7EAA-7089-C5AC-D2CF6E71173E">
+<Column name="cantidad_productos" id="E2BBC909-B0E4-FEA2-4F56-A85B6B9969CD">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>E7DE8746-A2B3-6101-7A63-FCFC21F2B498</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <nullsAllowed>true</nullsAllowed>
@@ -47,9 +47,9 @@
 <ownDataTypeParameters>,8,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
-<Column name="fecha" id="397520A8-B7F0-BC9F-9112-AFDFEA7DE64C">
+<Column name="fecha" id="441172E4-A82A-35CE-7935-5449195502F6">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>D05D4548-2CF5-2D39-8E92-CBFA303A2AAE</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -58,9 +58,9 @@
 <ownDataTypeParameters>,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
-<Column name="total_boleta" id="34DDBE20-B9A8-CF23-F07A-AC574144029A">
+<Column name="total_boleta" id="0424BF11-0150-1DCA-3FC3-6554932FC5A3">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>5FF4BC52-26B2-3E56-3627-8C467C018B3A</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -69,9 +69,9 @@
 <ownDataTypeParameters>,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
-<Column name="estado" id="386F8D7C-652D-467F-5206-6B979415BCB7">
+<Column name="estado" id="DB97E6D6-623D-7F61-6ECB-8DF2C97B0351">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>81DBEC67-1E20-0424-3C11-8C31A65D0212</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <useDomainConstraints>false</useDomainConstraints>
@@ -83,27 +83,27 @@
 </Column>
 </columns>
 <indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
-<ind_PK_UK id="2A7724EC-4717-2160-0EB2-865E30910045" name="BOLETA_PK">
+<ind_PK_UK id="405F185E-BB29-9090-8B1B-FE6F49418F31" name="BOLETA_PK">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>F06D9F23-983F-8F82-CC63-D9B8EB6340B9</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <pk>true</pk>
 <indexState>Primary Constraint</indexState>
 <isSurrogateKey>false</isSurrogateKey>
 <indexColumnUsage>
-<colUsage columnID="1DDD552D-5AA4-75FD-55B9-66C0BD35AC40"/>
+<colUsage columnID="283F16A0-1E99-3763-E75C-1FA987CD5F4B"/>
 </indexColumnUsage>
 </ind_PK_UK>
-<ind_PK_UK id="8CFCAEB4-8518-CA80-10EB-A597CCD84709" name="BOLETA_USUARIO_FK">
+<ind_PK_UK id="56DAD0D7-C232-B87F-FBEF-FBF716D124DC" name="BOLETA_USUARIO_FK">
 <createdBy>roman</createdBy>
-<createdTime>2026-10-16 03:54:10 UTC</createdTime>
+<createdTime>2026-10-16 23:18:33 UTC</createdTime>
 <generatorID>E61E34D4-64F1-2DAA-571B-97707283CD05</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
 <indexState>Foreign Key</indexState>
 <isSurrogateKey>false</isSurrogateKey>
 <indexColumnUsage>
-<colUsage columnID="FEB96B1B-C7D6-66C5-2096-605294084B42"/>
+<colUsage columnID="4EF9AE07-EA8A-962A-9253-F2568374ECAF"/>
 </indexColumnUsage>
 </ind_PK_UK>
 </indexes>
