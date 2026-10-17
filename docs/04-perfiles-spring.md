@@ -45,7 +45,9 @@ Si no defines ningún perfil, corre solo `application.yaml` (perfil `default`): 
 | Caché | `none` | `none` por ahora |
 | Health de Redis y correo | Desactivados | Desactivados |
 
-Por qué en prod los errores no muestran nada: un mensaje de excepción puede revelar nombres de tablas, rutas o versiones. El `GlobalExceptionHandler` (ya escrito, ver [11](11-cambios-recientes.md)) decide qué se muestra al cliente. Ojo: la propiedad `server.error.include-message: never` solo afecta a la respuesta de error **por defecto** de Spring. Las respuestas del handler propio llevan el `mensaje` que tú escribas, por eso las excepciones propias (`RecursoNoEncontradoException`, `ReglaNegocioException`) deben tener mensajes pensados para el usuario, y el error 500 devuelve siempre un texto genérico.
+Detalle de niveles, dónde ver el log y cómo guardarlo en un archivo: [12](12-logs.md).
+
+Por qué en prod los errores no muestran nada: un mensaje de excepción puede revelar nombres de tablas, rutas o versiones. El `GlobalExceptionHandler` (ya escrito, ver [Cambios recientes](cambios-recientes.md)) decide qué se muestra al cliente. Ojo: la propiedad `server.error.include-message: never` solo afecta a la respuesta de error **por defecto** de Spring. Las respuestas del handler propio llevan el `mensaje` que tú escribas, por eso las excepciones propias (`RecursoNoEncontradoException`, `ReglaNegocioException`) deben tener mensajes pensados para el usuario, y el error 500 devuelve siempre un texto genérico.
 
 ## Qué hace Flyway con cada perfil
 

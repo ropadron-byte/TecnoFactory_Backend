@@ -32,6 +32,13 @@ logging:
   level:
     root: INFO                  # librerías: eventos normales y errores
     com.factory: DEBUG          # tu código: todo el detalle
+  file:
+    name: logs/tecnofactory.log # se crea en la carpeta del proyecto
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB       # al llegar a 10 MB abre un archivo nuevo
+      max-history: 7            # conserva los últimos 7 archivos
+
 
 management:
   endpoint:
@@ -52,3 +59,4 @@ server:
     include-message: always         # el error trae su mensaje
     include-stacktrace: on_param    # rastro solo con ?trace=true en la URL
     include-binding-errors: always  # indica qué campo falló la validación
+

@@ -61,7 +61,7 @@ Al arrancar, Flyway:
 | Mantén cada migración pequeña | **MySQL no deshace cambios de estructura** si algo falla a medias: lo ya ejecutado queda aplicado |
 | Los tipos deben coincidir con las entidades | Con `validate`, si no calzan la app no arranca |
 | Datos iniciales en una migración aparte | Separa estructura estable de datos |
-| Contraseñas iniciales (admin) ya hasheadas con BCrypt | Nunca texto plano en Git. El administrador **no** va en `V2`: se crea aparte (ver [11](11-cambios-recientes.md#qué-queda-fuera-de-v2-a-propósito)) |
+| Contraseñas iniciales (admin) ya hasheadas con BCrypt | Nunca texto plano en Git. El administrador **no** va en `V2`: se crea aparte (ver [Cambios recientes](cambios-recientes.md#qué-queda-fuera-de-v2-a-propósito)) |
 | Datos de referencia con id fijo (regiones, comunas) | Se insertan con su id explícito (CUT); no dependas de `AUTO_INCREMENT` |
 | Datos de referencia con `AUTO_INCREMENT` (`tipo_usuario`) | En el código **busca por nombre** (`ADMINISTRADOR`), nunca asumas que el id es 1, 2 o 3 |
 | No cambies tablas a mano (Workbench, DBeaver) | La base y los archivos se desincronizan |
@@ -99,7 +99,7 @@ Resultado de la prueba del 16 oct 2026: versión `1`, descripción `esquema inic
 | Usuario que migra (prod) | `tecnofactory_migrator` |
 | Usuario que lee/escribe luego | `tecnofactory_app` |
 
-La prueba del 16 oct 2026 en MySQL 8.4 se hizo con el `V1` original. Tras los cambios posteriores, `V1` y `V2` se aplicaron sin errores en una base de prueba MariaDB 10.11; **falta repetir la prueba en tu MySQL 8.4 de Docker** (ver la lista de verificación en [11](11-cambios-recientes.md#cómo-verificar-todo-en-tu-máquina)).
+La prueba del 16 oct 2026 en MySQL 8.4 se hizo con el `V1` original. Tras los cambios posteriores, `V1` y `V2` se aplicaron sin errores en una base de prueba MariaDB 10.11; **falta repetir la prueba en tu MySQL 8.4 de Docker** (ver la lista de verificación en [Cambios recientes](cambios-recientes.md#cómo-verificar-todo-en-tu-máquina)).
 
 ## Errores típicos
 

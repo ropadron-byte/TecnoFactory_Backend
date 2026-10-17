@@ -81,7 +81,7 @@ Estado actual:
 
 | Paquete | Estado |
 | --- | --- |
-| `exception` | **Escrito**: `RecursoNoEncontradoException`, `ReglaNegocioException`, `ErrorResponse` y `GlobalExceptionHandler` (ver [11](11-cambios-recientes.md)) |
+| `exception` | **Escrito**: `RecursoNoEncontradoException`, `ReglaNegocioException`, `ErrorResponse` y `GlobalExceptionHandler` (ver [Cambios recientes](cambios-recientes.md)) |
 | `config`, `security` | Clases **vacías** |
 | `controller`, `dto`, `entity`, `mapper`, `repository`, `service` | Sin archivos todavía |
 

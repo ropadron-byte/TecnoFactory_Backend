@@ -25,6 +25,7 @@ Tabla única de síntomas, causas y soluciones. Los primeros nueve ya ocurrieron
 | Al importar `MethodArgumentNotValidException` IntelliJ ofrece dos clases | Hay una de `spring-web` y otra de `spring-messaging` | Elegir `org.springframework.web.bind.MethodArgumentNotValidException` |
 | `HttpServletRequest` no se encuentra | Se importó `javax.servlet` | Usar `jakarta.servlet.http.HttpServletRequest` (Spring Boot 3 y 4) |
 | `@Slf4j` no genera `log` | Lombok no procesa anotaciones | Activar *Annotation Processing* en IntelliJ y recompilar con `./mvnw clean compile` |
+| Un 500 sin explicación en la respuesta | El detalle no va al cliente, va al log | Mirar la consola o `docker compose logs`; ver [12](12-logs.md) |
 
 ## Base de datos y Docker
 

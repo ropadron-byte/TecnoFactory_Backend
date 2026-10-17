@@ -24,7 +24,7 @@ Lo que falta construir, en orden recomendado, y qué cambia en la configuración
 
 - [ ] **Verificar que `.env` no está en Git.** Ya hiciste `git push`: ejecuta `git ls-files | grep -i env` (no debe devolver nada) y revisa que `.gitignore` contenga `.env`, `target/` y `.idea/`. (El `.gitignore` actual sí los incluye; falta comprobar que el `.env` nunca se subió.) Si se subió, cambia **todas** las claves.
 - [x] Corregir la indentación de `jpa:` en `application-local.yaml` (ver 04). **Hecho.**
-- [x] Actualizar la documentación (`README.md` y `docs/`) al estado actual. **Hecho** (ver [11](11-cambios-recientes.md)).
+- [x] Actualizar la documentación (`README.md` y `docs/`) al estado actual. **Hecho** (ver [Cambios recientes](cambios-recientes.md)).
 - [ ] Reemplazar los manuales viejos (`COMO_EJECUTAR.md`, `MANUAL_TECNOFACTORY.md`, `TecnoFactory - Guía del proyecto.md`) por esta carpeta `docs/` para no tener tres versiones contradictorias.
 - [ ] Mover `ExplicacionesCrudas.md` fuera del repositorio o a `docs/archivo/`: es una transcripción de conversaciones, no documentación.
 - [ ] No compartir el ZIP del proyecto con el `.env` ni la carpeta `target/` (el `.jar` pesa unos 78 MB y queda desactualizado).
@@ -61,7 +61,7 @@ Lo que falta construir, en orden recomendado, y qué cambia en la configuración
 | `exception/RecursoNoEncontradoException` | **Hecho** (extiende `RuntimeException`) |
 | `exception/ReglaNegocioException` | **Hecho** |
 | `exception/ErrorResponse` | **Hecho** (`record`) |
-| `exception/GlobalExceptionHandler` | **Hecho**; falta probarlo y ampliarlo ([11](11-cambios-recientes.md#limitación-conocida-y-mejora-recomendada)) |
+| `exception/GlobalExceptionHandler` | **Hecho** (con los errores de Spring incluidos); falta compilarlo y probarlo ([Cambios recientes](cambios-recientes.md#cobertura-de-los-errores-de-spring)) |
 | `entity/*` | Pendiente. Una entidad por tabla, con tipos alineados ([mapeo en 06](06-base-de-datos.md#mapeo-a-entidades-java)). Orden: `Region`, `Comuna`, `TipoUsuario`, `Usuario`, `Categoria`, `Producto`, `ImagenUrl`, `Carrito`, `DetalleCarrito`, `Boleta`, `DetalleBoleta`, `Blog` |
 | `repository/*` | Pendiente. Una interfaz `JpaRepository` por entidad |
 | `SecurityConfig` **temporal** | Pendiente. Mientras esté vacío, Spring protege **todo** (401), incluido Swagger. Necesitas una versión mínima que permita las rutas para probar los controllers; se reemplaza en la fase 4 y **no se despliega** |
@@ -153,7 +153,7 @@ Ver el [Escenario 3 de 07](07-ejecucion-local-y-prod.md#escenario-3-prod-real-pr
 - [ ] Servicios `redis` y `mailpit`/SMTP si se implementaron.
 - [ ] Respaldos programados (`cron` + `mysqldump`), copiados fuera del servidor, con **restauración probada**.
 - [ ] Monitoreo: `/actuator/health` en un chequeo externo (UptimeRobot o similar).
-- [ ] Logs: rotación y retención (Docker `logging` con `max-size`).
+- [ ] Logs: rotación y retención (Docker `logging` con `max-size`; ver [12](12-logs.md#9-logs-en-docker-y-producción)).
 - [ ] Estrategia de **actualización** (`git pull`, `docker compose up -d --build backend`) y de **vuelta atrás** (respaldo previo a cada migración).
 - [ ] `server.shutdown: graceful` y límites de memoria del contenedor (`-XX:MaxRAMPercentage`).
 

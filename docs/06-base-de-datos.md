@@ -107,7 +107,7 @@ Las 17 observaciones de la revisión inicial quedaron así:
 | `region` | 16 | Número de región (Ñuble = 16, Arica y Parinacota = 15) | |
 | `comuna` | 346 | Código **CUT** de SUBDERE (Santiago = 13101, Valparaíso = 5101) | Los códigos de las regiones I a IX no llevan cero a la izquierda porque la columna es `INT` |
 
-No incluye el administrador ni categorías: ver [11](11-cambios-recientes.md#qué-queda-fuera-de-v2-a-propósito).
+No incluye el administrador ni categorías: ver [Cambios recientes](cambios-recientes.md#qué-queda-fuera-de-v2-a-propósito).
 
 ## Mapeo a entidades Java
 
@@ -187,7 +187,7 @@ Se evaluó y **no se usan por ahora**: la API usa un solo usuario de MySQL, así
 
 ## Verificación realizada
 
-`V1` y `V2` se aplicaron **sin errores** en una base limpia de prueba (**MariaDB 10.11**, no MySQL 8.4): 13 tablas, 15 FK, 3 tipos de usuario, 16 regiones y 346 comunas. La sintaxis usada (`CHECK`, `DEFAULT`, FK) es válida en MySQL 8.4, pero **la prueba definitiva es arrancar la app contra tu contenedor MySQL 8.4** (ver [11](11-cambios-recientes.md#cómo-verificar-todo-en-tu-máquina)).
+`V1` y `V2` se aplicaron **sin errores** en una base limpia de prueba (**MariaDB 10.11**, no MySQL 8.4): 13 tablas, 15 FK, 3 tipos de usuario, 16 regiones y 346 comunas. La sintaxis usada (`CHECK`, `DEFAULT`, FK) es válida en MySQL 8.4, pero **la prueba definitiva es arrancar la app contra tu contenedor MySQL 8.4** (ver [Cambios recientes](cambios-recientes.md#cómo-verificar-todo-en-tu-máquina)).
 
 ## Entidades: reglas que dependen de este esquema
 

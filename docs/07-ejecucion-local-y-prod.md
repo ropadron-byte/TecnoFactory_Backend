@@ -289,6 +289,7 @@ Datos de referencia cargados por `V2` (deben dar 3, 16 y 346):
 
 ```bash
 docker exec -it tecnofactory-db mysql -utecnofactory_migrator -p tecnofactory -e "SELECT (SELECT COUNT(*) FROM tipo_usuario) tipos, (SELECT COUNT(*) FROM region) regiones, (SELECT COUNT(*) FROM comuna) comunas;"
+```
 
 ### 7. Verificar los permisos mínimos
 
