@@ -10,6 +10,7 @@
 | Swagger y `api-docs` apagados en prod | `application-prod.yaml` | Hecho |
 | Errores sin mensaje, rastro ni detalle de validación en prod | `application-prod.yaml` | Hecho |
 | Actuator publica solo `health`, sin detalles | `application-prod.yaml` | Hecho |
+| Formato uniforme de errores de la API (`ErrorResponse`); el error 500 no revela detalles internos | `exception/GlobalExceptionHandler` | Escrito; **falta probarlo** con un controller y ampliarlo (ver [11](11-cambios-recientes.md#limitación-conocida-y-mejora-recomendada)) |
 | Secretos fuera del código, en `.env` | `.env` | Hecho (verificar `.gitignore`) |
 
 ## Lo que falta
@@ -20,7 +21,8 @@
 | **JWT** (`JwtService`, `JwtAuthFilter`, `UserDetailsServiceImpl`) | No hay login real |
 | **BCrypt** para contraseñas | Nunca guardar texto plano en `USUARIO.contrasenia` |
 | **CORS** (`CorsConfig`) | El navegador bloquea las peticiones de React |
-| **`GlobalExceptionHandler`** | En prod los errores salen sin formato útil para el frontend |
+| **Ampliar `GlobalExceptionHandler`** (JSON inválido, método no permitido, ruta inexistente, acceso denegado) | Hoy esos errores caerían en el 500 genérico en vez de 400, 405, 404 o 403 |
+| **Usuario administrador inicial** | No está en `V2` a propósito; sin él nadie puede gestionar el catálogo. Se crea con una clave leída de una variable de entorno, nunca escrita en Git |
 | **HTTPS** | Las claves y tokens viajarían en texto plano |
 | **Límite de intentos de login** | Fuerza bruta contra cuentas |
 | **Validación de subida de archivos** | Subida de archivos maliciosos |
@@ -36,6 +38,8 @@
 | Gestión de usuarios y roles | Administrador |
 | `/actuator/health` | Público (solo `UP`/`DOWN`) |
 | Swagger | Solo en `local` |
+
+Los roles vienen de la tabla `tipo_usuario` (`ADMINISTRADOR`, `VENDEDOR`, `CLIENTE`). Spring Security exige el prefijo `ROLE_` en las autoridades (`ROLE_ADMINISTRADOR`); `UserDetailsServiceImpl` debe añadirlo al convertir `nombre_tipo_usuario`.
 
 Los tokens JWT se firman con `JWT_SECRET` (mínimo 32 caracteres) y duran 1 hora (`jwt.expiration-ms`).
 

@@ -16,6 +16,16 @@ Tabla única de síntomas, causas y soluciones. Los primeros nueve ya ocurrieron
 | `Missing versions` de Testcontainers | Nombres de artefactos antiguos | `testcontainers-junit-jupiter` y `testcontainers-mysql` |
 | `ERROR 1045 Access denied` al entrar con `mysql -p` | La clave se tecleó mal: `-p` no muestra lo que escribes | Repetir con cuidado |
 
+## Java e IntelliJ
+
+| Síntoma | Causa | Solución |
+| --- | --- | --- |
+| `Class 'X' is public, should be declared in a file named 'X.java'` | Hay varias clases `public` en un mismo archivo | Una clase `public` por archivo, con el mismo nombre. Crea cada una con *New, Java Class* (o *Record*) |
+| `'ErrorResponse(LocalDateTime, int, ...)' cannot be applied to '(java.time.LocalDateTime, ...)'` | En el archivo del `record` faltan los `import` (`java.time.LocalDateTime`, `java.util.Map`) y los tipos no se resuelven; o se importó otro `Map` | Agregar los imports correctos en `ErrorResponse.java` |
+| Al importar `MethodArgumentNotValidException` IntelliJ ofrece dos clases | Hay una de `spring-web` y otra de `spring-messaging` | Elegir `org.springframework.web.bind.MethodArgumentNotValidException` |
+| `HttpServletRequest` no se encuentra | Se importó `javax.servlet` | Usar `jakarta.servlet.http.HttpServletRequest` (Spring Boot 3 y 4) |
+| `@Slf4j` no genera `log` | Lombok no procesa anotaciones | Activar *Annotation Processing* en IntelliJ y recompilar con `./mvnw clean compile` |
+
 ## Base de datos y Docker
 
 | Síntoma | Causa | Solución |
@@ -35,6 +45,9 @@ Tabla única de síntomas, causas y soluciones. Los primeros nueve ya ocurrieron
 | --- | --- | --- |
 | `Found non-empty schema(s) ... without schema history table` | La base tenía tablas antes que Flyway (Hibernate `update`, creación manual) | Desarrollo: `down -v`. Existente: `baseline` |
 | `Detected failed migration to version X` | Una migración falló a medias (MySQL no deshace DDL) | Desarrollo: `down -v`. Producción: restaurar y reparar |
+| `Key column 'x' doesn't exist in table` al agregar una FK | El `ALTER ... FOREIGN KEY` apunta a una columna que no está en el `CREATE TABLE` | Agregar la columna al `CREATE TABLE` además del `ALTER` |
+| `Duplicate key name` / `constraint already exists` | Se agregó una FK con un nombre que ya existe | Editar la FK existente en vez de crear otra con el mismo nombre |
+| `Cannot add or update a child row: a foreign key constraint fails` al crear un usuario | `V2` no se aplicó: `comuna` o `tipo_usuario` están vacías | Verificar `flyway_schema_history` (versiones 1 y 2) y los conteos de `V2` |
 | `Schema-validation: missing table [x]` | La entidad apunta a una tabla que no existe o a un nombre distinto (mayúsculas, snake_case) | Ajustar `@Table` o la migración |
 | `Schema-validation: wrong column type ... expected [x]; found [y]` | Tipos distintos (`DECIMAL` frente a `Long`) | Alinear tipo de la entidad y de la columna |
 | `Schema-validation: missing column [stock_critico]` | La columna es `stockCritico` en la base | Renombrar en una migración |

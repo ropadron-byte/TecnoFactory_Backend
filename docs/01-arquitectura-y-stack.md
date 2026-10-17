@@ -62,7 +62,7 @@ TecnoFactory/
     │   │   ├── controller/    # endpoints REST
     │   │   ├── dto/           # entrada y salida de la API
     │   │   ├── entity/        # modelo de datos (tablas)
-    │   │   ├── exception/     # GlobalExceptionHandler, RecursoNoEncontradoException
+    │   │   ├── exception/     # GlobalExceptionHandler, ErrorResponse y excepciones propias
     │   │   ├── mapper/        # entidad <-> DTO (MapStruct)
     │   │   ├── repository/    # interfaces JpaRepository
     │   │   ├── security/      # JwtService, JwtAuthFilter, SecurityConfig, UserDetailsServiceImpl
@@ -71,11 +71,21 @@ TecnoFactory/
     │       ├── application.yaml
     │       ├── application-local.yaml
     │       ├── application-prod.yaml
-    │       └── db/migration/V1__esquema_inicial.sql
+    │       └── db/migration/
+    │           ├── V1__esquema_inicial.sql   # 13 tablas
+    │           └── V2__datos_iniciales.sql   # roles, regiones y comunas
     └── test/
 ```
 
-Hoy existen `config`, `exception` y `security` con **clases vacías**. Faltan `controller`, `dto`, `entity`, `mapper`, `repository` y `service`.
+Estado actual:
+
+| Paquete | Estado |
+| --- | --- |
+| `exception` | **Escrito**: `RecursoNoEncontradoException`, `ReglaNegocioException`, `ErrorResponse` y `GlobalExceptionHandler` (ver [11](11-cambios-recientes.md)) |
+| `config`, `security` | Clases **vacías** |
+| `controller`, `dto`, `entity`, `mapper`, `repository`, `service` | Sin archivos todavía |
+
+> En Java, cada clase `public` va en **su propio archivo** con el mismo nombre (`ErrorResponse.java` contiene solo `ErrorResponse`).
 
 ### Responsabilidad de cada paquete
 
@@ -101,7 +111,7 @@ Hoy existen `config`, `exception` y `security` con **clases vacías**. Faltan `c
 | `application.yaml` | Configuración base, siempre se carga | Spring | Sí |
 | `application-local.yaml` | Ajustes de desarrollo | Spring, perfil `local` | Sí |
 | `application-prod.yaml` | Ajustes de producción | Spring, perfil `prod` | Sí |
-| `db/migration/V1__...sql` | Historial de cambios de la base | Flyway | Sí |
+| `db/migration/V1__...sql`, `V2__...sql` | Historial de cambios de la base (estructura y datos de referencia) | Flyway | Sí |
 | `Dockerfile` | Receta de la imagen del backend | Docker | Sí |
 
 ## Qué es el JAR

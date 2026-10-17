@@ -45,7 +45,7 @@ Si no defines ningún perfil, corre solo `application.yaml` (perfil `default`): 
 | Caché | `none` | `none` por ahora |
 | Health de Redis y correo | Desactivados | Desactivados |
 
-Por qué en prod los errores no muestran nada: un mensaje de excepción puede revelar nombres de tablas, rutas o versiones. El `GlobalExceptionHandler` (pendiente) decidirá qué se muestra al cliente.
+Por qué en prod los errores no muestran nada: un mensaje de excepción puede revelar nombres de tablas, rutas o versiones. El `GlobalExceptionHandler` (ya escrito, ver [11](11-cambios-recientes.md)) decide qué se muestra al cliente. Ojo: la propiedad `server.error.include-message: never` solo afecta a la respuesta de error **por defecto** de Spring. Las respuestas del handler propio llevan el `mensaje` que tú escribas, por eso las excepciones propias (`RecursoNoEncontradoException`, `ReglaNegocioException`) deben tener mensajes pensados para el usuario, y el error 500 devuelve siempre un texto genérico.
 
 ## Qué hace Flyway con cada perfil
 
@@ -58,9 +58,9 @@ Flyway usa **la conexión del datasource** salvo que se indique `spring.flyway.u
 
 Flyway abre su propia conexión, la usa al arrancar y la cierra; después la app trabaja solo con `tecnofactory_app`.
 
-## Errores de indentación conocidos en `application-local.yaml`
+## Indentación de `jpa:` en `application-local.yaml` (corregido)
 
-El bloque `jpa:` debe quedar así. Si `hibernate:` está al mismo nivel que `jpa:`, Spring lo ignora (`show-sql` y `format_sql` no se aplican y `ddl-auto` cae al valor base):
+Este error ya está **corregido** en el proyecto. Se deja documentado porque es fácil volver a cometerlo: si `hibernate:` queda al mismo nivel que `jpa:`, o `properties:` cuelga de `hibernate:`, Spring lo ignora sin avisar (`show-sql` y `format_sql` no se aplican y `ddl-auto` cae al valor base). El bloque correcto es:
 
 ```yaml
   jpa:
@@ -72,7 +72,7 @@ El bloque `jpa:` debe quedar así. Si `hibernate:` está al mismo nivel que `jpa
         format_sql: true
 ```
 
-`show-sql` va bajo `jpa:`, no bajo `hibernate:`.
+`show-sql` va bajo `jpa:`, y `properties:` también bajo `jpa:` (nunca dentro de `hibernate:`). Se puede comprobar con un parser YAML: `spring.jpa` debe contener `show-sql`, `hibernate` y `properties` como claves hermanas.
 
 ## Cómo comprobar qué quedó activo
 

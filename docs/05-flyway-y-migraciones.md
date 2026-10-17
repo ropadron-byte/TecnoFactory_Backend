@@ -47,9 +47,9 @@ Al arrancar, Flyway:
 
 | Situación | Qué hacer |
 | --- | --- |
-| `V1` solo existe en tu base de desarrollo | Puedes editarla: `docker compose down -v`, `up -d` y arrancar de nuevo |
-| `V1` ya se aplicó en un servidor o la usa otra persona | **No se edita nunca más.** Cambio nuevo = `V2__...` |
-| Necesitas datos iniciales (tipos de usuario, regiones, comunas, administrador) | `V2__datos_iniciales.sql` |
+| `V1` y `V2` solo existen en tu base de desarrollo | Puedes editarlas: `docker compose down -v`, `up -d` y arrancar de nuevo |
+| `V1` o `V2` ya se aplicaron en un servidor o las usa otra persona | **No se editan nunca más.** Cambio nuevo = `V3__...` |
+| Necesitas más datos de referencia (categorías base, administrador) | Una migración nueva (`V3__...`) |
 | Un cambio de entidad | Una migración equivalente en SQL, y viceversa: con `validate` deben coincidir |
 
 ## Reglas al escribir migraciones
@@ -61,7 +61,9 @@ Al arrancar, Flyway:
 | Mantén cada migración pequeña | **MySQL no deshace cambios de estructura** si algo falla a medias: lo ya ejecutado queda aplicado |
 | Los tipos deben coincidir con las entidades | Con `validate`, si no calzan la app no arranca |
 | Datos iniciales en una migración aparte | Separa estructura estable de datos |
-| Contraseñas iniciales (admin) ya hasheadas con BCrypt | Nunca texto plano en Git |
+| Contraseñas iniciales (admin) ya hasheadas con BCrypt | Nunca texto plano en Git. El administrador **no** va en `V2`: se crea aparte (ver [11](11-cambios-recientes.md#qué-queda-fuera-de-v2-a-propósito)) |
+| Datos de referencia con id fijo (regiones, comunas) | Se insertan con su id explícito (CUT); no dependas de `AUTO_INCREMENT` |
+| Datos de referencia con `AUTO_INCREMENT` (`tipo_usuario`) | En el código **busca por nombre** (`ADMINISTRADOR`), nunca asumas que el id es 1, 2 o 3 |
 | No cambies tablas a mano (Workbench, DBeaver) | La base y los archivos se desincronizan |
 | No mezcles Hibernate `update` con Flyway | Se pisan |
 | Guarda los archivos en UTF-8 | Evita problemas con tildes y la ñ |
@@ -84,14 +86,20 @@ docker exec -it tecnofactory-db mysql -utecnofactory_migrator -p tecnofactory \
 
 Resultado de la prueba del 16 oct 2026: versión `1`, descripción `esquema inicial`, `success = 1`.
 
-## Comparar con la prueba del proyecto
+## Migraciones del proyecto
+
+| Versión | Archivo | Qué hace |
+| --- | --- | --- |
+| 1 | `V1__esquema_inicial.sql` | Crea las 13 tablas, sus restricciones y claves foráneas |
+| 2 | `V2__datos_iniciales.sql` | Inserta 3 tipos de usuario, 16 regiones y 346 comunas |
 
 | Dato | Valor |
 | --- | --- |
-| Migración | `V1__esquema_inicial.sql` |
-| Tablas creadas | 13 de negocio + `flyway_schema_history` |
-| Usuario que migró | `tecnofactory_migrator` |
+| Tablas tras migrar | 13 de negocio + `flyway_schema_history` |
+| Usuario que migra (prod) | `tecnofactory_migrator` |
 | Usuario que lee/escribe luego | `tecnofactory_app` |
+
+La prueba del 16 oct 2026 en MySQL 8.4 se hizo con el `V1` original. Tras los cambios posteriores, `V1` y `V2` se aplicaron sin errores en una base de prueba MariaDB 10.11; **falta repetir la prueba en tu MySQL 8.4 de Docker** (ver la lista de verificación en [11](11-cambios-recientes.md#cómo-verificar-todo-en-tu-máquina)).
 
 ## Errores típicos
 

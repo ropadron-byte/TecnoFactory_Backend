@@ -14,23 +14,28 @@
 | 08 | [Seguridad](docs/08-seguridad.md) | Modelo de seguridad actual, lo que falta y la lista de verificación |
 | 09 | [Errores comunes](docs/09-errores-comunes.md) | Síntoma, causa y solución de los problemas ya encontrados |
 | 10 | [Pendientes y futuro](docs/10-pendientes-y-futuro.md) | Qué falta construir, en qué orden y qué cambia en la configuración al hacerlo |
+| 11 | [Cambios recientes](docs/11-cambios-recientes.md) | Bitácora de la última sesión: qué se agregó, por qué y cómo verificarlo |
 
-## Estado del proyecto (17 oct 2026)
+## Estado del proyecto (oct 2026)
 
 | Pieza | Estado |
 | --- | --- |
 | MySQL 8.4 en Docker con volumen y tres usuarios | Funcionando |
-| Flyway aplicando `V1` con `tecnofactory_migrator` | Probado en perfil `prod` |
+| Flyway aplicando `V1` con `tecnofactory_migrator` | Probado en perfil `prod` (con el `V1` original) |
 | La app arrancando como `tecnofactory_app` (solo DML) | Probado en perfil `prod` |
-| `V1` con las 13 tablas | Aplicada, pero **sin adaptar** a las convenciones de MySQL (ver 06) |
-| Entidades, DTOs, services, controllers | No existen todavía |
+| `V1` con las 13 tablas y 15 claves foráneas | **Adaptada a MySQL**; aplicada sin errores en MariaDB 10.11. Falta confirmarla en MySQL 8.4 |
+| `V2` con 3 roles, 16 regiones y 346 comunas | **Nueva**; aplicada sin errores en MariaDB 10.11. Falta confirmarla en MySQL 8.4 |
+| `application-local.yaml` | Corregido |
+| Manejo de errores (`exception/`) | Escrito (4 clases); falta probarlo con un controller |
+| Entidades, repositorios, DTOs, services, controllers | No existen todavía |
 | `SecurityConfig`, JWT | Clases vacías |
 | `Dockerfile` y servicio `backend` del compose | Vacío / comentado |
 
 ## Reglas de oro
 
 1. **Spring no lee el `.env`.** Lo lee Docker Compose; a Spring hay que pasarle las variables al arrancar.
-2. **Una migración aplicada no se edita.** Los cambios son archivos nuevos (`V2__...`). Mientras `V1` solo exista en tu máquina, puedes recrearla con `docker compose down -v`.
+2. **Una migración aplicada no se edita.** Los cambios son archivos nuevos (`V3__...`). Mientras `V1` y `V2` solo existan en tu máquina, puedes recrearlas con `docker compose down -v`.
 3. **Los scripts de `docker/mysql-init` y las claves `MYSQL_*` solo se aplican al crear el volumen.**
 4. **`docker compose down -v` borra los datos.** Nunca en producción.
 5. **La app en producción usa `tecnofactory_app`**, nunca `root`.
+6. **Una clase `public` por archivo Java**, con el mismo nombre que la clase.

@@ -4,61 +4,67 @@ Lo que falta construir, en orden recomendado, y qué cambia en la configuración
 
 ## Resumen de fases
 
-| Fase | Qué | Depende de | Prioridad |
-| --- | --- | --- | --- |
-| 0 | Limpieza y decisiones del esquema | — | **Ahora** |
-| 1 | Esquema definitivo y datos iniciales (`V1`, `V2`) | 0 | **Ahora** |
-| 2 | Entidades, repositorios y manejo de errores | 1 | Alta |
-| 3 | Catálogo: categorías y productos | 2 | Alta |
-| 4 | Seguridad: JWT, roles y usuarios | 2 | Alta |
-| 5 | Carrito, boleta y pago simulado | 3, 4 | Media |
-| 6 | Imágenes y blog | 3, 4 | Media |
-| 7 | Correo y caché (Redis) | 4 | Baja |
-| 8 | Pruebas automáticas | todas | Continua |
-| 9 | Despliegue completo | todas | Al final |
-| 10 | Frontend React | 3 en adelante | En paralelo |
+| Fase | Qué | Depende de | Prioridad | Estado |
+| --- | --- | --- | --- | --- |
+| 0 | Limpieza y decisiones del esquema | — | **Ahora** | Casi lista (quedan 3 puntos) |
+| 1 | Esquema definitivo y datos iniciales (`V1`, `V2`) | 0 | **Ahora** | **Hecha** (falta administrador y categorías base) |
+| 2 | Entidades, repositorios y manejo de errores | 1 | Alta | **En curso**: errores escritos; faltan entidades y repositorios |
+| 3 | Catálogo: categorías y productos | 2 | Alta | Pendiente |
+| 4 | Seguridad: JWT, roles y usuarios | 2 | Alta | Pendiente |
+| 5 | Carrito, boleta y pago simulado | 3, 4 | Media | Pendiente |
+| 6 | Imágenes y blog | 3, 4 | Media | Pendiente |
+| 7 | Correo y caché (Redis) | 4 | Baja | Pendiente |
+| 8 | Pruebas automáticas | todas | Continua | Pendiente |
+| 9 | Despliegue completo | todas | Al final | Pendiente |
+| 10 | Frontend React | 3 en adelante | En paralelo | Pendiente |
 
 ---
 
 ## Fase 0. Limpieza inmediata
 
-- [ ] **Verificar que `.env` no está en Git.** Ya hiciste `git push`: ejecuta `git ls-files | grep -i env` (no debe devolver nada) y revisa que `.gitignore` contenga `.env`, `target/` y `.idea/`. Si el `.env` se subió, cambia **todas** las claves.
-- [ ] Corregir la indentación de `jpa:` en `application-local.yaml` (ver 04).
-- [ ] Actualizar el `README.md`: su sección de configuración aún describe un solo usuario, y el roadmap no menciona carrito, boleta, blog, región ni comuna.
+- [ ] **Verificar que `.env` no está en Git.** Ya hiciste `git push`: ejecuta `git ls-files | grep -i env` (no debe devolver nada) y revisa que `.gitignore` contenga `.env`, `target/` y `.idea/`. (El `.gitignore` actual sí los incluye; falta comprobar que el `.env` nunca se subió.) Si se subió, cambia **todas** las claves.
+- [x] Corregir la indentación de `jpa:` en `application-local.yaml` (ver 04). **Hecho.**
+- [x] Actualizar la documentación (`README.md` y `docs/`) al estado actual. **Hecho** (ver [11](11-cambios-recientes.md)).
 - [ ] Reemplazar los manuales viejos (`COMO_EJECUTAR.md`, `MANUAL_TECNOFACTORY.md`, `TecnoFactory - Guía del proyecto.md`) por esta carpeta `docs/` para no tener tres versiones contradictorias.
 - [ ] Mover `ExplicacionesCrudas.md` fuera del repositorio o a `docs/archivo/`: es una transcripción de conversaciones, no documentación.
+- [ ] No compartir el ZIP del proyecto con el `.env` ni la carpeta `target/` (el `.jar` pesa unos 78 MB y queda desactualizado).
 
 ## Fase 1. Esquema definitivo
 
-Mientras `V1` solo exista en tu máquina puedes reescribirla (`down -v` para recrear).
+- [x] Resolver las observaciones 1 a 7 de [06-base-de-datos.md](06-base-de-datos.md). **Hecho.**
+- [x] `UNIQUE` en `correo` y `run`. **Hecho.**
+- [x] Decisiones del esquema:
 
-- [ ] Resolver las observaciones 1 a 7 de [06-base-de-datos.md](06-base-de-datos.md) (**AUTO_INCREMENT, minúsculas, `stock_critico`, PK compuestas, tipos, detalle de boleta**).
-- [ ] Agregar `UNIQUE` en `correo` y `run`.
-- [ ] Decidir las preguntas abiertas:
+| Decisión | Resultado |
+| --- | --- |
+| Roles | Se mantiene la tabla `tipo_usuario` (`ADMINISTRADOR`, `VENDEDOR`, `CLIENTE`) |
+| Imágenes | Tabla `imagen_url` con 3 FK y `CHECK` de un solo dueño |
+| Estado de boleta | Se mantiene `estado BOOLEAN NOT NULL DEFAULT TRUE` |
+| Borrado de productos | Se **desactivan** (`activo`); `detalle_boleta` → `producto` es `RESTRICT` |
+| Detalle de boleta | Lleva `producto_id_producto` además de la copia congelada |
+| Borrado en cascada | Solo `carrito`, `detalle_carrito`, `producto_categoria` e `imagen_url`; las boletas nunca |
+| Descuento | Entero 0-100 en producto (y copia en el detalle de boleta). Falta **definir cómo se aplica sobre `precio`** |
 
-| Decisión | Opciones | Efecto |
-| --- | --- | --- |
-| Roles | Tabla `TIPO_USUARIO` (actual) o `enum` en Java | Tabla: se pueden agregar roles sin recompilar. Enum: más simple |
-| Imágenes | Tabla `IMAGEN_URL` con 3 FK, o una tabla por dueño | Con 3 FK hace falta un `CHECK` |
-| Estado de boleta | Mantener `estado` o quitarlo (pago inmediato) | Afecta al servicio de pago |
-| Borrado de productos | Borrar o desactivar (`activo`) | Desactivar protege las boletas históricas |
-| Descuento | Entero 0-100 en producto (y copia en la boleta) | Definir cómo se aplica sobre `precio` |
+- [x] `V1` aplicada desde cero (probada en MariaDB 10.11).
+- [x] **`V2__datos_iniciales.sql`**: 3 tipos de usuario, 16 regiones y 346 comunas. **Hecho.**
+- [ ] **Confirmar `V1` + `V2` en tu MySQL 8.4 de Docker** (`down -v`, `up -d`, arrancar la app).
+- [ ] **Administrador inicial.** No va en `V2` a propósito. Se crea con una clave tomada de una variable de entorno, o con un `V3` cuyo hash BCrypt generes tú. **Nunca** una contraseña en texto plano en Git.
+- [ ] **Categorías base** (`V3`): dependen de lo que venda TecnoFactory.
+- [ ] Actualizar o reexportar el diagrama de `Diagrama/` (está desactualizado respecto a `V1`).
 
-- [ ] Aplicar `V1` desde cero y confirmar con `SHOW TABLES` y `DESCRIBE`.
-- [ ] **`V2__datos_iniciales.sql`**: tipos de usuario, regiones, comunas, categorías base y el administrador con contraseña ya hasheada con BCrypt.
-  - Las 16 regiones y 346 comunas de Chile son datos estables: van en una migración propia.
-  - **Nunca** una contraseña en texto plano en Git.
-
-**Después de esta fase `V1` y `V2` se congelan** si se despliegan: cualquier cambio será `V3`, `V4`...
+**`V1` y `V2` se congelan** en cuanto se desplieguen: cualquier cambio será `V3`, `V4`...
 
 ## Fase 2. Entidades, repositorios y errores
 
-| Archivo | Contenido |
+| Archivo | Estado |
 | --- | --- |
-| `entity/*` | Una entidad por tabla; tipos alineados con el esquema (con `validate`, si no coinciden la app no arranca) |
-| `repository/*` | Una interfaz `JpaRepository` por entidad |
-| `exception/RecursoNoEncontradoException` | Debe extender `RuntimeException` |
-| `exception/GlobalExceptionHandler` | `@RestControllerAdvice` con formato de error uniforme (400, 404, 409, 500) |
+| `exception/RecursoNoEncontradoException` | **Hecho** (extiende `RuntimeException`) |
+| `exception/ReglaNegocioException` | **Hecho** |
+| `exception/ErrorResponse` | **Hecho** (`record`) |
+| `exception/GlobalExceptionHandler` | **Hecho**; falta probarlo y ampliarlo ([11](11-cambios-recientes.md#limitación-conocida-y-mejora-recomendada)) |
+| `entity/*` | Pendiente. Una entidad por tabla, con tipos alineados ([mapeo en 06](06-base-de-datos.md#mapeo-a-entidades-java)). Orden: `Region`, `Comuna`, `TipoUsuario`, `Usuario`, `Categoria`, `Producto`, `ImagenUrl`, `Carrito`, `DetalleCarrito`, `Boleta`, `DetalleBoleta`, `Blog` |
+| `repository/*` | Pendiente. Una interfaz `JpaRepository` por entidad |
+| `SecurityConfig` **temporal** | Pendiente. Mientras esté vacío, Spring protege **todo** (401), incluido Swagger. Necesitas una versión mínima que permita las rutas para probar los controllers; se reemplaza en la fase 4 y **no se despliega** |
 
 Cómo comprobar: arrancar con `local` y `validate`; si Hibernate no se queja, las entidades calzan con el esquema.
 
@@ -191,7 +197,7 @@ Ver el [Escenario 3 de 07](07-ejecucion-local-y-prod.md#escenario-3-prod-real-pr
 
 | Riesgo | Consecuencia | Mitigación |
 | --- | --- | --- |
-| Pegar `V1` sin corregir (sin `AUTO_INCREMENT`, mayúsculas, `DECIMAL`) | Las entidades fallan al arrancar o al insertar | Fase 1 |
+| Tipos de la entidad distintos a los de la tabla (`Long` frente a `INT`, `CHAR`, `TEXT`) | La app no arranca con `validate` | Tabla de mapeo en [06](06-base-de-datos.md#mapeo-a-entidades-java) |
 | Editar una migración ya desplegada | La app no arranca | Siempre una versión nueva |
 | Perder el volumen sin respaldo | Pérdida de todos los datos | Respaldos fuera del servidor |
 | `.env` en Git | Claves expuestas | Fase 0; cambiar las claves |

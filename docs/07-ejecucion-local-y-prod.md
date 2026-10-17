@@ -3,7 +3,7 @@
 Guía única para arrancar el backend en tres escenarios. Los conceptos (usuarios, variables, perfiles, Flyway) están explicados en los demás archivos de `docs/`.
 
 1. **Local**: desarrollo diario.
-2. **Prod de prueba**: simula producción en tu máquina para probar el script de migración (`V1__esquema_inicial.sql`) y los permisos.
+2. **Prod de prueba**: simula producción en tu máquina para probar las migraciones (`V1__esquema_inicial.sql` y `V2__datos_iniciales.sql`) y los permisos.
 3. **Prod real**: cómo debe quedar cuando el proyecto esté terminado y desplegado en un servidor.
 
 ---
@@ -151,7 +151,7 @@ En el log deben aparecer:
 
 ```
 The following 1 profile is active: "local"
-Successfully applied 1 migration to schema `tecnofactory`    (solo la primera vez)
+Successfully applied 2 migrations to schema `tecnofactory`   (solo la primera vez: V1 y V2)
 HikariPool-1 - Start completed.
 Tomcat started on port 8080 (http)
 ```
@@ -163,9 +163,9 @@ Mientras `SecurityConfig` esté vacío, Spring Security protege **todas** las ru
 | Swagger UI | http://localhost:8080/swagger-ui/index.html |
 | Estado | http://localhost:8080/actuator/health |
 
-### 4. Corrección pendiente en `application-local.yaml`
+### 4. Formato correcto de `application-local.yaml` (ya corregido)
 
-Hoy el bloque `jpa:` está mal indentado: `hibernate:` quedó al mismo nivel que `jpa:`, así que Spring **ignora** `show-sql` y `format_sql` (y `ddl-auto` cae al valor de `application.yaml`, que también es `validate`). Debe ser:
+El bloque `jpa:` del proyecto ya está bien indentado. Así debe quedar (si `hibernate:` o `properties:` se desalinean, Spring **ignora** `show-sql` y `format_sql` sin avisar):
 
 ```yaml
   jpa:
@@ -177,7 +177,7 @@ Hoy el bloque `jpa:` está mal indentado: `hibernate:` quedó al mismo nivel que
         format_sql: true
 ```
 
-Fíjate también en que `show-sql` va bajo `jpa:`, no bajo `hibernate:`.
+`show-sql` y `properties` van bajo `jpa:`, nunca dentro de `hibernate:`.
 
 ### 5. Detener
 
@@ -188,13 +188,13 @@ Fíjate también en que `show-sql` va bajo `jpa:`, no bajo `hibernate:`.
 
 ## Escenario 2: Prod de prueba (en tu máquina)
 
-Objetivo: comprobar que `V1__esquema_inicial.sql` crea todas las tablas desde cero con el usuario `tecnofactory_migrator`, y que la app funciona con el usuario limitado `tecnofactory_app`.
+Objetivo: comprobar que `V1__esquema_inicial.sql` crea todas las tablas y `V2__datos_iniciales.sql` carga los datos de referencia desde cero con el usuario `tecnofactory_migrator`, y que la app funciona con el usuario limitado `tecnofactory_app`.
 
 La app corre como JAR en tu máquina y MySQL en Docker. No hace falta el `Dockerfile`.
 
 ### Antes de empezar
 
-- [ ] `src/main/resources/db/migration/V1__esquema_inicial.sql` existe (el nombre lleva **dos guiones bajos**: `V1__`).
+- [ ] `src/main/resources/db/migration/V1__esquema_inicial.sql` y `V2__datos_iniciales.sql` existen (el nombre lleva **dos guiones bajos**: `V1__`, `V2__`).
 - [ ] El `.env` tiene las **cuatro** variables (`DB_PASSWORD`, `MIGRATOR_PASSWORD`, `APP_DB_PASSWORD`, `JWT_SECRET`).
 - [ ] `docker/mysql-init/01-crear-usuario-app.sh` existe.
 
@@ -275,7 +275,7 @@ docker exec -it tecnofactory-db mysql -utecnofactory_migrator -p tecnofactory -e
 ```
 
 Debes ver las 13 tablas de tu modelo más `flyway_schema_history` (14 en total):
-`BLOG, BOLETA, CARRITO, CATEGORIA, COMUNA, DETALLE_BOLETA, DETALLE_CARRITO, IMAGEN_URL, PRODUCTO_CATEGORIA, PRODUCTOS, REGION, TIPO_USUARIO, USUARIO`.
+`blog, boleta, carrito, categoria, comuna, detalle_boleta, detalle_carrito, imagen_url, producto, producto_categoria, region, tipo_usuario, usuario`.
 
 Historial de Flyway:
 
@@ -283,15 +283,20 @@ Historial de Flyway:
 docker exec -it tecnofactory-db mysql -utecnofactory_migrator -p tecnofactory -e "SELECT version, description, success FROM flyway_schema_history;"
 ```
 
-Debe mostrar la versión `1` con `success = 1`.
+Debe mostrar las versiones `1` y `2`, ambas con `success = 1`.
+
+Datos de referencia cargados por `V2` (deben dar 3, 16 y 346):
+
+```bash
+docker exec -it tecnofactory-db mysql -utecnofactory_migrator -p tecnofactory -e "SELECT (SELECT COUNT(*) FROM tipo_usuario) tipos, (SELECT COUNT(*) FROM region) regiones, (SELECT COUNT(*) FROM comuna) comunas;"
 
 ### 7. Verificar los permisos mínimos
 
 Con el usuario de la app (clave `APP_DB_PASSWORD`):
 
 ```bash
-docker exec -it tecnofactory-db mysql -utecnofactory_app -p tecnofactory -e "SELECT COUNT(*) FROM USUARIO;"
-docker exec -it tecnofactory-db mysql -utecnofactory_app -p tecnofactory -e "DROP TABLE BLOG;"
+docker exec -it tecnofactory-db mysql -utecnofactory_app -p tecnofactory -e "SELECT COUNT(*) FROM usuario;"
+docker exec -it tecnofactory-db mysql -utecnofactory_app -p tecnofactory -e "DROP TABLE blog;"
 ```
 
 El primer comando funciona. El segundo **debe fallar** con `ERROR 1142 ... DROP command denied`. Si funciona, los permisos están mal.
@@ -303,7 +308,9 @@ El primer comando funciona. El segundo **debe fallar** con `ERROR 1142 ... DROP 
 - Una ruta que falle no muestra mensajes ni rastros.
 - Mientras `SecurityConfig` esté vacío, **todas** las rutas (incluida `/actuator/health`) piden el usuario `user` y la clave temporal que muestra el log. Para ver `UP`/`DOWN` entra con esas credenciales.
 
-### Resultado de la prueba real (16 oct 2026)
+### Resultado de la prueba real (16 oct 2026, con el `V1` original)
+
+> Esta prueba se hizo antes de los cambios de `V1` y de agregar `V2`. Conviene repetirla completa con los archivos actuales.
 
 | Comprobación | Resultado |
 | --- | --- |
@@ -319,7 +326,7 @@ El primer comando funciona. El segundo **debe fallar** con `ERROR 1142 ... DROP 
 
 ### 9. Volver a desarrollo
 
-`Ctrl + C` para la app. Si quieres seguir en local con la base que dejó prod, no hay problema (Flyway ya aplicó V1). Para empezar limpio otra vez: `docker compose down -v && docker compose up -d`.
+`Ctrl + C` para la app. Si quieres seguir en local con la base que dejó prod, no hay problema (Flyway ya aplicó V1 y V2). Para empezar limpio otra vez: `docker compose down -v && docker compose up -d`.
 
 ---
 
@@ -331,7 +338,7 @@ Aquí todo corre en Docker en el servidor: MySQL y backend en la misma red inter
 
 - [ ] Escenario 2 probado de principio a fin sin errores.
 - [ ] `SecurityConfig` escrito (hoy está vacío: toda la API pediría el usuario temporal).
-- [ ] Las entidades coinciden con las tablas de `V1__...sql`. Con `ddl-auto: validate`, si no coinciden la app no arranca y el error dice qué falta. Puntos que suelen fallar con tu esquema: nombres de columna en camelCase (`stockCritico` frente a `stock_critico`), `DECIMAL` frente a `Long`/`Integer`, y `id` sin `AUTO_INCREMENT` (si usas `GenerationType.IDENTITY`, el script debe declarar `AUTO_INCREMENT`).
+- [ ] Las entidades coinciden con las tablas de `V1__...sql`. Con `ddl-auto: validate`, si no coinciden la app no arranca y el error dice qué falta. Los problemas del esquema original (camelCase, `DECIMAL`, ids sin `AUTO_INCREMENT`) ya están resueltos en `V1`. Lo que sigue pudiendo fallar es el tipo Java: `region` y `comuna` usan `INT` (`Integer`), el resto de ids `BIGINT` (`Long`); ver la tabla de mapeo en [06](06-base-de-datos.md#mapeo-a-entidades-java).
 - [ ] `.env` del servidor con claves **nuevas y generadas**, distintas a desarrollo.
 - [ ] Permisos del `.env`: `chmod 600 .env`.
 - [ ] `Dockerfile` escrito (hoy está vacío).
@@ -462,18 +469,18 @@ Flyway aplica automáticamente las migraciones nuevas al arrancar. **No** uses `
 
 ## Agregar cambios a la base de datos
 
-Una vez que `V1` se aplicó en alguna base, **no la edites nunca más**. Flyway guarda un checksum de cada migración y, si cambia, la app no arranca (`Validate failed: Migration checksum mismatch`).
+Una vez que `V1` o `V2` se aplicaron en alguna base compartida o de producción, **no las edites nunca más**. Flyway guarda un checksum de cada migración y, si cambia, la app no arranca (`Validate failed: Migration checksum mismatch`).
 
 Para cambiar el esquema, crea un archivo nuevo en `src/main/resources/db/migration/`:
 
 ```
-V2__agregar_columna_x.sql
-V3__crear_tabla_y.sql
+V3__agregar_columna_x.sql
+V4__crear_tabla_y.sql
 ```
 
 Reglas del nombre: `V` + número + **dos guiones bajos** + descripción con guiones bajos + `.sql`.
 
-Mientras `V1` solo exista en tu máquina de desarrollo, sí puedes editarla: haz `docker compose down -v` y vuelve a arrancar para recrearla desde cero. Cuando esté en producción, ya no.
+`V1` y `V2` ya existen; el próximo archivo es **`V3`**. Mientras `V1` y `V2` solo existan en tu máquina de desarrollo, sí puedes editarlas: haz `docker compose down -v` y vuelve a arrancar para recrearlas desde cero. Cuando estén en producción, ya no.
 
 ---
 
