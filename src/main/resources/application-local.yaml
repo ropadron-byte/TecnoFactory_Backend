@@ -5,13 +5,13 @@ spring:
     username: ${DB_USER:root}       # usuario de MySQL
     password: ${DB_PASSWORD}    # clave de MySQL (la misma de tu .env)
 
-  jpa:
-    show-sql: true  # imprime cada consulta SQL
-    hibernate:
-      ddl-auto: validate          # Hibernate solo comprueba que las entidades coincidan con las tablas
-      properties:
-        hibernate:
-          format_sql: true        # el SQL sale en varias líneas, legible
+  jpa: # imprime cada consulta SQL
+    show-sql: true
+    hibernate:  # Hibernate solo comprueba que las entidades coincidan con las tablas
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true # el SQL sale en varias líneas, legible
 
   flyway:
     enabled: true            # Flyway crea las tablas desde db/migration
