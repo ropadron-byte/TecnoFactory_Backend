@@ -29,7 +29,7 @@ public class Usuario {
 
     @JdbcTypeCode(SqlTypes.CHAR)
     @Column(name = "run_dv", nullable = false, unique = false, length = 1)
-    private String run_dv;
+    private String runDv;
 
     @Column(name = "apellidos", nullable = false)
     private String apellidos;
@@ -44,7 +44,7 @@ public class Usuario {
     private String direccion;
 
     @Column(name = "fecha_nacimiento", nullable = false)
-    private LocalDate fecha_nacimiento;
+    private LocalDate fechaNacimiento;
 
     @Column(name = "telefono", nullable = false, length = 15)
     private String telefono;
