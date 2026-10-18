@@ -28,7 +28,7 @@ public class Usuario {
     private Integer run;
 
     @JdbcTypeCode(SqlTypes.CHAR)
-    @Column(name = "run_dv", nullable = false, unique = true, length = 1)
+    @Column(name = "run_dv", nullable = false, unique = false, length = 1)
     private String run_dv;
 
     @Column(name = "apellidos", nullable = false)
