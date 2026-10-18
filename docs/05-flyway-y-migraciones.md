@@ -49,7 +49,7 @@ Al arrancar, Flyway:
 | --- | --- |
 | `V1` y `V2` solo existen en tu base de desarrollo | Puedes editarlas: `docker compose down -v`, `up -d` y arrancar de nuevo |
 | `V1` o `V2` ya se aplicaron en un servidor o las usa otra persona | **No se editan nunca más.** Cambio nuevo = `V3__...` |
-| Necesitas más datos de referencia (categorías base, administrador) | Una migración nueva (`V3__...`) |
+| Necesitas más datos de referencia | Una migración nueva (`V3__...`; el proyecto planea `V3` para categorías base y `V4` para el administrador) |
 | Un cambio de entidad | Una migración equivalente en SQL, y viceversa: con `validate` deben coincidir |
 
 ## Reglas al escribir migraciones

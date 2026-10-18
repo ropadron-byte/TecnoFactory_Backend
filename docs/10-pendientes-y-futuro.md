@@ -6,8 +6,8 @@ Lo que falta construir, en orden recomendado, y qué cambia en la configuración
 
 | Fase | Qué | Depende de | Prioridad | Estado |
 | --- | --- | --- | --- | --- |
-| 0 | Limpieza y decisiones del esquema | — | **Ahora** | Casi lista (quedan 3 puntos) |
-| 1 | Esquema definitivo y datos iniciales (`V1`, `V2`) | 0 | **Ahora** | **Hecha** (falta administrador y categorías base) |
+| 0 | Limpieza y decisiones del esquema | — | **Ahora** | **Hecha** |
+| 1 | Esquema definitivo y datos iniciales (`V1`, `V2`) | 0 | **Ahora** | Casi lista: falta aplicar categorías base (`V3`) y administrador (`V4`) |
 | 2 | Entidades, repositorios y manejo de errores | 1 | Alta | **En curso**: errores escritos; faltan entidades y repositorios |
 | 3 | Catálogo: categorías y productos | 2 | Alta | Pendiente |
 | 4 | Seguridad: JWT, roles y usuarios | 2 | Alta | Pendiente |
@@ -22,12 +22,12 @@ Lo que falta construir, en orden recomendado, y qué cambia en la configuración
 
 ## Fase 0. Limpieza inmediata
 
-- [ ] **Verificar que `.env` no está en Git.** Ya hiciste `git push`: ejecuta `git ls-files | grep -i env` (no debe devolver nada) y revisa que `.gitignore` contenga `.env`, `target/` y `.idea/`. (El `.gitignore` actual sí los incluye; falta comprobar que el `.env` nunca se subió.) Si se subió, cambia **todas** las claves.
+- [x] **Verificar que `.env` no está en Git.** `git ls-files | grep -i env` no devuelve nada y `.gitignore` contiene `.env`, `target/` y `.idea/`. **Hecho.**
 - [x] Corregir la indentación de `jpa:` en `application-local.yaml` (ver 04). **Hecho.**
 - [x] Actualizar la documentación (`README.md` y `docs/`) al estado actual. **Hecho** (ver [Cambios recientes](cambios-recientes.md)).
-- [ ] Reemplazar los manuales viejos (`COMO_EJECUTAR.md`, `MANUAL_TECNOFACTORY.md`, `TecnoFactory - Guía del proyecto.md`) por esta carpeta `docs/` para no tener tres versiones contradictorias.
-- [ ] Mover `ExplicacionesCrudas.md` fuera del repositorio o a `docs/archivo/`: es una transcripción de conversaciones, no documentación.
-- [ ] No compartir el ZIP del proyecto con el `.env` ni la carpeta `target/` (el `.jar` pesa unos 78 MB y queda desactualizado).
+- [x] Reemplazar los manuales viejos (`COMO_EJECUTAR.md`, `MANUAL_TECNOFACTORY.md`, `TecnoFactory - Guía del proyecto.md`) por esta carpeta `docs/`. **Hecho.**
+- [x] Mover `ExplicacionesCrudas.md` fuera del repositorio o a `docs/archivo/`. **Hecho.**
+- [x] No compartir el ZIP del proyecto con el `.env` ni la carpeta `target/`. **Tenido en cuenta.**
 
 ## Fase 1. Esquema definitivo
 
@@ -47,10 +47,10 @@ Lo que falta construir, en orden recomendado, y qué cambia en la configuración
 
 - [x] `V1` aplicada desde cero (probada en MariaDB 10.11).
 - [x] **`V2__datos_iniciales.sql`**: 3 tipos de usuario, 16 regiones y 346 comunas. **Hecho.**
-- [ ] **Confirmar `V1` + `V2` en tu MySQL 8.4 de Docker** (`down -v`, `up -d`, arrancar la app).
-- [ ] **Administrador inicial.** No va en `V2` a propósito. Se crea con una clave tomada de una variable de entorno, o con un `V3` cuyo hash BCrypt generes tú. **Nunca** una contraseña en texto plano en Git.
-- [ ] **Categorías base** (`V3`): dependen de lo que venda TecnoFactory.
-- [ ] Actualizar o reexportar el diagrama de `Diagrama/` (está desactualizado respecto a `V1`).
+- [x] **Confirmar `V1` + `V2` en tu MySQL 8.4 de Docker.** **Hecho.**
+- [ ] **Administrador inicial** (`V4`). **En curso**: plantilla `V4__administrador_inicial.sql` y guía en [08](08-seguridad.md#administrador-inicial). Falta generar el hash y aplicarla. **Nunca** una contraseña en texto plano en Git.
+- [ ] **Categorías base** (`V3`). **En curso**: borrador `V3__categorias_base.sql`; falta ajustar la lista a lo que venda TecnoFactory y aplicarlo.
+- [ ] Actualizar el diagrama de `Diagrama/`. **Pospuesto**: está hecho en Oracle SQL Developer Data Modeler, cuyos tipos de dato son distintos a los de MySQL, y no se puede exportar directo. La fuente de verdad es `V1`.
 
 **`V1` y `V2` se congelan** en cuanto se desplieguen: cualquier cambio será `V3`, `V4`...
 

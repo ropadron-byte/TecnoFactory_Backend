@@ -16,6 +16,7 @@ El plan completo por fases está en [10-pendientes-y-futuro.md](10-pendientes-y-
 
 ### Siguiente paso (en este orden)
 
+- [ ] **Categorías base (`V3`) y administrador inicial (`V4`)**: los borradores están listos (`V3__categorias_base.sql` y `V4__administrador_inicial.sql`). Falta ajustar las categorías a lo que venda TecnoFactory, generar el hash BCrypt del administrador (guía en [08](08-seguridad.md#administrador-inicial)), copiar ambos a `db/migration/` y recrear la base (`docker compose down -v`, `up -d`).
 - [ ] **`SecurityConfig` mínimo y temporal** (permitir todas las rutas) para poder probar controllers. Solo local; se reemplaza en la fase 4 y no se despliega. Mientras esté vacío, Spring Security responde 401 a todo.
 - [ ] **Entidades**: `Region`, `Comuna`, `TipoUsuario`, `Usuario`, `Categoria`, `Producto`, `ImagenUrl`, `Carrito`, `DetalleCarrito`, `Boleta`, `DetalleBoleta`, `Blog` (mapeo en [06](06-base-de-datos.md#mapeo-a-entidades-java)).
 - [ ] **Repositories**, uno por entidad. Arrancar con `validate` para comprobar que todo calza.
@@ -24,31 +25,52 @@ El plan completo por fases está en [10-pendientes-y-futuro.md](10-pendientes-y-
 
 ### Verificaciones pendientes
 
-- [ ] **Confirmar `V1` y `V2` en tu MySQL 8.4** (se probaron en MariaDB 10.11): ver [Cómo verificar todo en tu máquina](#cómo-verificar-todo-en-tu-máquina).
+- [x] **Confirmar `V1` y `V2` en tu MySQL 8.4** (se probaron en MariaDB 10.11): **hecho**.
 - [ ] **Confirmar el `DEFAULT TRUE` de `boleta.estado`** en tu `V1`: `SHOW COLUMNS FROM boleta LIKE 'estado';` debe mostrar `Default = 1`.
 - [ ] **Compilar el proyecto** (`./mvnw clean compile`): las clases de `exception/` solo se revisaron leyéndolas.
 - [ ] **Confirmar que la sección 1.4 ampliada** (comprobadas y no comprobadas) quedó pegada en `11-excepciones-explicadas.md`: se entregó como un trozo aparte, no dentro del archivo.
-- [ ] **Comprobar que el `.env` nunca se subió a Git**: `git ls-files | grep -i env` no debe devolver nada. Si se subió, cambiar todas las claves.
+- [x] **Comprobar que el `.env` nunca se subió a Git**: **hecho**.
 
 ### Decisiones abiertas
 
-- [ ] **Administrador inicial**: no está en `V2`. Opciones: crearlo en `AuthService` leyendo la clave de una variable de entorno, o generar tú el hash BCrypt y ponerlo en un `V3`. Nunca una contraseña en texto plano en Git.
-- [ ] **Categorías base** (`V3`): dependen de lo que venda TecnoFactory.
+- [ ] **Administrador inicial a largo plazo**: hoy se usa la plantilla `V4` con hash; antes de producción valorar crearlo al arrancar desde variables de entorno (opción B de [08](08-seguridad.md#administrador-inicial)).
 - [ ] **401 frente a 403** en `AccessDeniedException` (fase 4): hoy un visitante sin token recibiría 403; ver [11](11-excepciones-explicadas.md#810-accessdeniedexception--403).
 - [ ] **Cómo se aplica el descuento** (0 a 100) sobre el `precio` y su copia en `detalle_boleta`.
 - [ ] **Detalle por parámetro** en `HandlerMethodValidationException` (hoy solo dice "Parámetros inválidos").
 
 ### Limpieza pendiente
 
-- [ ] Reemplazar los manuales viejos (`COMO_EJECUTAR.md`, `MANUAL_TECNOFACTORY.md`, `TecnoFactory - Guía del proyecto.md`) por la carpeta `docs/`.
-- [ ] Mover `ExplicacionesCrudas.md` fuera del repositorio o a `docs/archivo/`.
+- [x] Reemplazar los manuales viejos (`COMO_EJECUTAR.md`, `MANUAL_TECNOFACTORY.md`, `TecnoFactory - Guía del proyecto.md`) por la carpeta `docs/`: **hecho**.
+- [x] Mover `ExplicacionesCrudas.md` fuera del repositorio o a `docs/archivo/`: **hecho**.
 - [ ] Si activas el log en archivo, agregar `logs/` y `*.log` a `.gitignore` (ver [12](12-logs.md#8-guardar-el-log-en-un-archivo-opcional)).
-- [ ] Actualizar o reexportar el diagrama de `Diagrama/` (desactualizado respecto a `V1`).
-- [ ] No compartir el ZIP del proyecto con el `.env` ni `target/`.
+- [ ] Actualizar el diagrama de `Diagrama/`: **pospuesto** (es de Oracle Data Modeler y sus tipos de dato difieren de los de MySQL; la fuente de verdad es `V1`).
+- [x] No compartir el ZIP del proyecto con el `.env` ni `target/`: **tenido en cuenta**.
 
 ---
 
 ## Historial
+
+### 17 oct 2026 (tercera parte): verificaciones, categorías base y administrador
+
+**Verificado por ti:**
+
+| Qué | Resultado |
+| --- | --- |
+| `V1` y `V2` en MySQL 8.4 de Docker | Aplicadas |
+| `.env` fuera de Git | Confirmado |
+| Manuales viejos reemplazados por `docs/`; `ExplicacionesCrudas.md` retirado | Hecho |
+| Diagrama de `Diagrama/` | **Pospuesto**: es de Oracle y sus tipos difieren de los de MySQL |
+
+**Borradores nuevos** (probados junto a `V1` y `V2` en MariaDB 10.11):
+
+| Archivo | Contenido | Antes de aplicarlo |
+| --- | --- | --- |
+| `V3__categorias_base.sql` | 8 categorías de ejemplo para una tienda de tecnología | Ajustar nombres y descripciones a lo que venda TecnoFactory |
+| `V4__administrador_inicial.sql` | `INSERT` del administrador: rol buscado **por nombre** (no por id), comuna 13101 | Generar el hash BCrypt y cambiar los valores marcados con `CAMBIAR` |
+
+Decisión de diseño: el administrador se crea con una migración que guarda el **hash** (nunca la clave). La alternativa de crearlo al arrancar desde variables de entorno queda para antes de producción, porque necesita las entidades y el `PasswordEncoder`. Detalle y pasos en [08](08-seguridad.md#administrador-inicial).
+
+Pendiente de comprobar con el login real: que la clave y el hash funcionen juntos (fase 4).
 
 ### 17 oct 2026 (segunda parte): organización de la documentación y logs
 
