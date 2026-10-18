@@ -1,6 +1,6 @@
 # 09. Errores comunes
 
-Tabla única de síntomas, causas y soluciones. Los primeros nueve ya ocurrieron en el proyecto.
+Tabla única de síntomas, causas y soluciones. Los primeros nueve ya ocurrieron en el proyecto, y la sección **Entidades y repositories** recoge los de la sesión del 18 oct. Para aprender **a razonar** un error de arranque (y no solo a buscarlo en esta tabla), lee [16-leer-errores-de-spring.md](16-leer-errores-de-spring.md).
 
 ## Ya ocurridos
 
@@ -55,16 +55,32 @@ Tabla única de síntomas, causas y soluciones. Los primeros nueve ya ocurrieron
 | Los inserts fallan con `Field 'id' doesn't have a default value` | PK sin `AUTO_INCREMENT` con `GenerationType.IDENTITY` | Agregar `AUTO_INCREMENT` |
 | Flyway no ejecuta nada y no hay error | Nombre del archivo incorrecto, carpeta equivocada o falta `spring-boot-starter-flyway` | Revisar `V1__...`, la ruta `db/migration` y el `pom.xml` |
 
+## Entidades y repositories
+
+| Síntoma | Causa | Solución |
+| --- | --- | --- |
+| `Schema-validation: missing column [id_comuna] in table [region]` | `@Table(name = "region")` copiado dentro de `Comuna`: dos entidades apuntan a la misma tabla | `@Table(name = "comuna")`. Ver [16, 5.1](16-leer-errores-de-spring.md#51-error-1-missing-column-id_comuna-in-table-region) |
+| `Schema-validation: wrong column type ... found [char], expecting [varchar]` | `CHAR(1)` mapeado como `String` sin `@JdbcTypeCode` | `@JdbcTypeCode(SqlTypes.CHAR)`. Ver [13, 6.3](13-entidades-explicadas.md#63-explicación-de-jdbctypecodesqltypeschar) |
+| `Error creating bean with name 'xRepository' ... No property 'comuna' found for type 'String'` | El método de repository usa el nombre de la **columna** (`findByNombreComuna`) en vez del **atributo** (`findByNombre`) | Usar los atributos de la entidad. Ver [14, sección 3.4](14-repositories-explicados.md#34-los-nombres-se-escriben-contra-los-atributos-java-no-las-columnas) |
+| `No property 'correoo' found for type 'Usuario'` | Error de tipeo en el nombre de un método | Corregir el nombre |
+| Falla al llamar `findById(...)`, pero el arranque fue limpio | El segundo tipo de `JpaRepository<E, X>` no coincide con el `@Id` (`Long` en vez de `Integer`) | Alinearlo con el tipo del `@Id` |
+| `IncorrectResultSizeDataAccessException` | Un método devuelve `Optional<E>` pero la columna no es única y hay dos filas | Devolver `List<E>` |
+| `LazyInitializationException` | Se leyó una relación `LAZY` (`comuna.getRegion()`) fuera de una transacción (`open-in-view: false`) | Cargar los datos dentro del service con `@Transactional`, o convertir a DTO dentro de él |
+| Parece un error en el log pero es `INFO`: `Could not safely identify store assignment for repository candidate` | Spring prueba cada repository con JPA y con Redis | Ignorarlo ([14, sección 6](14-repositories-explicados.md#6-lo-que-sale-en-el-log-y-no-es-un-error)) |
+
 ## Spring y seguridad
 
 | Síntoma | Causa | Solución |
 | --- | --- | --- |
-| Swagger o Actuator piden usuario y clave | `SecurityConfig` vacío | Usar `user` y la clave del log, o escribir el `SecurityConfig` |
+| Swagger o Actuator piden usuario y clave | `SecurityConfig` vacío o sin `SecurityFilterChain` | Escribir el `SecurityConfig` ([15](15-seguridad-codigo-explicado.md#33-la-cadena-de-filtros)) |
 | `Could not resolve placeholder 'FLYWAY_USER'` | Falta la variable en perfil `prod` | Definirla: Spring no lee el `.env` |
 | Ningún perfil activo: la app intenta usar Redis | Se arrancó sin `SPRING_PROFILES_ACTIVE` | Arrancar siempre con `local` o `prod` |
 | `show-sql` no imprime nada en local | `jpa:`/`hibernate:` mal indentados en `application-local.yaml` | Corregir como en 04 |
 | `/actuator/health` sale DOWN | Un componente (Redis, correo) falla | Verificar que sus `health` estén desactivados en el perfil |
 | Un `403` o `401` en cualquier ruta | La seguridad por defecto está activa | Escribir el `SecurityConfig` |
+| `403` solo en `POST`, `PUT` y `DELETE`; los `GET` funcionan | CSRF activo | `.csrf(AbstractHttpConfigurer::disable)` ([15, 3.4](15-seguridad-codigo-explicado.md#34-por-qué-se-desactiva-csrf)) |
+| La app no arranca: `Can't configure requestMatchers after anyRequest` | Una regla `requestMatchers(...)` escrita después de `anyRequest()` | Dejar `anyRequest()` como la última regla |
+| Sigue saliendo `Using generated security password` en el log | Normal hasta que exista un `UserDetailsService` propio | Ignorarlo en desarrollo ([15, 3.6](15-seguridad-codigo-explicado.md#36-dos-detalles-que-sorprenden)) |
 | CORS bloquea al frontend | `CorsConfig` vacío | Implementarlo con el dominio de React |
 
 ## Maven y compilación

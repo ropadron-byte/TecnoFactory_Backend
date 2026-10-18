@@ -120,7 +120,7 @@ Con `ddl-auto: validate`, cada entidad debe coincidir con la tabla. Spring Boot 
 | `VARCHAR` | `String` | Textos |
 | `BOOLEAN` | `Boolean` | `activo`, `visible`, `estado` |
 | `DATE` / `DATETIME` | `LocalDate` / `LocalDateTime` | `fecha_nacimiento` / `boleta.fecha` |
-| `CHAR(1)` | `Character` | `usuario.run_dv` |
+| `CHAR(1)` | `String` + `@JdbcTypeCode(SqlTypes.CHAR)` | `usuario.run_dv` (**validado** en MySQL 8.4) |
 | `TEXT` | `String` | `blog.contenido` |
 
 | Tabla | Entidad | Notas de mapeo |
@@ -138,7 +138,9 @@ Con `ddl-auto: validate`, cada entidad debe coincidir con la tabla. Spring Boot 
 | `boleta` | `Boleta` | `estado = true` por defecto en Java |
 | `detalle_boleta` | `DetalleBoleta` | `@ManyToOne` a `Boleta` y `Producto` |
 
-**Puntos a vigilar con `validate`:** `CHAR(1)` y `TEXT` son los tipos con más riesgo de que Hibernate se queje (`wrong column type`). Si ocurre, se resuelve en la entidad (por ejemplo con `@JdbcTypeCode`), **no** cambiando el esquema.
+**Puntos a vigilar con `validate`:** `CHAR(1)` y `TEXT` son los tipos con más riesgo de que Hibernate se queje (`wrong column type`). Si ocurre, se resuelve en la entidad (por ejemplo con `@JdbcTypeCode`), **no** cambiando el esquema. `CHAR(1)` ya está resuelto en `Usuario.run_dv` (ver [13](13-entidades-explicadas.md#63-explicación-de-jdbctypecodesqltypeschar)); `TEXT` (`blog.contenido`) queda por comprobar cuando exista esa entidad.
+
+**Estado de las entidades (18 oct):** existen `Region`, `Comuna`, `TipoUsuario` y `Usuario`, y las cuatro pasaron `validate`. El código y cada anotación están explicados en [13-entidades-explicadas.md](13-entidades-explicadas.md). Ahí también se anotan tres diferencias entre las entidades y este esquema (`unique = true` que `V1` no tiene, y nombres con guion bajo en `Usuario`).
 
 **El valor por defecto de la base no se aplica si Hibernate envía `NULL` explícito.** Por eso `estado`, `activo` y `visible` también se inicializan en Java (`private Boolean activo = true;`).
 
@@ -189,8 +191,10 @@ Se evaluó y **no se usan por ahora**: la API usa un solo usuario de MySQL, así
 
 `V1` y `V2` se aplicaron **sin errores** en una base limpia de prueba (**MariaDB 10.11**, no MySQL 8.4): 13 tablas, 15 FK, 3 tipos de usuario, 16 regiones y 346 comunas. La sintaxis usada (`CHECK`, `DEFAULT`, FK) es válida en MySQL 8.4, pero **la prueba definitiva es arrancar la app contra tu contenedor MySQL 8.4** (ver [Cambios recientes](cambios-recientes.md#cómo-verificar-todo-en-tu-máquina)).
 
+**18 oct 2026:** `V1`, `V2` y `V3` se aplicaron con Flyway en tu MySQL 8.4 (`Successfully applied 3 migrations ... now at version v3`) y las cuatro entidades actuales validaron contra ese esquema. Con eso queda confirmado en MySQL 8.4 lo que antes solo se había probado en MariaDB.
+
 ## Entidades: reglas que dependen de este esquema
 
-- Con `ddl-auto: validate`, cada entidad debe coincidir en nombre de tabla, columnas y tipos.
+- Con `ddl-auto: validate`, cada entidad debe coincidir en nombre de tabla, columnas y tipos. **No** verifica `UNIQUE`, `NOT NULL` ni largos: esos los impone la base ([13, sección 1.3](13-entidades-explicadas.md#13-qué-comprueba-ddl-auto-validate)).
 - Las entidades **no se devuelven por la API**: se convierten a DTO.
 - Los roles salen de `tipo_usuario.nombre_tipo_usuario`. Se decidió mantener la tabla (en vez de un `enum`) para poder agregar roles sin recompilar.

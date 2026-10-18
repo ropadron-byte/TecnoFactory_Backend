@@ -16,10 +16,13 @@ El plan completo por fases está en [10-pendientes-y-futuro.md](10-pendientes-y-
 
 ### Siguiente paso (en este orden)
 
-- [ ] **Categorías base (`V3`) y administrador inicial (`V4`)**: los borradores están listos (`V3__categorias_base.sql` y `V4__administrador_inicial.sql`). Falta ajustar las categorías a lo que venda TecnoFactory, generar el hash BCrypt del administrador (guía en [08](08-seguridad.md#administrador-inicial)), copiar ambos a `db/migration/` y recrear la base (`docker compose down -v`, `up -d`).
-- [ ] **`SecurityConfig` mínimo y temporal** (permitir todas las rutas) para poder probar controllers. Solo local; se reemplaza en la fase 4 y no se despliega. Mientras esté vacío, Spring Security responde 401 a todo.
-- [ ] **Entidades**: `Region`, `Comuna`, `TipoUsuario`, `Usuario`, `Categoria`, `Producto`, `ImagenUrl`, `Carrito`, `DetalleCarrito`, `Boleta`, `DetalleBoleta`, `Blog` (mapeo en [06](06-base-de-datos.md#mapeo-a-entidades-java)).
-- [ ] **Repositories**, uno por entidad. Arrancar con `validate` para comprobar que todo calza.
+- [ ] **Confirmar un arranque completo** con los repositories corregidos y el `SecurityConfig`: el log debe decir `Found 4 JPA repository interfaces` y `Started TecnoFactoryApplication`; `http://localhost:8080/swagger-ui.html` debe cargar y `curl -i http://localhost:8080/actuator/health` debe responder `200`. (Los cambios de la sesión del 18 oct se escribieron y revisaron, pero el último arranque con todo corregido no se vio.)
+- [ ] **Corregir tres detalles de las entidades** antes de crear DTOs ([13, sección 7](13-entidades-explicadas.md#7-observaciones-sobre-el-código-actual)): quitar `unique = true` de `run_dv`, de `nombre_region` y de `nombre_comuna` (`V1` no los tiene); pasar `run_dv` y `fecha_nacimiento` a `runDv` y `fechaNacimiento`.
+- [ ] **Paso 6: `UsuarioService`** con "crear administrador si no existe" (usa `existsByTipoUsuarioNombre`, `TipoUsuarioRepository` y el `PasswordEncoder`).
+- [ ] **Paso 7: `ApplicationRunner`** que lo invoca al arrancar, con `ADMIN_EMAIL` y `ADMIN_PASSWORD` agregadas al `.env`.
+- [ ] **Paso 8: DTOs y mapper** de usuario (MapStruct) con validaciones.
+- [ ] **Paso 9: `UsuarioController`** probado en Swagger; será el **ejemplo para tu compañero**.
+- [ ] **Entidades y repositories restantes**: `Categoria`, `Producto`, `ImagenUrl`, `Carrito`, `DetalleCarrito`, `Boleta`, `DetalleBoleta`, `Blog` (mapeo en [06](06-base-de-datos.md#mapeo-a-entidades-java)). Cuidado con `TEXT` (`blog.contenido`) y con la clave compuesta de `detalle_carrito`.
 - [ ] **Primera "rebanada" completa**: `Categoria` (DTOs, mapper, service, controller) probada en Swagger; después `Producto`.
 - [ ] **Probar el `GlobalExceptionHandler`** con las pruebas de [Cobertura de los errores de Spring](#cobertura-de-los-errores-de-spring) cuando exista el primer controller.
 
@@ -27,13 +30,14 @@ El plan completo por fases está en [10-pendientes-y-futuro.md](10-pendientes-y-
 
 - [x] **Confirmar `V1` y `V2` en tu MySQL 8.4** (se probaron en MariaDB 10.11): **hecho**.
 - [ ] **Confirmar el `DEFAULT TRUE` de `boleta.estado`** en tu `V1`: `SHOW COLUMNS FROM boleta LIKE 'estado';` debe mostrar `Default = 1`.
-- [ ] **Compilar el proyecto** (`./mvnw clean compile`): las clases de `exception/` solo se revisaron leyéndolas.
+- [x] **Compilar el proyecto**: **hecho**. El log del 18 oct muestra `Compiling 20 source files` sin errores, incluidas las clases de `exception/`. Falta **probarlas** con un controller.
 - [ ] **Confirmar que la sección 1.4 ampliada** (comprobadas y no comprobadas) quedó pegada en `11-excepciones-explicadas.md`: se entregó como un trozo aparte, no dentro del archivo.
 - [x] **Comprobar que el `.env` nunca se subió a Git**: **hecho**.
 
 ### Decisiones abiertas
 
-- [ ] **Administrador inicial a largo plazo**: hoy se usa la plantilla `V4` con hash; antes de producción valorar crearlo al arrancar desde variables de entorno (opción B de [08](08-seguridad.md#administrador-inicial)).
+- [x] **Administrador inicial**: se decidió el **18 oct** crearlo por código al arrancar (opción B de [08](08-seguridad.md#administrador-inicial)) y descartar la plantilla `V4`.
+- [ ] **Datos del administrador**: además del correo y la clave, necesita `run`, `run_dv`, nombre, apellidos, fecha de nacimiento, dirección, teléfono y comuna (todas `NOT NULL`). Decidir si vienen de variables de entorno o de valores fijos de arranque.
 - [ ] **401 frente a 403** en `AccessDeniedException` (fase 4): hoy un visitante sin token recibiría 403; ver [11](11-excepciones-explicadas.md#810-accessdeniedexception--403).
 - [ ] **Cómo se aplica el descuento** (0 a 100) sobre el `precio` y su copia en `detalle_boleta`.
 - [ ] **Detalle por parámetro** en `HandlerMethodValidationException` (hoy solo dice "Parámetros inválidos").
@@ -45,10 +49,53 @@ El plan completo por fases está en [10-pendientes-y-futuro.md](10-pendientes-y-
 - [ ] Si activas el log en archivo, agregar `logs/` y `*.log` a `.gitignore` (ver [12](12-logs.md#8-guardar-el-log-en-un-archivo-opcional)).
 - [ ] Actualizar el diagrama de `Diagrama/`: **pospuesto** (es de Oracle Data Modeler y sus tipos de dato difieren de los de MySQL; la fuente de verdad es `V1`).
 - [x] No compartir el ZIP del proyecto con el `.env` ni `target/`: **tenido en cuenta**.
+- [ ] Limpiar las entidades: `import jakarta.validation.constraints.Min` sin usar y bloques comentados al final de `Region.java` y `Comuna.java`; `Ctrl+Alt+O` en IntelliJ quita los `import` sobrantes de las entidades y los repositories.
+- [ ] Cambiar `Optional<List<...>>` por `List<...>` en `RegionRepository`, `ComunaRepository` y `UsuarioRepository` (funciona, pero sobra el `Optional`).
+- [ ] Borrar `docs/11-cambios-recientes.md`: es una copia antigua de este archivo y el README indica que no se crean copias numeradas.
+- [ ] El `README.md` enlaza `docs/02-docker-y-mysql.md` y `docs/03-variables-y-claves.md`, que **no están** en el ZIP revisado. Si existen en tu repositorio, bien; si no, hay que escribirlos o quitar las filas.
 
 ---
 
 ## Historial
+
+### 18 oct 2026: entidades, repositories y `SecurityConfig`, paso a paso
+
+Se avanzó **de a un paso**, arrancando la app al terminar cada uno. Cada pieza quedó explicada línea por línea en una guía nueva.
+
+| Paso | Qué se hizo | Resultado |
+| --- | --- | --- |
+| 1 | Entidad `TipoUsuario` + experimento de romper una columna a propósito | Arrancó; se aprendió a leer `Schema-validation: missing column` |
+| 2 | `Region` y `Comuna` | **Falló** con `missing column [id_comuna] in table [region]`: `Comuna` tenía `@Table(name = "region")`. Corregido; arrancó |
+| 3 | `Usuario` (con `@JdbcTypeCode(SqlTypes.CHAR)` para `run_dv`) | **Validó** contra MySQL 8.4: el log mostró `Initialized JPA EntityManagerFactory` |
+| 4 | Cuatro repositories; se añadieron métodos a propósito para provocar errores | **Fallaron** `findBynombreComuna`, `findByNombreComuna` y (previsto) `findByNombreTipoUsuario`: se usó el nombre de la columna en vez del atributo. Corregidos; también el tipo del id (`Long` → `Integer` en `Region` y `Comuna`) |
+| 5 | `PasswordEncoder` (BCrypt) y `SecurityConfig` abierto (`permitAll`) | Escritos. **Sin probar todavía** |
+
+**Decisiones:**
+
+| Decisión | Motivo |
+| --- | --- |
+| El administrador se crea **por código al arrancar**, no con `V4` | Es más seguro (nada en Git) y sirve de ejemplo completo (service, repository, `PasswordEncoder`) para el equipo |
+| `SecurityConfig` abierto mientras se desarrolla | Para que tú y tu compañero prueben controllers sin 401; se cierra en la fase 4 |
+| CSRF desactivado y sin sesiones | La API usará tokens, no cookies |
+
+**Documentación nueva:**
+
+| Archivo | Contenido |
+| --- | --- |
+| [13-entidades-explicadas.md](13-entidades-explicadas.md) | Cada anotación (`@Entity`, `@ManyToOne`, `@JdbcTypeCode`...), cada entidad línea por línea y tres observaciones sobre el código actual |
+| [14-repositories-explicados.md](14-repositories-explicados.md) | Cómo se lee el nombre de un método, qué retorno elegir, cada repository línea por línea |
+| [15-seguridad-codigo-explicado.md](15-seguridad-codigo-explicado.md) | `SecurityConfig` línea por línea, BCrypt, qué cambia al llegar el login |
+| [16-leer-errores-de-spring.md](16-leer-errores-de-spring.md) | Método de 4 pasos para leer un error de arranque, con los tres casos reales |
+
+**Documentación actualizada:** `README.md` (índice, estado y reglas de oro), `06` (mapeo de `CHAR(1)`, estado de las entidades), `08` (`SecurityConfig`, administrador por código), `09` (sección de entidades y repositories), `10` (fases, paso a paso del administrador).
+
+**Observaciones sobre el código (no impiden arrancar):** `unique = true` en `run_dv`, `nombre_region` y `nombre_comuna` que `V1` no declara; `run_dv` y `fecha_nacimiento` con guion bajo en Java. Detalle y corrección en [13, sección 7](13-entidades-explicadas.md#7-observaciones-sobre-el-código-actual).
+
+**Qué no se pudo verificar:**
+
+- El último arranque con los repositories corregidos y el `SecurityConfig` no se vio: no hay confirmación de `Started TecnoFactoryApplication` ni de que Swagger cargue.
+- El proyecto no se compiló ni ejecutó en el entorno donde se escribió esta documentación (sin Spring ni MySQL disponibles). Las guías se basan en la lectura de tu código y de tus logs.
+- El experimento de quitar `@JdbcTypeCode` para ver el error `wrong column type` quedó como sugerencia; el texto exacto del error que aparece en la guía 13 es el típico de Hibernate, pero no se vio en tu log.
 
 ### 17 oct 2026 (tercera parte): verificaciones, categorías base y administrador
 

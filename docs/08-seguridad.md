@@ -1,5 +1,7 @@
 # 08. Seguridad
 
+Este archivo describe **qué medidas hay y cuáles faltan**. El código de `SecurityConfig` y el concepto de BCrypt están explicados línea por línea en [15-seguridad-codigo-explicado.md](15-seguridad-codigo-explicado.md).
+
 ## Lo que ya está resuelto
 
 | Medida | Dónde | Estado |
@@ -12,17 +14,20 @@
 | Actuator publica solo `health`, sin detalles | `application-prod.yaml` | Hecho |
 | Formato uniforme de errores de la API (`ErrorResponse`); el error 500 no revela detalles internos | `exception/GlobalExceptionHandler` | Escrito, con cobertura de errores de Spring (400, 404, 405, 403, 409, 500); **falta compilarlo y probarlo** con un controller (ver [Cambios recientes](cambios-recientes.md#cobertura-de-los-errores-de-spring)) |
 | Secretos fuera del código, en `.env` | `.env` | Hecho (verificar `.gitignore`) |
+| Codificador de contraseñas BCrypt disponible como bean (`PasswordEncoder`) | `security/SecurityConfig` | Escrito (18 oct); aún sin usar |
+| CSRF desactivado y sin sesiones (`STATELESS`), como corresponde a una API con tokens | `security/SecurityConfig` | Escrito; falta confirmar que Swagger carga |
+| Swagger y `/actuator/health` como rutas públicas explícitas | `security/SecurityConfig` | Escrito |
 
 ## Lo que falta
 
 | Pendiente | Riesgo mientras no exista |
 | --- | --- |
-| **`SecurityConfig`** (hoy vacía) | Spring protege todo con un usuario temporal `user`: la API es inutilizable y no hay roles |
+| **`SecurityConfig` definitivo.** Hoy está escrito pero **abierto**: `.anyRequest().permitAll()` | Cualquiera puede llamar a cualquier ruta. Aceptable solo en desarrollo local; **no se despliega** así. Pasa a `.authenticated()` en la fase 4 |
 | **JWT** (`JwtService`, `JwtAuthFilter`, `UserDetailsServiceImpl`) | No hay login real |
-| **BCrypt** para contraseñas | Nunca guardar texto plano en `USUARIO.contrasenia` |
+| **Usar BCrypt** al guardar contraseñas (el bean `PasswordEncoder` ya existe) | Nunca guardar texto plano en `usuario.contrasenia` |
 | **CORS** (`CorsConfig`) | El navegador bloquea las peticiones de React |
 | **Resolver los 401 y 403 en `SecurityConfig`** (token ausente o inválido; rutas por rol) | El `GlobalExceptionHandler` solo cubre el 403 de la seguridad por métodos; el resto lo decide Spring Security antes de llegar a los controllers |
-| **Usuario administrador inicial** | No está en `V2` a propósito; sin él nadie puede gestionar el catálogo. Ver [Administrador inicial](#administrador-inicial): borrador `V4` con hash, o creación al arrancar con variables de entorno |
+| **Usuario administrador inicial** | No está en `V2` a propósito; sin él nadie puede gestionar el catálogo. **Decidido (18 oct): se crea por código al arrancar**, leyendo variables de entorno. Falta `UsuarioService` y el arranque. Ver [Administrador inicial](#administrador-inicial) |
 | **HTTPS** | Las claves y tokens viajarían en texto plano |
 | **Límite de intentos de login** | Fuerza bruta contra cuentas |
 | **Validación de subida de archivos** | Subida de archivos maliciosos |
@@ -45,19 +50,25 @@ Los tokens JWT se firman con `JWT_SECRET` (mínimo 32 caracteres) y duran 1 hora
 
 ## Administrador inicial
 
+> **Actualización 18 oct 2026:** se decidió seguir la **opción B** (crearlo por código al arrancar). Ya existen `Usuario`, `UsuarioRepository`, `TipoUsuarioRepository` y el `PasswordEncoder`; falta el `UsuarioService` con "crear administrador si no existe" y el `ApplicationRunner` que lo invoca. La plantilla `V4` y su procedimiento (opción A) quedan documentados abajo como alternativa, pero **no se va a aplicar**: ya no está en `docs/`.
+>
+> Cómo pasar las variables: Spring no lee el `.env` por sí solo. Con tu forma de arrancar (`set -a; source .env; set +a`) basta agregar `ADMIN_EMAIL` y `ADMIN_PASSWORD` al `.env`, y quedan disponibles para `./mvnw spring-boot:run`. Reglas: la clave **nunca** va a un `log` ni a un mensaje de error; el administrador se crea **una sola vez** (si ya existe uno, el código no hace nada, de modo que cambiar la variable después **no** cambia la clave); y la clave se guarda con `passwordEncoder.encode(...)`.
+>
+> Decisión pendiente: el administrador necesita también `run`, `run_dv`, nombre, apellidos, fecha de nacimiento, dirección, teléfono y comuna (todas `NOT NULL`). Hay que decidir si vienen de variables de entorno o de valores fijos de arranque.
+
 El usuario administrador **no está en `V2`** a propósito: necesita un hash BCrypt, y la clave real no debe pasar por chats ni escribirse en archivos del proyecto. Hay dos formas de crearlo:
 
 | | A. Migración `V4` con el hash | B. Creación al arrancar desde variables de entorno |
 | --- | --- | --- |
 | Cómo funciona | Un `INSERT` en `V4__administrador_inicial.sql` con el hash ya calculado | Código que, al iniciar, crea el administrador si no existe, leyendo `ADMIN_EMAIL` y `ADMIN_PASSWORD` del entorno |
-| ¿Se puede hacer hoy? | **Sí**: solo usa SQL | No: necesita la entidad `Usuario`, su repository y el `PasswordEncoder` (fase 4) |
+| ¿Se puede hacer hoy? | Sí, pero **descartada** | **En curso**: ya existen `Usuario`, `UsuarioRepository` y el `PasswordEncoder`; falta el `UsuarioService` y el arranque |
 | ¿Qué queda en Git? | El **hash** (no la clave) | Nada |
 | Riesgo | Si la clave es débil, el hash se puede adivinar con fuerza bruta | Ninguno en el repositorio |
 | Cambiar la clave después | Con la API o un `UPDATE`; **no** editando `V4` | Igual |
 
-**Recomendación:** usar la opción A ahora, con una clave larga y aleatoria, y valorar la B antes de producción. Con una clave aleatoria de 24 caracteres el hash no es un riesgo práctico, pero queda para siempre en el historial de Git.
+**Decisión (18 oct):** se sigue la opción B, que no deja nada en Git y sirve igual en desarrollo y producción. La opción A se mantiene documentada: con una clave aleatoria de 24 caracteres el hash no es un riesgo práctico, pero queda para siempre en el historial de Git.
 
-### A. Pasos con la migración `V4`
+### A. Pasos con la migración `V4` (alternativa descartada)
 
 **1. Genera una clave aleatoria** y guárdala en tu gestor de contraseñas. No es la clave del `.env`.
 
@@ -125,6 +136,7 @@ Debe mostrar tu correo, el rol `ADMINISTRADOR`, un prefijo `$2y$10$` o `$2b$10$`
 - [ ] `.env` de producción con claves **nuevas** (`openssl rand -hex 32`), `chmod 600`.
 - [ ] `git ls-files | grep -i env` no devuelve nada y `.gitignore` contiene `.env`.
 - [ ] `SecurityConfig` escrita: rutas públicas y protegidas probadas.
+- [ ] **`.anyRequest().permitAll()` reemplazado por `.anyRequest().authenticated()`** (hoy está abierto a propósito, solo para desarrollo).
 - [ ] Contraseñas hasheadas con BCrypt (incluido el administrador inicial).
 - [ ] CORS limitado al dominio real del frontend.
 - [ ] Puerto 3306 sin publicar.

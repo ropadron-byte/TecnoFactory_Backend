@@ -7,8 +7,8 @@ Lo que falta construir, en orden recomendado, y qué cambia en la configuración
 | Fase | Qué | Depende de | Prioridad | Estado |
 | --- | --- | --- | --- | --- |
 | 0 | Limpieza y decisiones del esquema | — | **Ahora** | **Hecha** |
-| 1 | Esquema definitivo y datos iniciales (`V1`, `V2`) | 0 | **Ahora** | Casi lista: falta aplicar categorías base (`V3`) y administrador (`V4`) |
-| 2 | Entidades, repositorios y manejo de errores | 1 | Alta | **En curso**: errores escritos; faltan entidades y repositorios |
+| 1 | Esquema definitivo y datos iniciales (`V1`, `V2`, `V3`) | 0 | **Ahora** | **Hecha** (el administrador pasó a crearse por código, ver fase 2) |
+| 2 | Entidades, repositorios y manejo de errores | 1 | Alta | **En curso**: 4 de 12 entidades, 4 repositories, `SecurityConfig` temporal y errores escritos; falta el administrador al arrancar y el primer controller |
 | 3 | Catálogo: categorías y productos | 2 | Alta | Pendiente |
 | 4 | Seguridad: JWT, roles y usuarios | 2 | Alta | Pendiente |
 | 5 | Carrito, boleta y pago simulado | 3, 4 | Media | Pendiente |
@@ -48,8 +48,8 @@ Lo que falta construir, en orden recomendado, y qué cambia en la configuración
 - [x] `V1` aplicada desde cero (probada en MariaDB 10.11).
 - [x] **`V2__datos_iniciales.sql`**: 3 tipos de usuario, 16 regiones y 346 comunas. **Hecho.**
 - [x] **Confirmar `V1` + `V2` en tu MySQL 8.4 de Docker.** **Hecho.**
-- [ ] **Administrador inicial** (`V4`). **En curso**: plantilla `V4__administrador_inicial.sql` y guía en [08](08-seguridad.md#administrador-inicial). Falta generar el hash y aplicarla. **Nunca** una contraseña en texto plano en Git.
-- [ ] **Categorías base** (`V3`). **En curso**: borrador `V3__categorias_base.sql`; falta ajustar la lista a lo que venda TecnoFactory y aplicarlo.
+- [x] **Categorías base** (`V3`). **Aplicada** en tu MySQL 8.4 (Flyway quedó en la versión 3). Si cambias la lista antes de desplegar, recrea la base (`down -v`); después de desplegar, se hace con una migración nueva.
+- [x] **Administrador inicial: se cambió de `V4` a creación por código** (decisión del 18 oct). La plantilla `V4` ya no se usa. Sigue en la fase 2 (ver abajo). **Nunca** una contraseña en texto plano en Git.
 - [ ] Actualizar el diagrama de `Diagrama/`. **Pospuesto**: está hecho en Oracle SQL Developer Data Modeler, cuyos tipos de dato son distintos a los de MySQL, y no se puede exportar directo. La fuente de verdad es `V1`.
 
 **`V1` y `V2` se congelan** en cuanto se desplieguen: cualquier cambio será `V3`, `V4`...
@@ -62,11 +62,31 @@ Lo que falta construir, en orden recomendado, y qué cambia en la configuración
 | `exception/ReglaNegocioException` | **Hecho** |
 | `exception/ErrorResponse` | **Hecho** (`record`) |
 | `exception/GlobalExceptionHandler` | **Hecho** (con los errores de Spring incluidos); falta compilarlo y probarlo ([Cambios recientes](cambios-recientes.md#cobertura-de-los-errores-de-spring)) |
-| `entity/*` | Pendiente. Una entidad por tabla, con tipos alineados ([mapeo en 06](06-base-de-datos.md#mapeo-a-entidades-java)). Orden: `Region`, `Comuna`, `TipoUsuario`, `Usuario`, `Categoria`, `Producto`, `ImagenUrl`, `Carrito`, `DetalleCarrito`, `Boleta`, `DetalleBoleta`, `Blog` |
-| `repository/*` | Pendiente. Una interfaz `JpaRepository` por entidad |
-| `SecurityConfig` **temporal** | Pendiente. Mientras esté vacío, Spring protege **todo** (401), incluido Swagger. Necesitas una versión mínima que permita las rutas para probar los controllers; se reemplaza en la fase 4 y **no se despliega** |
+| `entity/TipoUsuario`, `Region`, `Comuna`, `Usuario` | **Hechas**; las cuatro validan contra MySQL 8.4. Explicadas en [13](13-entidades-explicadas.md). Tres mejoras pendientes (sección 7 de esa guía): quitar `unique = true` de `run_dv` y de los nombres de `Region`/`Comuna`, y pasar `run_dv` y `fecha_nacimiento` a `camelCase` **antes** de crear los DTOs |
+| `entity/*` restantes | Pendiente: `Categoria`, `Producto`, `ImagenUrl`, `Carrito`, `DetalleCarrito`, `Boleta`, `DetalleBoleta`, `Blog` (mapeo en [06](06-base-de-datos.md#mapeo-a-entidades-java)) |
+| `repository/*` de las 4 entidades | **Hechos**; errores de nombres de método corregidos. Falta confirmar un arranque completo. Explicados en [14](14-repositories-explicados.md) |
+| `repository/*` restantes | Pendiente: uno por entidad nueva |
+| `SecurityConfig` **temporal** | **Hecho** (18 oct): `PasswordEncoder` BCrypt, CSRF desactivado, sin sesiones, todas las rutas abiertas. Se reemplaza en la fase 4 y **no se despliega**. Falta confirmar que Swagger carga. Explicado en [15](15-seguridad-codigo-explicado.md) |
 
 Cómo comprobar: arrancar con `local` y `validate`; si Hibernate no se queja, las entidades calzan con el esquema.
+
+### Siguiente tramo de la fase 2: administrador al arrancar y primer controller
+
+Se avanza **de a un paso** y se arranca la app al terminar cada uno. Los pasos 1 a 5 ya están hechos.
+
+| Paso | Qué | Qué se aprende | Estado |
+| --- | --- | --- | --- |
+| 1 | Entidad `TipoUsuario` | Qué es una entidad y qué comprueba `validate` | Hecho |
+| 2 | `Region` y `Comuna` | Relación `@ManyToOne` | Hecho |
+| 3 | `Usuario` | `CHAR(1)` con `@JdbcTypeCode`, fecha, dos relaciones | Hecho |
+| 4 | Repositories | Nombres de método y tipos de retorno | Hecho (falta confirmar arranque) |
+| 5 | `PasswordEncoder` y `SecurityConfig` | BCrypt y la cadena de filtros | Hecho (falta confirmar Swagger) |
+| 6 | `UsuarioService` con "crear administrador si no existe" | Dónde va la lógica de negocio; `@Service`, `@Transactional`; usar `existsByTipoUsuarioNombre` | Pendiente |
+| 7 | `ApplicationRunner` + variables `ADMIN_EMAIL` y `ADMIN_PASSWORD` | Ejecutar código al arrancar; leer variables de entorno | Pendiente |
+| 8 | DTOs de usuario y mapper (MapStruct) | Por qué no se expone la entidad; validaciones | Pendiente |
+| 9 | `UsuarioController` y prueba en Swagger | El flujo completo; sirve de **ejemplo para tu compañero** | Pendiente |
+
+Antes del paso 8 conviene aplicar las tres mejoras a las entidades ([13, sección 7](13-entidades-explicadas.md#7-observaciones-sobre-el-código-actual)).
 
 ## Fase 3. Catálogo
 
@@ -176,7 +196,8 @@ Ver el [Escenario 3 de 07](07-ejecucion-local-y-prod.md#escenario-3-prod-real-pr
 | Imágenes | `UPLOAD_DIR` local | `UPLOAD_DIR` del volumen | Volumen `uploads` | — |
 | Nuevos usuarios de BD | — | — | Otro script `02-...sh` | Nueva clave |
 | Dominio / HTTPS | — | CORS con el dominio real | Servicio `proxy` (Nginx o Caddy) | — |
-| Nueva tabla o columna | — | — | — | — (se hace con `V3__...sql`) |
+| Administrador inicial por código | — | — | — | `ADMIN_EMAIL`, `ADMIN_PASSWORD` (más los datos que se decidan). Con `set -a; source .env` quedan disponibles al arrancar |
+| Nueva tabla o columna | — | — | — | — (se hace con una migración nueva, `V4__...sql` en adelante) |
 
 ## Mejoras opcionales a más largo plazo
 
