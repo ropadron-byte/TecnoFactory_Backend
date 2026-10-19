@@ -750,7 +750,7 @@ Resumen (las líneas son las de tu archivo):
 
 - **Quién la lanza:** Spring Security cuando un método protegido con seguridad por métodos (por ejemplo `@PreAuthorize("hasRole('ADMINISTRADOR')")`) lo invoca alguien sin el rol.
 - **Por qué 403:** sabemos quién eres, pero no puedes hacer esto.
-- **Hoy no se activa:** mientras `SecurityConfig` esté vacío y no existan `@PreAuthorize`, esta excepción no se lanza. Queda lista para la fase 4.
+- **Hoy no se activa:** mientras `SecurityConfig` deje todo abierto (`permitAll`) y no existan `@PreAuthorize`, esta excepción no se lanza. Queda lista para la fase 4.
 - **Matiz importante para la fase 4:** normalmente, Spring Security distingue entre un visitante **sin token** (401, "identifícate") y un usuario **identificado sin permiso** (403). Como este handler atrapa la excepción *antes* de que Spring Security decida, **ambos recibirían 403**. Cuando se escriba la seguridad habrá que elegir: aceptar esa simplificación, o dejar que esta excepción siga de largo (relanzarla) para que Spring Security la resuelva.
 - **No cubre** las reglas por ruta de `SecurityConfig` (`.requestMatchers(...).hasRole(...)`): esas se resuelven en los filtros, antes de llegar a los controllers.
 
@@ -778,7 +778,7 @@ Ejemplo: si se lanza `RecursoNoEncontradoException`, Spring tiene dos candidatos
 | Excepción dentro de un filtro propio (por ejemplo `JwtAuthFilter`) | Spring Security o el contenedor | Fase 4: el filtro debe responder el error por sí mismo |
 | Errores anteriores a llegar a Spring MVC | La respuesta de error por defecto de Spring (`/error`) | Se controla con `server.error.*` (ver [04](04-perfiles-spring.md)) |
 
-**Hoy, con `SecurityConfig` vacío**, Spring Security bloquea todas las rutas con 401 antes de que el handler intervenga. Por eso no verás tus errores formateados hasta que exista un `SecurityConfig` mínimo (ver [Cambios recientes](cambios-recientes.md#pendiente)).
+**Antes del 18 oct**, con `SecurityConfig` vacío, Spring Security bloqueaba todas las rutas con 401 antes de que el handler intervenga. **Hoy** el `SecurityConfig` mínimo ya existe y deja las rutas abiertas, así que los errores de tus controllers sí saldrán formateados por el handler (ver [15](15-seguridad-codigo-explicado.md)).
 
 ---
 

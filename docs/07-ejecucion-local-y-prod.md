@@ -156,7 +156,7 @@ HikariPool-1 - Start completed.
 Tomcat started on port 8080 (http)
 ```
 
-Mientras `SecurityConfig` esté vacío, Spring Security protege **todas** las rutas. En el log aparece `Using generated security password: ...`. Entra con usuario `user` y esa clave (cambia en cada arranque).
+Desde el 18 oct `SecurityConfig` está escrito y **deja todas las rutas abiertas** (`permitAll`), solo para desarrollo local, así que no pide usuario ni clave. En el log sigue apareciendo `Using generated security password: ...`, pero esa clave no se usa para nada (ver [15](15-seguridad-codigo-explicado.md#36-dos-detalles-que-sorprenden)).
 
 | Recurso | URL |
 | --- | --- |
@@ -263,7 +263,7 @@ Started TecnoFactoryApplication in 32.9 seconds
 ```
 
 - **No** verás las líneas de Flyway: en prod el log de las librerías es `WARN`. La prueba de que la migración corrió es el paso 6.
-- La línea `Using generated security password` es un `WARN` y **sí** aparece, porque `SecurityConfig` está vacío (ver [08-seguridad.md](08-seguridad.md)). Desaparecerá cuando lo escribas.
+- La línea `Using generated security password` es un `WARN` y **sí** aparece, aunque `SecurityConfig` ya esté escrito: desaparecerá cuando exista un `UserDetailsService` propio (fase 4). Es inofensiva ([15](15-seguridad-codigo-explicado.md#36-dos-detalles-que-sorprenden)).
 - Si falla algo, el error sale en este mismo log: `Access denied`, `Schema-validation`, `Migration checksum mismatch`.
 
 ### 6. Verificar que la migración funcionó
@@ -307,7 +307,7 @@ El primer comando funciona. El segundo **debe fallar** con `ERROR 1142 ... DROP 
 - Swagger **no carga**: `http://localhost:8080/swagger-ui/index.html` da error.
 - `/actuator/health` solo dice `UP` o `DOWN`, sin detalles.
 - Una ruta que falle no muestra mensajes ni rastros.
-- Mientras `SecurityConfig` esté vacío, **todas** las rutas (incluida `/actuator/health`) piden el usuario `user` y la clave temporal que muestra el log. Para ver `UP`/`DOWN` entra con esas credenciales.
+- `/actuator/health` es público en `SecurityConfig`, así que responde sin credenciales. (Con el `SecurityConfig` vacío de antes habría pedido el usuario `user`.)
 
 ### Resultado de la prueba real (16 oct 2026, con el `V1` original)
 
@@ -338,7 +338,7 @@ Aquí todo corre en Docker en el servidor: MySQL y backend en la misma red inter
 ### Lista de verificación antes de desplegar
 
 - [ ] Escenario 2 probado de principio a fin sin errores.
-- [ ] `SecurityConfig` escrito (hoy está vacío: toda la API pediría el usuario temporal).
+- [ ] `SecurityConfig` **definitivo**: hoy está escrito pero abierto (`.anyRequest().permitAll()`); debe pasar a `.authenticated()` antes de desplegar.
 - [ ] Las entidades coinciden con las tablas de `V1__...sql`. Con `ddl-auto: validate`, si no coinciden la app no arranca y el error dice qué falta. Los problemas del esquema original (camelCase, `DECIMAL`, ids sin `AUTO_INCREMENT`) ya están resueltos en `V1`. Lo que sigue pudiendo fallar es el tipo Java: `region` y `comuna` usan `INT` (`Integer`), el resto de ids `BIGINT` (`Long`); ver la tabla de mapeo en [06](06-base-de-datos.md#mapeo-a-entidades-java).
 - [ ] `.env` del servidor con claves **nuevas y generadas**, distintas a desarrollo.
 - [ ] Permisos del `.env`: `chmod 600 .env`.
@@ -499,7 +499,7 @@ Reglas del nombre: `V` + número + **dos guiones bajos** + descripción con guio
 | `Communications link failure` / `Connection refused` | MySQL no está corriendo o aún no está `healthy` | `docker compose up -d` y esperar |
 | `Port 8080 was already in use` | Otra instancia (IntelliJ o el contenedor) usa el puerto | Detén la otra |
 | `The "Dockerfile" is empty` / `dockerfile parse error` | `docker compose up` con el servicio `backend` activo y el `Dockerfile` vacío | Escribe el `Dockerfile` o deja el bloque comentado |
-| Swagger y Actuator piden usuario y clave | `SecurityConfig` vacío | Usa `user` y la clave del log, o escribe el `SecurityConfig` |
+| Swagger y Actuator piden usuario y clave | `SecurityConfig` vacío o sin `SecurityFilterChain` | Escribir el `SecurityConfig` ([15](15-seguridad-codigo-explicado.md#33-la-cadena-de-filtros)) |
 | `cannot read distributionUrl property` | `.mvn/wrapper/maven-wrapper.properties` incompleto | Recrearlo con `wrapperVersion`, `distributionType` y `distributionUrl` |
 
 Para reiniciar la base desde cero (**borra todos los datos**):

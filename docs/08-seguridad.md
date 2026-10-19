@@ -15,8 +15,9 @@ Este archivo describe **qué medidas hay y cuáles faltan**. El código de `Secu
 | Formato uniforme de errores de la API (`ErrorResponse`); el error 500 no revela detalles internos | `exception/GlobalExceptionHandler` | Escrito, con cobertura de errores de Spring (400, 404, 405, 403, 409, 500); **falta compilarlo y probarlo** con un controller (ver [Cambios recientes](cambios-recientes.md#cobertura-de-los-errores-de-spring)) |
 | Secretos fuera del código, en `.env` | `.env` | Hecho (verificar `.gitignore`) |
 | Codificador de contraseñas BCrypt disponible como bean (`PasswordEncoder`) | `security/SecurityConfig` | Escrito (18 oct); aún sin usar |
-| CSRF desactivado y sin sesiones (`STATELESS`), como corresponde a una API con tokens | `security/SecurityConfig` | Escrito; falta confirmar que Swagger carga |
+| CSRF desactivado y sin sesiones (`STATELESS`), como corresponde a una API con tokens | `security/SecurityConfig` | Escrito; Swagger carga (confirmado) |
 | Swagger y `/actuator/health` como rutas públicas explícitas | `security/SecurityConfig` | Escrito |
+| Administrador inicial creado por código, con la clave guardada como hash BCrypt (nunca en Git) | `UsuarioService` y `AdministradorInicialRunner` | **Verificado en el log** (18 oct); faltan 3 comprobaciones ([17, sección 9](17-administrador-inicial-explicado.md#9-qué-se-verificó-y-qué-no)) |
 
 ## Lo que falta
 
@@ -24,10 +25,10 @@ Este archivo describe **qué medidas hay y cuáles faltan**. El código de `Secu
 | --- | --- |
 | **`SecurityConfig` definitivo.** Hoy está escrito pero **abierto**: `.anyRequest().permitAll()` | Cualquiera puede llamar a cualquier ruta. Aceptable solo en desarrollo local; **no se despliega** así. Pasa a `.authenticated()` en la fase 4 |
 | **JWT** (`JwtService`, `JwtAuthFilter`, `UserDetailsServiceImpl`) | No hay login real |
-| **Usar BCrypt** al guardar contraseñas (el bean `PasswordEncoder` ya existe) | Nunca guardar texto plano en `usuario.contrasenia` |
+| **Usar BCrypt** en el registro de usuarios y el login (ya se usa para el administrador inicial) | Nunca guardar texto plano en `usuario.contrasenia` |
 | **CORS** (`CorsConfig`) | El navegador bloquea las peticiones de React |
 | **Resolver los 401 y 403 en `SecurityConfig`** (token ausente o inválido; rutas por rol) | El `GlobalExceptionHandler` solo cubre el 403 de la seguridad por métodos; el resto lo decide Spring Security antes de llegar a los controllers |
-| **Usuario administrador inicial** | No está en `V2` a propósito; sin él nadie puede gestionar el catálogo. **Decidido (18 oct): se crea por código al arrancar**, leyendo variables de entorno. Falta `UsuarioService` y el arranque. Ver [Administrador inicial](#administrador-inicial) |
+| **Confirmar el administrador inicial**: fila en la base, segundo arranque sin duplicar y clave ausente del log | Si algo falla, nadie podría gestionar el catálogo. Comandos en [17, sección 8](17-administrador-inicial-explicado.md#8-comandos-importantes) |
 | **HTTPS** | Las claves y tokens viajarían en texto plano |
 | **Límite de intentos de login** | Fuerza bruta contra cuentas |
 | **Validación de subida de archivos** | Subida de archivos maliciosos |
@@ -50,18 +51,18 @@ Los tokens JWT se firman con `JWT_SECRET` (mínimo 32 caracteres) y duran 1 hora
 
 ## Administrador inicial
 
-> **Actualización 18 oct 2026:** se decidió seguir la **opción B** (crearlo por código al arrancar). Ya existen `Usuario`, `UsuarioRepository`, `TipoUsuarioRepository` y el `PasswordEncoder`; falta el `UsuarioService` con "crear administrador si no existe" y el `ApplicationRunner` que lo invoca. La plantilla `V4` y su procedimiento (opción A) quedan documentados abajo como alternativa, pero **no se va a aplicar**: ya no está en `docs/`.
+> **Actualización 18 oct 2026:** se decidió seguir la **opción B** (crearlo por código al arrancar). Ya existen `Usuario`, `UsuarioRepository`, `TipoUsuarioRepository` y el `PasswordEncoder`; **ya están escritos** `UsuarioService` ("crear administrador si no existe") y `AdministradorInicialRunner`, y el primer arranque lo creó (log del 18 oct). Explicado línea por línea en [17](17-administrador-inicial-explicado.md). La plantilla `V4` y su procedimiento (opción A) quedan documentados abajo como alternativa, pero **no se va a aplicar**: ya no está en `docs/`.
 >
 > Cómo pasar las variables: Spring no lee el `.env` por sí solo. Con tu forma de arrancar (`set -a; source .env; set +a`) basta agregar `ADMIN_EMAIL` y `ADMIN_PASSWORD` al `.env`, y quedan disponibles para `./mvnw spring-boot:run`. Reglas: la clave **nunca** va a un `log` ni a un mensaje de error; el administrador se crea **una sola vez** (si ya existe uno, el código no hace nada, de modo que cambiar la variable después **no** cambia la clave); y la clave se guarda con `passwordEncoder.encode(...)`.
 >
-> Decisión pendiente: el administrador necesita también `run`, `run_dv`, nombre, apellidos, fecha de nacimiento, dirección, teléfono y comuna (todas `NOT NULL`). Hay que decidir si vienen de variables de entorno o de valores fijos de arranque.
+> Datos del administrador: además del correo y la clave (variables de entorno), el runner usa **valores de relleno fijos** para `run` (`11111111-1`), nombre, apellidos, fecha, dirección, teléfono y comuna (`13101`). Se eligió así por defecto y se puede cambiar después.
 
 El usuario administrador **no está en `V2`** a propósito: necesita un hash BCrypt, y la clave real no debe pasar por chats ni escribirse en archivos del proyecto. Hay dos formas de crearlo:
 
 | | A. Migración `V4` con el hash | B. Creación al arrancar desde variables de entorno |
 | --- | --- | --- |
 | Cómo funciona | Un `INSERT` en `V4__administrador_inicial.sql` con el hash ya calculado | Código que, al iniciar, crea el administrador si no existe, leyendo `ADMIN_EMAIL` y `ADMIN_PASSWORD` del entorno |
-| ¿Se puede hacer hoy? | Sí, pero **descartada** | **En curso**: ya existen `Usuario`, `UsuarioRepository` y el `PasswordEncoder`; falta el `UsuarioService` y el arranque |
+| ¿Se puede hacer hoy? | Sí, pero **descartada** | **Hecho** (18 oct): `UsuarioService` y `AdministradorInicialRunner` |
 | ¿Qué queda en Git? | El **hash** (no la clave) | Nada |
 | Riesgo | Si la clave es débil, el hash se puede adivinar con fuerza bruta | Ninguno en el repositorio |
 | Cambiar la clave después | Con la API o un `UPDATE`; **no** editando `V4` | Igual |

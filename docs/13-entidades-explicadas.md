@@ -434,6 +434,8 @@ Con `@JdbcTypeCode(SqlTypes.CHAR)` el tipo esperado pasa a ser `CHAR`, y el arra
 
 Ninguna impide arrancar. Se ordenan de más a menos importante.
 
+> **Actualización 18 oct (noche):** el cambio a `camelCase` de 7.3 **ya se aplicó**: `UsuarioService` llama a `setRunDv(...)` y `setFechaNacimiento(...)` y el proyecto compila y arranca. Por eso los bloques de código de las secciones 6 y 7 que muestran `run_dv` y `fecha_nacimiento` como nombres de atributo corresponden al **estado anterior**. Lo que **falta confirmar** es que se quitaron los `unique = true` de 7.1 y 7.2.
+
 ### 7.1 `run_dv` con `unique = true`
 
 En `Usuario.java`:

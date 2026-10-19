@@ -20,6 +20,7 @@
 | 14 | [Repositories explicados](docs/14-repositories-explicados.md) | Guía línea por línea de `repository/`: cómo Spring Data convierte el nombre de un método en SQL y qué tipo de retorno elegir |
 | 15 | [Seguridad: código explicado](docs/15-seguridad-codigo-explicado.md) | `SecurityConfig` línea por línea, qué es BCrypt y qué cambia al llegar el login |
 | 16 | [Leer errores de Spring](docs/16-leer-errores-de-spring.md) | Método de 4 pasos para encontrar un error de arranque, con los casos reales resueltos |
+| 17 | [Administrador inicial explicado](docs/17-administrador-inicial-explicado.md) | `DatosAdministrador`, `UsuarioService` y el `ApplicationRunner` línea por línea, orden de ejecución del arranque, comandos importantes |
 
 **Archivo vivo (sin número):** [Cambios recientes](docs/cambios-recientes.md) reúne en un solo lugar **lo que falta por hacer** y **lo que ya se hizo**, sesión por sesión. No se crean copias numeradas: se agrega una entrada nueva al historial.
 
@@ -36,11 +37,12 @@
 | `application-local.yaml` | Corregido |
 | Manejo de errores (`exception/`) | Escrito (4 clases) y **compila**; falta probarlo con un controller |
 | Entidades | **4 de 12** (`TipoUsuario`, `Region`, `Comuna`, `Usuario`); **validan** contra MySQL 8.4. Ver [13](docs/13-entidades-explicadas.md) |
-| Repositories | **4** (uno por entidad); errores de nombres corregidos. **Falta confirmar un arranque completo** con los archivos corregidos. Ver [14](docs/14-repositories-explicados.md) |
-| `SecurityConfig` y `PasswordEncoder` (BCrypt) | **Escritos**; todas las rutas **abiertas** (`permitAll`) a propósito para desarrollar. Falta confirmar que Swagger carga. Ver [15](docs/15-seguridad-codigo-explicado.md) |
+| Repositories | **4** (uno por entidad); errores de nombres corregidos. Arranque completo **confirmado** (log del 18 oct). Ver [14](docs/14-repositories-explicados.md) |
+| `SecurityConfig` y `PasswordEncoder` (BCrypt) | **Escritos**; todas las rutas **abiertas** (`permitAll`) a propósito para desarrollar. Swagger carga y `/actuator/health` responde (confirmado). Ver [15](docs/15-seguridad-codigo-explicado.md) |
 | JWT (`JwtService`, `JwtAuthFilter`, `UserDetailsServiceImpl`) | Clases vacías (fase 4) |
-| Administrador inicial | **Decidido: se crea por código al arrancar** (no con `V4`). Falta `UsuarioService` y el arranque |
-| DTOs, mappers, services, controllers | No existen todavía |
+| Administrador inicial | **Se crea por código al arrancar** (no con `V4`): verificado en el log del 18 oct. Faltan 3 comprobaciones (fila en la base, segundo arranque, clave fuera del log). Ver [17](docs/17-administrador-inicial-explicado.md) |
+| Services | Solo `UsuarioService` (administrador inicial) |
+| DTOs, mappers y controllers | No existen todavía |
 | `Dockerfile` y servicio `backend` del compose | Vacío / comentado |
 
 ## Reglas de oro

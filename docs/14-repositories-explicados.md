@@ -11,7 +11,7 @@ Archivos que se explican (ruta `src/main/java/com/factory/tecnofactory/repositor
 | `ComunaRepository.java` | `Comuna` | `Integer` | [5.3](#53-comunarepositoryjava) |
 | `UsuarioRepository.java` | `Usuario` | `Long` | [5.4](#54-usuariorepositoryjava) |
 
-> Estado: Spring encontró las 4 interfaces (`Found 4 JPA repository interfaces`). Los tres errores de nombres de método que salieron durante la sesión del 18 oct se corrigieron en el código; **falta confirmar un arranque completo** con los archivos corregidos (ver [Cambios recientes](cambios-recientes.md)).
+> Estado: Spring encontró las 4 interfaces (`Found 4 JPA repository interfaces`). Los tres errores de nombres de método que salieron durante la sesión del 18 oct se corrigieron en el código; el arranque completo con los archivos corregidos quedó **confirmado** (log del 18 oct: `Started TecnoFactoryApplication`).
 
 ---
 

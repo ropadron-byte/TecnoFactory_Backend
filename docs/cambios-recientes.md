@@ -16,11 +16,13 @@ El plan completo por fases está en [10-pendientes-y-futuro.md](10-pendientes-y-
 
 ### Siguiente paso (en este orden)
 
-- [ ] **Confirmar un arranque completo** con los repositories corregidos y el `SecurityConfig`: el log debe decir `Found 4 JPA repository interfaces` y `Started TecnoFactoryApplication`; `http://localhost:8080/swagger-ui.html` debe cargar y `curl -i http://localhost:8080/actuator/health` debe responder `200`. (Los cambios de la sesión del 18 oct se escribieron y revisaron, pero el último arranque con todo corregido no se vio.)
-- [ ] **Corregir tres detalles de las entidades** antes de crear DTOs ([13, sección 7](13-entidades-explicadas.md#7-observaciones-sobre-el-código-actual)): quitar `unique = true` de `run_dv`, de `nombre_region` y de `nombre_comuna` (`V1` no los tiene); pasar `run_dv` y `fecha_nacimiento` a `runDv` y `fechaNacimiento`.
-- [ ] **Paso 6: `UsuarioService`** con "crear administrador si no existe" (usa `existsByTipoUsuarioNombre`, `TipoUsuarioRepository` y el `PasswordEncoder`).
-- [ ] **Paso 7: `ApplicationRunner`** que lo invoca al arrancar, con `ADMIN_EMAIL` y `ADMIN_PASSWORD` agregadas al `.env`.
-- [ ] **Paso 8: DTOs y mapper** de usuario (MapStruct) con validaciones.
+- [x] **Confirmar un arranque completo**: el log del 18 oct muestra `Found 4 JPA repository interfaces` y `Started TecnoFactoryApplication`; Swagger carga y `/actuator/health` responde.
+- [x] **Pasar `run_dv` y `fecha_nacimiento` a `runDv` y `fechaNacimiento`**: aplicado (el service usa `setRunDv` y `setFechaNacimiento` y compila).
+- [ ] **Confirmar que se quitaron los `unique = true`** de `run_dv`, `nombre_region` y `nombre_comuna` ([13, sección 7](13-entidades-explicadas.md#7-observaciones-sobre-el-código-actual)).
+- [x] **Paso 6: `UsuarioService`** con "crear administrador si no existe".
+- [x] **Paso 7: `ApplicationRunner`**: el primer arranque creó al administrador (verificado en el log).
+- [ ] **Completar las 3 comprobaciones del administrador** ([17, secciones 8 y 9](17-administrador-inicial-explicado.md#8-comandos-importantes)): la fila en la base (`rol`, `$2a$10$`, largo 60, `activo = 1`), un **segundo arranque** que no duplique, y que la clave **no** aparezca en `logs/tecnofactory.log`.
+- [ ] **Paso 8: DTOs y mapper** de usuario (MapStruct) con validaciones, incluido el RUN chileno.
 - [ ] **Paso 9: `UsuarioController`** probado en Swagger; será el **ejemplo para tu compañero**.
 - [ ] **Entidades y repositories restantes**: `Categoria`, `Producto`, `ImagenUrl`, `Carrito`, `DetalleCarrito`, `Boleta`, `DetalleBoleta`, `Blog` (mapeo en [06](06-base-de-datos.md#mapeo-a-entidades-java)). Cuidado con `TEXT` (`blog.contenido`) y con la clave compuesta de `detalle_carrito`.
 - [ ] **Primera "rebanada" completa**: `Categoria` (DTOs, mapper, service, controller) probada en Swagger; después `Producto`.
@@ -37,7 +39,7 @@ El plan completo por fases está en [10-pendientes-y-futuro.md](10-pendientes-y-
 ### Decisiones abiertas
 
 - [x] **Administrador inicial**: se decidió el **18 oct** crearlo por código al arrancar (opción B de [08](08-seguridad.md#administrador-inicial)) y descartar la plantilla `V4`.
-- [ ] **Datos del administrador**: además del correo y la clave, necesita `run`, `run_dv`, nombre, apellidos, fecha de nacimiento, dirección, teléfono y comuna (todas `NOT NULL`). Decidir si vienen de variables de entorno o de valores fijos de arranque.
+- [x] **Datos del administrador**: correo y clave vienen de `ADMIN_EMAIL` y `ADMIN_PASSWORD`; el resto (RUN `11111111-1`, nombre, apellidos, fecha, dirección, teléfono, comuna `13101`) son **valores de relleno fijos** en el runner. Se eligió por defecto al no haber otra indicación; se puede cambiar.
 - [ ] **401 frente a 403** en `AccessDeniedException` (fase 4): hoy un visitante sin token recibiría 403; ver [11](11-excepciones-explicadas.md#810-accessdeniedexception--403).
 - [ ] **Cómo se aplica el descuento** (0 a 100) sobre el `precio` y su copia en `detalle_boleta`.
 - [ ] **Detalle por parámetro** en `HandlerMethodValidationException` (hoy solo dice "Parámetros inválidos").
@@ -52,11 +54,38 @@ El plan completo por fases está en [10-pendientes-y-futuro.md](10-pendientes-y-
 - [ ] Limpiar las entidades: `import jakarta.validation.constraints.Min` sin usar y bloques comentados al final de `Region.java` y `Comuna.java`; `Ctrl+Alt+O` en IntelliJ quita los `import` sobrantes de las entidades y los repositories.
 - [ ] Cambiar `Optional<List<...>>` por `List<...>` en `RegionRepository`, `ComunaRepository` y `UsuarioRepository` (funciona, pero sobra el `Optional`).
 - [ ] Borrar `docs/11-cambios-recientes.md`: es una copia antigua de este archivo y el README indica que no se crean copias numeradas.
-- [ ] El `README.md` enlaza `docs/02-docker-y-mysql.md` y `docs/03-variables-y-claves.md`, que **no están** en el ZIP revisado. Si existen en tu repositorio, bien; si no, hay que escribirlos o quitar las filas.
+- [x] El `README.md` enlaza `02-docker-y-mysql.md` y `03-variables-y-claves.md`, que no venían en el ZIP revisado: **recuperados** y añadidos al paquete de documentación (18 oct).
 
 ---
 
 ## Historial
+
+### 18 oct 2026 (noche): administrador inicial al arrancar (pasos 5b, 6 y 7)
+
+| Paso | Qué se hizo | Resultado |
+| --- | --- | --- |
+| 5b | Entidades corregidas (`runDv`, `fechaNacimiento`) y arranque completo | Confirmado: Swagger carga y `/actuator/health` responde |
+| 6 | `DatosAdministrador` (record) y `UsuarioService` con `crearAdministradorSiNoExiste` | Compila y arranca |
+| 7 | `AdministradorInicialRunner` (`ApplicationRunner`) y variables `ADMIN_EMAIL` / `ADMIN_PASSWORD` en el `.env` | **El primer arranque creó al administrador** (log: `Administrador inicial creado con el correo ...`) |
+
+**Qué mostró el log del primer arranque** (detalle en [17, sección 2](17-administrador-inicial-explicado.md#2-orden-de-ejecución)):
+
+- El runner se ejecuta **después** de `Started TecnoFactoryApplication` y con Tomcat ya arriba.
+- Cuatro consultas, en este orden: `existsByTipoUsuarioNombre` (con `JOIN` y `limit`), búsqueda del rol, búsqueda de la comuna e `insert into usuario`.
+- La consulta de la comuna **no** hace `JOIN` con `region`: `LAZY` funciona.
+- El `insert` muestra `?` en vez de valores: la clave no aparece en el log por esa vía.
+- Sigue saliendo `Using generated security password` (inofensiva, ver [15](15-seguridad-codigo-explicado.md#36-dos-detalles-que-sorprenden)).
+
+**Decisión tomada por defecto** (no hubo respuesta a la consulta): correo y clave desde variables de entorno; RUN, nombre, apellidos, fecha, dirección, teléfono y comuna como valores de relleno fijos en el runner.
+
+**Documentación:** nueva [17-administrador-inicial-explicado.md](17-administrador-inicial-explicado.md) (código línea por línea, orden de ejecución, glosario, comandos y casos de error). Actualizados: `README.md`, `03`, `08`, `10`, `13`, `14`, `15` y este archivo.
+
+**Qué no se pudo verificar:**
+
+- El contenido de la fila en la base, el segundo arranque sin duplicar y la ausencia de la clave en `logs/tecnofactory.log`: son los comandos de [17, sección 8](17-administrador-inicial-explicado.md#8-comandos-importantes); el log pegado solo cubre el primer arranque.
+- Que se quitaron los `unique = true` de las entidades (no se vieron tus archivos finales).
+- La guía 17 documenta el código **tal como se entregó en los pasos 6 y 7**; no se compararon con tus archivos. El log es coherente con él (mismo mensaje y mismo orden de consultas).
+- Que la clave y el hash funcionen juntos al iniciar sesión: solo posible con el login (fase 4).
 
 ### 18 oct 2026: entidades, repositories y `SecurityConfig`, paso a paso
 
@@ -68,7 +97,7 @@ Se avanzó **de a un paso**, arrancando la app al terminar cada uno. Cada pieza 
 | 2 | `Region` y `Comuna` | **Falló** con `missing column [id_comuna] in table [region]`: `Comuna` tenía `@Table(name = "region")`. Corregido; arrancó |
 | 3 | `Usuario` (con `@JdbcTypeCode(SqlTypes.CHAR)` para `run_dv`) | **Validó** contra MySQL 8.4: el log mostró `Initialized JPA EntityManagerFactory` |
 | 4 | Cuatro repositories; se añadieron métodos a propósito para provocar errores | **Fallaron** `findBynombreComuna`, `findByNombreComuna` y (previsto) `findByNombreTipoUsuario`: se usó el nombre de la columna en vez del atributo. Corregidos; también el tipo del id (`Long` → `Integer` en `Region` y `Comuna`) |
-| 5 | `PasswordEncoder` (BCrypt) y `SecurityConfig` abierto (`permitAll`) | Escritos. **Sin probar todavía** |
+| 5 | `PasswordEncoder` (BCrypt) y `SecurityConfig` abierto (`permitAll`) | Escritos y **confirmados** (Swagger carga; `/actuator/health` responde) |
 
 **Decisiones:**
 
@@ -87,13 +116,13 @@ Se avanzó **de a un paso**, arrancando la app al terminar cada uno. Cada pieza 
 | [15-seguridad-codigo-explicado.md](15-seguridad-codigo-explicado.md) | `SecurityConfig` línea por línea, BCrypt, qué cambia al llegar el login |
 | [16-leer-errores-de-spring.md](16-leer-errores-de-spring.md) | Método de 4 pasos para leer un error de arranque, con los tres casos reales |
 
-**Documentación actualizada:** `README.md` (índice, estado y reglas de oro), `06` (mapeo de `CHAR(1)`, estado de las entidades), `08` (`SecurityConfig`, administrador por código), `09` (sección de entidades y repositories), `10` (fases, paso a paso del administrador).
+**Documentación actualizada:** `03` (variables `ADMIN_EMAIL` y `ADMIN_PASSWORD` planificadas), `README.md` (índice, estado y reglas de oro), `06` (mapeo de `CHAR(1)`, estado de las entidades), `08` (`SecurityConfig`, administrador por código), `09` (sección de entidades y repositories), `10` (fases, paso a paso del administrador).
 
 **Observaciones sobre el código (no impiden arrancar):** `unique = true` en `run_dv`, `nombre_region` y `nombre_comuna` que `V1` no declara; `run_dv` y `fecha_nacimiento` con guion bajo en Java. Detalle y corrección en [13, sección 7](13-entidades-explicadas.md#7-observaciones-sobre-el-código-actual).
 
 **Qué no se pudo verificar:**
 
-- El último arranque con los repositories corregidos y el `SecurityConfig` no se vio: no hay confirmación de `Started TecnoFactoryApplication` ni de que Swagger cargue.
+- ~~El último arranque con los repositories corregidos y el `SecurityConfig` no se vio~~ (**resuelto esa noche**, ver la entrada de más arriba): no hay confirmación de `Started TecnoFactoryApplication` ni de que Swagger cargue.
 - El proyecto no se compiló ni ejecutó en el entorno donde se escribió esta documentación (sin Spring ni MySQL disponibles). Las guías se basan en la lectura de tu código y de tus logs.
 - El experimento de quitar `@JdbcTypeCode` para ver el error `wrong column type` quedó como sugerencia; el texto exacto del error que aparece en la guía 13 es el típico de Hibernate, pero no se vio en tu log.
 

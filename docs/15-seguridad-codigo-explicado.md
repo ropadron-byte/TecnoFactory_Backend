@@ -6,7 +6,7 @@ Archivo que se explica (ruta `src/main/java/com/factory/tecnofactory/security/`)
 
 | Archivo | Para qué sirve | Estado |
 | --- | --- | --- |
-| `SecurityConfig.java` | Reglas de acceso a las rutas y el codificador de contraseñas | **Escrito**; falta confirmar que Swagger carga ([Cambios recientes](cambios-recientes.md)) |
+| `SecurityConfig.java` | Reglas de acceso a las rutas y el codificador de contraseñas | **Escrito y confirmado** (Swagger carga y `/actuator/health` responde) |
 | `JwtService.java`, `JwtAuthFilter.java`, `UserDetailsServiceImpl.java` | Login con tokens | Siguen **vacías** (fase 4) |
 
 > Importante: hoy **todas las rutas están abiertas** (`permitAll`). Es a propósito, para que tú y tu compañero puedan probar controllers sin que el sistema los limite. Es **temporal y no se despliega**: ver [sección 5](#5-lo-que-cambia-cuando-llegue-el-login).

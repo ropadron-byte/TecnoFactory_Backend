@@ -68,6 +68,20 @@ Tabla única de síntomas, causas y soluciones. Los primeros nueve ya ocurrieron
 | `LazyInitializationException` | Se leyó una relación `LAZY` (`comuna.getRegion()`) fuera de una transacción (`open-in-view: false`) | Cargar los datos dentro del service con `@Transactional`, o convertir a DTO dentro de él |
 | Parece un error en el log pero es `INFO`: `Could not safely identify store assignment for repository candidate` | Spring prueba cada repository con JPA y con Redis | Ignorarlo ([14, sección 6](14-repositories-explicados.md#6-lo-que-sale-en-el-log-y-no-es-un-error)) |
 
+## Administrador inicial
+
+| Síntoma | Causa | Solución |
+| --- | --- | --- |
+| `WARN ... ADMIN_EMAIL o ADMIN_PASSWORD sin definir` aunque están en el `.env` | La terminal no cargó el `.env` (Spring no lo lee solo) | Repetir `set -a; source .env; set +a` en la **misma** terminal donde arrancas ([17, 8.2](17-administrador-inicial-explicado.md#82-cargar-las-variables-y-arrancar)) |
+| `No qualifying bean of type '...UsuarioService'` | Falta `@Service` en el service | Agregarlo |
+| `Rol no encontrado con id ADMINISTRADOR` y la app no arranca | `V2` no se aplicó o el nombre del rol difiere | `SELECT * FROM tipo_usuario;` |
+| `Comuna no encontrado con id 13101` y la app no arranca | `V2` no cargó las comunas | `SELECT COUNT(*) FROM comuna;` debe dar 346 |
+| `Duplicate entry '...' for key 'usuario.correo'` | Ya hay un usuario con ese correo que no es administrador | Usar otro `ADMIN_EMAIL` |
+| El administrador conserva la clave anterior | `ADMIN_PASSWORD` se usa **solo la primera vez** | Cambiarla por la API (fase 4) o recrear la base en desarrollo |
+| No aparece el mensaje de creación del administrador | Está **debajo** de `Started ...`: el runner corre al final | Buscar con `grep -n "Administrador" logs/tecnofactory.log` |
+
+Detalle de cada caso en [17, sección 10](17-administrador-inicial-explicado.md#10-errores-relacionados).
+
 ## Spring y seguridad
 
 | Síntoma | Causa | Solución |
