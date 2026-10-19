@@ -17,7 +17,7 @@ Este archivo describe **qué medidas hay y cuáles faltan**. El código de `Secu
 | Codificador de contraseñas BCrypt disponible como bean (`PasswordEncoder`) | `security/SecurityConfig` | Escrito (18 oct); aún sin usar |
 | CSRF desactivado y sin sesiones (`STATELESS`), como corresponde a una API con tokens | `security/SecurityConfig` | Escrito; Swagger carga (confirmado) |
 | Swagger y `/actuator/health` como rutas públicas explícitas | `security/SecurityConfig` | Escrito |
-| Administrador inicial creado por código, con la clave guardada como hash BCrypt (nunca en Git) | `UsuarioService` y `AdministradorInicialRunner` | **Verificado en el log** (18 oct); faltan 3 comprobaciones ([17, sección 9](17-administrador-inicial-explicado.md#9-qué-se-verificó-y-qué-no)) |
+| Administrador inicial creado por código, con la clave guardada como hash BCrypt (nunca en Git) | `UsuarioService` y `AdministradorInicialRunner` | **Verificado en el log** (18 oct); faltan 2 comprobaciones ([17, sección 9](17-administrador-inicial-explicado.md#9-qué-se-verificó-y-qué-no)) |
 
 ## Lo que falta
 
@@ -28,7 +28,7 @@ Este archivo describe **qué medidas hay y cuáles faltan**. El código de `Secu
 | **Usar BCrypt** en el registro de usuarios y el login (ya se usa para el administrador inicial) | Nunca guardar texto plano en `usuario.contrasenia` |
 | **CORS** (`CorsConfig`) | El navegador bloquea las peticiones de React |
 | **Resolver los 401 y 403 en `SecurityConfig`** (token ausente o inválido; rutas por rol) | El `GlobalExceptionHandler` solo cubre el 403 de la seguridad por métodos; el resto lo decide Spring Security antes de llegar a los controllers |
-| **Confirmar el administrador inicial**: fila en la base, segundo arranque sin duplicar y clave ausente del log | Si algo falla, nadie podría gestionar el catálogo. Comandos en [17, sección 8](17-administrador-inicial-explicado.md#8-comandos-importantes) |
+| **Confirmar el administrador inicial**: falta la fila en la base y un segundo arranque sin duplicar (la clave ausente del log ya está verificada, 19 oct) | Si algo falla, nadie podría gestionar el catálogo. Comandos en [17, sección 8](17-administrador-inicial-explicado.md#8-comandos-importantes) |
 | **HTTPS** | Las claves y tokens viajarían en texto plano |
 | **Límite de intentos de login** | Fuerza bruta contra cuentas |
 | **Validación de subida de archivos** | Subida de archivos maliciosos |

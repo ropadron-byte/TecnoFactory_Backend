@@ -92,4 +92,19 @@ class UsuarioRequestTest {
     void toStringNoRevelaLaClave() {
         assertFalse(valido().toString().contains("Clave12345"));
     }
+
+    @Test
+    void digitoVerificadorQueNoCorrespondeAlRunEsInvalido() {
+        UsuarioRequest r = crear("9", "ana@correo.cl", "Clave12345",
+                LocalDate.of(1990, 5, 20), "+56912345678");
+        assertEquals(Set.of("runDv"), camposConError(r));
+    }
+
+    @Test
+    void digitoVerificadorKEnMinusculaEsValidoSiCorresponde() {
+        UsuarioRequest r = new UsuarioRequest(6000000, "k", "Ana", "Pérez",
+                "ana@correo.cl", "Clave12345", LocalDate.of(1990, 5, 20),
+                "Calle Falsa 123", "+56912345678", 13101);
+        assertTrue(camposConError(r).isEmpty());
+    }
 }

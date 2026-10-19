@@ -62,18 +62,19 @@ Lo que falta construir, en orden recomendado, y qué cambia en la configuración
 | `exception/ReglaNegocioException` | **Hecho** |
 | `exception/ErrorResponse` | **Hecho** (`record`) |
 | `exception/GlobalExceptionHandler` | **Hecho** (con los errores de Spring incluidos); falta compilarlo y probarlo ([Cambios recientes](cambios-recientes.md#cobertura-de-los-errores-de-spring)) |
-| `entity/TipoUsuario`, `Region`, `Comuna`, `Usuario` | **Hechas**; las cuatro validan contra MySQL 8.4. Explicadas en [13](13-entidades-explicadas.md). Mejoras de la sección 7 de esa guía: el cambio a `camelCase` (`runDv`, `fechaNacimiento`) **ya está aplicado** (el service usa `setRunDv` y `setFechaNacimiento` y compila); falta confirmar que se quitaron los `unique = true` de `run_dv`, `nombre_region` y `nombre_comuna` |
+| `entity/TipoUsuario`, `Region`, `Comuna`, `Usuario` | **Hechas**; las cuatro validan contra MySQL 8.4. Explicadas en [13](13-entidades-explicadas.md). Mejoras de la sección 7 de esa guía: **aplicadas** `camelCase` (`runDv`, `fechaNacimiento`), `unique = false` en `run_dv` e `Integer id` en `Region` y `Comuna` (comprobado el 19 oct); **pendientes** quitar `unique = true` de `nombre_region` y `nombre_comuna` y limpiar los comentarios |
 | `entity/*` restantes | Pendiente: `Categoria`, `Producto`, `ImagenUrl`, `Carrito`, `DetalleCarrito`, `Boleta`, `DetalleBoleta`, `Blog` (mapeo en [06](06-base-de-datos.md#mapeo-a-entidades-java)) |
 | `repository/*` de las 4 entidades | **Hechos**; errores de nombres de método corregidos. Arranque completo confirmado (18 oct). Explicados en [14](14-repositories-explicados.md) |
 | `repository/*` restantes | Pendiente: uno por entidad nueva |
 | `SecurityConfig` **temporal** | **Hecho** (18 oct): `PasswordEncoder` BCrypt, CSRF desactivado, sin sesiones, todas las rutas abiertas. Se reemplaza en la fase 4 y **no se despliega**. Swagger carga (confirmado). Explicado en [15](15-seguridad-codigo-explicado.md) |
-| `service/DatosAdministrador`, `service/UsuarioService`, `config/AdministradorInicialRunner` | **Hechos** (18 oct): el administrador se crea por código al arrancar. Verificado en el log; faltan 3 comprobaciones. Explicados en [17](17-administrador-inicial-explicado.md) |
+| `service/DatosAdministrador`, `service/UsuarioService`, `config/AdministradorInicialRunner` | **Hechos** (18 oct): el administrador se crea por código al arrancar. Verificado en el log; faltan 2 comprobaciones (fila en la base y segundo arranque). Explicados en [17](17-administrador-inicial-explicado.md) |
+| `dto/UsuarioResponse`, `dto/UsuarioRequest`, `mapper/UsuarioMapper`, `UsuarioRequestTest` | **Escritos** (comprobado contra tu repositorio el 19 oct). 8.1 compiló; 8.2 sin confirmar. Explicados en [18](18-dto-mapper-y-validaciones-explicados.md) |
 
 Cómo comprobar: arrancar con `local` y `validate`; si Hibernate no se queja, las entidades calzan con el esquema.
 
 ### Siguiente tramo de la fase 2: administrador al arrancar y primer controller
 
-Se avanza **de a un paso** y se arranca la app al terminar cada uno. Los pasos 1 a 7 ya están hechos.
+Se avanza **de a un paso** y se arranca la app al terminar cada uno. Los pasos 1 a 8.1 ya están hechos y el 8.2 está escrito (falta confirmarlo).
 
 | Paso | Qué | Qué se aprende | Estado |
 | --- | --- | --- | --- |
@@ -84,8 +85,12 @@ Se avanza **de a un paso** y se arranca la app al terminar cada uno. Los pasos 1
 | 5 | `PasswordEncoder` y `SecurityConfig` | BCrypt y la cadena de filtros | Hecho |
 | 6 | `UsuarioService` con "crear administrador si no existe" | Dónde va la lógica de negocio; `@Service`, `@Transactional`; usar `existsByTipoUsuarioNombre` | Hecho |
 | 7 | `ApplicationRunner` + variables `ADMIN_EMAIL` y `ADMIN_PASSWORD` | Ejecutar código al arrancar; leer variables de entorno | Hecho |
-| 8 | DTOs de usuario y mapper (MapStruct) | Por qué no se expone la entidad; validaciones | Pendiente |
-| 9 | `UsuarioController` y prueba en Swagger | El flujo completo; sirve de **ejemplo para tu compañero** | Pendiente |
+| 8.1 | `UsuarioResponse` y `UsuarioMapper.toResponse` | Por qué no se expone la entidad; MapStruct | Hecho (compiló; código generado revisado) |
+| 8.2 | `UsuarioRequest` con validaciones, `toEntity` y `UsuarioRequestTest` | Bean Validation; mass assignment; tests sin base de datos | Escrito; **falta confirmar** `./mvnw compile` y los 8 tests |
+| 8.3 | Validar que el dígito verificador corresponda al RUN (módulo 11) | Validación personalizada de clase | Pendiente |
+| 9.1 | `UsuarioService`: registrar (hash, rol `CLIENTE`, unicidad, comuna existente) y buscar por id | Mapear dentro de la transacción | Pendiente |
+| 9.2 | `UsuarioController` con `@Valid` | La capa HTTP | Pendiente |
+| 9.3 | Probar en Swagger y ver los errores formateados | El flujo completo; sirve de **ejemplo para tu compañero** | Pendiente |
 
 Antes del paso 8 conviene aplicar las tres mejoras a las entidades ([13, sección 7](13-entidades-explicadas.md#7-observaciones-sobre-el-código-actual)).
 

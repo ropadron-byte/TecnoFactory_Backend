@@ -16,14 +16,18 @@ El plan completo por fases está en [10-pendientes-y-futuro.md](10-pendientes-y-
 
 ### Siguiente paso (en este orden)
 
-- [x] **Confirmar un arranque completo**: el log del 18 oct muestra `Found 4 JPA repository interfaces` y `Started TecnoFactoryApplication`; Swagger carga y `/actuator/health` responde.
-- [x] **Pasar `run_dv` y `fecha_nacimiento` a `runDv` y `fechaNacimiento`**: aplicado (el service usa `setRunDv` y `setFechaNacimiento` y compila).
-- [ ] **Confirmar que se quitaron los `unique = true`** de `run_dv`, `nombre_region` y `nombre_comuna` ([13, sección 7](13-entidades-explicadas.md#7-observaciones-sobre-el-código-actual)).
-- [x] **Paso 6: `UsuarioService`** con "crear administrador si no existe".
-- [x] **Paso 7: `ApplicationRunner`**: el primer arranque creó al administrador (verificado en el log).
-- [ ] **Completar las 3 comprobaciones del administrador** ([17, secciones 8 y 9](17-administrador-inicial-explicado.md#8-comandos-importantes)): la fila en la base (`rol`, `$2a$10$`, largo 60, `activo = 1`), un **segundo arranque** que no duplique, y que la clave **no** aparezca en `logs/tecnofactory.log`.
-- [ ] **Paso 8: DTOs y mapper** de usuario (MapStruct) con validaciones, incluido el RUN chileno.
-- [ ] **Paso 9: `UsuarioController`** probado en Swagger; será el **ejemplo para tu compañero**.
+- [x] **Confirmar un arranque completo** (`Found 4 JPA repository interfaces`, `Started ...`, Swagger y `/actuator/health`).
+- [x] **`camelCase` en `Usuario`** (`runDv`, `fechaNacimiento`), **`unique = false` en `run_dv`** e **`Integer id`** en `Region` y `Comuna`: comprobado contra tu repositorio el 19 oct.
+- [ ] **Quitar `unique = true`** de `nombre_region` (`Region`) y `nombre_comuna` (`Comuna`): siguen puestos ([13, 7.2](13-entidades-explicadas.md#72-unique--true-en-nombres-de-region-y-comuna)).
+- [x] **Paso 6: `UsuarioService`** y **paso 7: `AdministradorInicialRunner`**: el primer arranque creó al administrador.
+- [x] **Administrador: clave fuera del log** (0 apariciones en los logs de archivo, 19 oct) y **rama sin variables** (`WARN` y la app arranca igual).
+- [ ] **Administrador: la fila en la base** (`rol`, `$2a$10$`, largo 60, `activo = 1`) y **un segundo arranque** que no duplique ([17, sección 8](17-administrador-inicial-explicado.md#8-comandos-importantes)). Los logs no registran todavía ningún arranque posterior a la creación.
+- [x] **Paso 8.1: `UsuarioResponse` y `toResponse`**: compiló y se revisó el código generado.
+- [ ] **Paso 8.2: `UsuarioRequest`, `toEntity` y `UsuarioRequestTest`**: los archivos están en tu repo y coinciden con la guía; falta ejecutar `./mvnw compile` y `./mvnw test -Dtest=UsuarioRequestTest` (esperado: 8 tests, 0 fallos).
+- [ ] **Paso 8.3: validar el dígito verificador** (módulo 11) con una validación personalizada de clase.
+- [ ] **Paso 9.1: `UsuarioService`**: registrar (hash, rol `CLIENTE`, unicidad de correo y RUN, comuna existente) y buscar por id, mapeando **dentro** de la transacción.
+- [ ] **Paso 9.2: `UsuarioController`** con `@Valid`.
+- [ ] **Paso 9.3: probar en Swagger** y ver los errores formateados por el `GlobalExceptionHandler`; será el **ejemplo para tu compañero**.
 - [ ] **Entidades y repositories restantes**: `Categoria`, `Producto`, `ImagenUrl`, `Carrito`, `DetalleCarrito`, `Boleta`, `DetalleBoleta`, `Blog` (mapeo en [06](06-base-de-datos.md#mapeo-a-entidades-java)). Cuidado con `TEXT` (`blog.contenido`) y con la clave compuesta de `detalle_carrito`.
 - [ ] **Primera "rebanada" completa**: `Categoria` (DTOs, mapper, service, controller) probada en Swagger; después `Producto`.
 - [ ] **Probar el `GlobalExceptionHandler`** con las pruebas de [Cobertura de los errores de Spring](#cobertura-de-los-errores-de-spring) cuando exista el primer controller.
@@ -51,14 +55,46 @@ El plan completo por fases está en [10-pendientes-y-futuro.md](10-pendientes-y-
 - [ ] Si activas el log en archivo, agregar `logs/` y `*.log` a `.gitignore` (ver [12](12-logs.md#8-guardar-el-log-en-un-archivo-opcional)).
 - [ ] Actualizar el diagrama de `Diagrama/`: **pospuesto** (es de Oracle Data Modeler y sus tipos de dato difieren de los de MySQL; la fuente de verdad es `V1`).
 - [x] No compartir el ZIP del proyecto con el `.env` ni `target/`: **tenido en cuenta**.
-- [ ] Limpiar las entidades: `import jakarta.validation.constraints.Min` sin usar y bloques comentados al final de `Region.java` y `Comuna.java`; `Ctrl+Alt+O` en IntelliJ quita los `import` sobrantes de las entidades y los repositories.
+- [ ] Limpiar las entidades (siguen así el 19 oct): `import jakarta.validation.constraints.Min` sin usar y bloques comentados al final de `Region.java` y `Comuna.java`, y tres líneas comentadas en `RegionRepository.java`; `Ctrl+Alt+O` en IntelliJ quita los `import` sobrantes de las entidades y los repositories.
 - [ ] Cambiar `Optional<List<...>>` por `List<...>` en `RegionRepository`, `ComunaRepository` y `UsuarioRepository` (funciona, pero sobra el `Optional`).
-- [ ] Borrar `docs/11-cambios-recientes.md`: es una copia antigua de este archivo y el README indica que no se crean copias numeradas.
+- [ ] Borrar `docs/11-cambios-recientes.md` (**sigue en tu repositorio el 19 oct**): es una copia antigua de este archivo y el README indica que no se crean copias numeradas.
 - [x] El `README.md` enlaza `02-docker-y-mysql.md` y `03-variables-y-claves.md`, que no venían en el ZIP revisado: **recuperados** y añadidos al paquete de documentación (18 oct).
 
 ---
 
 ## Historial
+
+### 19 oct 2026: documentación al día (pasos 8.1 y 8.2)
+
+Se revisó el ZIP nuevo del proyecto contra la documentación: código, `pom.xml`, `.gitignore`, `docker-compose.yml`, tests y los logs de `logs/`.
+
+**Qué coincide:** `DatosAdministrador`, `UsuarioService`, `AdministradorInicialRunner`, `UsuarioResponse`, `UsuarioRequest`, `UsuarioMapper` y `UsuarioRequestTest` (8 tests) son **idénticos** a lo que describen las guías 17 y 18. El `pom.xml` y el `docker-compose.yml` no cambiaron.
+
+**Qué cambió en las entidades desde la última revisión:**
+
+| Observación de la [guía 13, sección 7](13-entidades-explicadas.md#7-observaciones-sobre-el-código-actual) | Estado |
+| --- | --- |
+| `run_dv` con `unique = true` | ✅ Ahora `unique = false` |
+| `run_dv` y `fecha_nacimiento` con guion bajo | ✅ `runDv` y `fechaNacimiento` |
+| `int id` en `Region` y `Comuna` | ✅ `Integer id` |
+| `unique = true` en `nombre_region` y `nombre_comuna` | ⏳ Siguen puestos |
+| Imports sobrantes y SQL comentado | ⏳ Siguen en `Region`, `Comuna` y `RegionRepository` |
+
+**Qué mostraron los logs** (`logs/tecnofactory.log` y el rotado del 18 oct):
+
+| Comprobación | Resultado |
+| --- | --- |
+| Tu `ADMIN_PASSWORD` en los logs de archivo | **0 apariciones** (verificado sin mostrar la clave) |
+| Rama "sin variables" | **Verificada**: dos arranques (23:30 y 23:31 del 18 oct) mostraron `ADMIN_EMAIL o ADMIN_PASSWORD sin definir` y la app arrancó |
+| Segundo arranque sin duplicar | **Sin evidencia**: el proceso de las 23:33 siguió corriendo hasta las 11:58 del 19 oct y no hay ningún arranque posterior |
+| `insert into usuario` en el log de archivo | No aparece: `show-sql` escribe en la **consola**, no en el archivo (coherente con que la clave tampoco aparezca) |
+| Fila del administrador en la base | **No verificable** desde los logs |
+
+**Documentación actualizada:** `README.md` (fila 18, estado, regla 10), `08`, `09` (sección de DTOs, mapper y validaciones), `10` (pasos 8.1 a 9.3), `13` (código real y estado de la sección 7), `17` y `18` (estado verificado) y este archivo.
+
+**Nota de seguridad:** el ZIP incluía el `.env` con las claves reales (`DB_PASSWORD`, `JWT_SECRET`, `ADMIN_PASSWORD`...). Tu propia regla ([03](03-variables-y-claves.md#reglas-de-seguridad-para-los-secretos)) dice que las claves compartidas fuera de tu equipo **ya no son secretas**. Para desarrollo local no importa, pero **no las reutilices en producción**; allí se generan otras. Conviene también quitar `.env` y `target/` de los ZIP que compartas.
+
+**Qué no se pudo verificar:** que `./mvnw compile` y `UsuarioRequestTest` pasen con el código actual (no se ejecutó el proyecto), la fila del administrador en la base y el segundo arranque.
 
 ### 18 oct 2026 (noche): administrador inicial al arrancar (pasos 5b, 6 y 7)
 

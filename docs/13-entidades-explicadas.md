@@ -218,7 +218,7 @@ public class Region {
 
     @Id
     @Column(name = "id_region")
-    private int id;
+    private Integer id;
 
     @Column(name = "nombre_region", nullable = false, unique = true)
     private String nombre;
@@ -231,7 +231,7 @@ public class Region {
 | --- | --- |
 | `@Id` sin `@GeneratedValue` | El id **no es autoincremental**: lo asignas tú. En `V2` cada región se inserta con su número (1 a 16). Si pusieras `@GeneratedValue`, Hibernate ignoraría el id que le entregues |
 | `@Column(name = "id_region")` | `INT` en la base |
-| `private int id;` | `INT` ↔ `int`. Ver [7.4](#74-int-frente-a-integer) |
+| `private Integer id;` | `INT` ↔ `Integer`. Es la forma recomendada ([7.4](#74-int-frente-a-integer), ya aplicada) |
 | `unique = true` en `nombre_region` | ⚠ **`V1` no declara `UNIQUE` en esta columna.** Ver [7.2](#72-unique--true-en-nombres-de-region-y-comuna) |
 
 ---
@@ -264,7 +264,7 @@ public class Comuna {
 
     @Id
     @Column(name = "id_comuna")
-    private int id;
+    private Integer id;
 
     @Column(name = "nombre_comuna", nullable = false, unique = true)
     private String nombre;
@@ -320,7 +320,7 @@ CREATE TABLE usuario (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
 
-**Código actual del proyecto:**
+**Código actual del proyecto (comparado con tu repositorio el 19 oct):**
 
 ```java
 @Entity
@@ -339,8 +339,8 @@ public class Usuario {
     private Integer run;
 
     @JdbcTypeCode(SqlTypes.CHAR)
-    @Column(name = "run_dv", nullable = false, unique = true, length = 1)
-    private String run_dv;
+    @Column(name = "run_dv", nullable = false, unique = false, length = 1)
+    private String runDv;
 
     @Column(name = "apellidos", nullable = false)
     private String apellidos;
@@ -355,7 +355,7 @@ public class Usuario {
     private String direccion;
 
     @Column(name = "fecha_nacimiento", nullable = false)
-    private LocalDate fecha_nacimiento;
+    private LocalDate fechaNacimiento;
 
     @Column(name = "telefono", nullable = false, length = 15)
     private String telefono;
@@ -383,11 +383,11 @@ public class Usuario {
 | `@Id` + `@GeneratedValue(IDENTITY)` + `@Column(name = "id_usuario")` + `private Long id;` | Igual que `TipoUsuario`: `BIGINT AUTO_INCREMENT` ↔ `Long` |
 | `@Column(name = "run", nullable = false, unique = true)` + `private Integer run;` | El RUN **sin** dígito verificador (`INT`). `UNIQUE` sí existe en `V1`: no puede haber dos usuarios con el mismo RUN |
 | `@JdbcTypeCode(SqlTypes.CHAR)` | La anotación más especial del archivo. Ver [6.3](#63-explicación-de-jdbctypecodesqltypeschar) |
-| `@Column(name = "run_dv", nullable = false, unique = true, length = 1)` | `length = 1`: el dígito verificador mide un carácter (0-9 o `K`). ⚠ `unique = true` **no** está en `V1`: ver [7.1](#71-run_dv-con-unique--true) |
-| `private String run_dv;` | Se guarda como `String` de un carácter. ⚠ El nombre con guion bajo: ver [7.3](#73-nombres-con-guion-bajo-en-java) |
+| `@Column(name = "run_dv", nullable = false, unique = false, length = 1)` | `length = 1`: el dígito verificador mide un carácter (0-9 o `K`). `unique = false` es el valor por defecto (se puede omitir): `V1` **no** declara `UNIQUE` en esta columna, y ya está corregido ([7.1](#71-run_dv-con-unique--true)) |
+| `private String runDv;` | Se guarda como `String` de un carácter. En `camelCase` ([7.3](#73-nombres-con-guion-bajo-en-java), ya aplicado): Lombok genera `getRunDv()` y `setRunDv()` |
 | `apellidos`, `nombre`, `direccion` | `VARCHAR(255) NOT NULL`: `String` y `nullable = false`. Sin `unique`: dos personas pueden llamarse igual |
 | `@Column(name = "correo", nullable = false, unique = true)` | El correo es el **identificador de inicio de sesión**. `UNIQUE` sí está en `V1` |
-| `private LocalDate fecha_nacimiento;` | `DATE` ↔ `LocalDate`. ⚠ Nombre con guion bajo: [7.3](#73-nombres-con-guion-bajo-en-java) |
+| `private LocalDate fechaNacimiento;` | `DATE` ↔ `LocalDate`. En `camelCase`; la columna sigue siendo `fecha_nacimiento` por el `name` |
 | `@Column(name = "telefono", nullable = false, length = 15)` | `VARCHAR(15)`: el `length` coincide con `V1` |
 | `@Column(name = "contrasenia", nullable = false)` | Aquí se guarda el **hash BCrypt** (unos 60 caracteres), **nunca** la clave en texto plano ([guía 15](15-seguridad-codigo-explicado.md#2-qué-es-bcrypt-y-por-qué-no-se-compara-con-equals)). La columna mide 255, de sobra |
 | `private Boolean activo = true;` | Ver [6.2](#62-por-qué-activo--true-en-java) |
@@ -434,20 +434,36 @@ Con `@JdbcTypeCode(SqlTypes.CHAR)` el tipo esperado pasa a ser `CHAR`, y el arra
 
 Ninguna impide arrancar. Se ordenan de más a menos importante.
 
-> **Actualización 18 oct (noche):** el cambio a `camelCase` de 7.3 **ya se aplicó**: `UsuarioService` llama a `setRunDv(...)` y `setFechaNacimiento(...)` y el proyecto compila y arranca. Por eso los bloques de código de las secciones 6 y 7 que muestran `run_dv` y `fecha_nacimiento` como nombres de atributo corresponden al **estado anterior**. Lo que **falta confirmar** es que se quitaron los `unique = true` de 7.1 y 7.2.
+Estado **revisado el 19 oct 2026 contra los archivos de tu repositorio**:
+
+| # | Observación | Estado |
+| --- | --- | --- |
+| [7.1](#71-run_dv-con-unique--true) | `run_dv` con `unique = true` | ✅ **Resuelto**: ahora dice `unique = false` |
+| [7.2](#72-unique--true-en-nombres-de-region-y-comuna) | `unique = true` en los nombres de `Region` y `Comuna` | ⏳ **Pendiente**: ambos siguen con `unique = true` |
+| [7.3](#73-nombres-con-guion-bajo-en-java) | Guion bajo en `run_dv` y `fecha_nacimiento` | ✅ **Resuelto**: `runDv` y `fechaNacimiento` |
+| [7.4](#74-int-frente-a-integer) | `int id` en `Region` y `Comuna` | ✅ **Resuelto**: `Integer id` |
+| [7.5](#75-limpieza) | Imports sobrantes y SQL comentado | ⏳ **Pendiente** en `Region` y `Comuna`; en `Usuario` quedan líneas en blanco |
 
 ### 7.1 `run_dv` con `unique = true`
 
-En `Usuario.java`:
+**Estado: ✅ resuelto.** En `Usuario.java`:
 
 ```java
-@Column(name = "run_dv", nullable = false, unique = true, length = 1)   // actual
-@Column(name = "run_dv", nullable = false, length = 1)                  // correcto según V1
+// Antes
+@Column(name = "run_dv", nullable = false, unique = true, length = 1)
+// Ahora (tu código)
+@Column(name = "run_dv", nullable = false, unique = false, length = 1)
 ```
+
+`unique = false` es el valor por defecto: equivale a no declararlo, así que es correcto. Si prefieres el código más limpio, puedes borrar ese atributo.
+
+Por qué importaba:
 
 `V1` **no** declara `UNIQUE` en `run_dv`. Con `validate` no se nota, porque no se verifica. Pero es incorrecto: el dígito verificador solo tiene 11 valores posibles (0-9 y `K`), y la entidad dice que no puede repetirse. Si algún día alguien activa `ddl-auto: update` o `create` para probar, Hibernate crearía ese índice único y el **segundo** usuario con el mismo dígito fallaría al registrarse.
 
 ### 7.2 `unique = true` en nombres de `Region` y `Comuna`
+
+**Estado: ⏳ pendiente.** `Region.java` y `Comuna.java` siguen con `unique = true` (comprobado el 19 oct).
 
 `nombre_region` y `nombre_comuna` **no** son `UNIQUE` en `V1`. Es el mismo caso que 7.1: no rompe nada hoy, pero la entidad no refleja la base. Déjalos así:
 
@@ -459,6 +475,8 @@ En `Usuario.java`:
 Si en el futuro quieres que sean únicos, se hace con una migración nueva (`V4__...`), no solo en la entidad.
 
 ### 7.3 Nombres con guion bajo en Java
+
+**Estado: ✅ resuelto.** Los atributos se llaman `runDv` y `fechaNacimiento`.
 
 `run_dv` y `fecha_nacimiento` funcionan, pero rompen la convención de Java (`camelCase`) y traerán problemas más adelante:
 
@@ -479,19 +497,22 @@ private String runDv;
 private LocalDate fechaNacimiento;
 ```
 
-La columna sigue siendo la misma (`name = "..."` no cambia). Conviene hacerlo **ahora**, antes de crear DTOs y mappers que dependan del nombre.
+La columna sigue siendo la misma (`name = "..."` no cambia). Se aplicó antes de crear los DTOs, como se recomendaba: `UsuarioRequest` y `UsuarioResponse` usan `runDv` y `fechaNacimiento`, y MapStruct los une sin reglas extra.
 
 ### 7.4 `int` frente a `Integer`
 
-`Region` y `Comuna` usan `int id`, que funciona. La convención es `Integer`, por dos razones: un objeto nuevo sin id debería poder valer `null` (con `int` vale `0`), y Spring Data usa ese valor para decidir si un objeto es nuevo. En estas dos tablas el id siempre se asigna a mano y solo se leen, por lo que no causa errores. Si lo cambias, cambia también el segundo tipo de `JpaRepository<Region, Integer>` (ya está en `Integer`).
+**Estado: ✅ resuelto.** `Region` y `Comuna` usaban `int id` (funcionaba) y ahora usan `Integer id`. La convención es `Integer`, por dos razones: un objeto nuevo sin id debería poder valer `null` (con `int` vale `0`), y Spring Data usa ese valor para decidir si un objeto es nuevo. En estas dos tablas el id siempre se asigna a mano y solo se leen, por lo que `int` no causaba errores. Los repositories ya usaban `JpaRepository<Region, Integer>`.
 
 ### 7.5 Limpieza
+
+**Estado: ⏳ pendiente** (comprobado el 19 oct).
 
 | Dónde | Qué |
 | --- | --- |
 | `Region.java` | `import jakarta.validation.constraints.Min;` sin usar. Y al final hay una copia comentada de `TipoUsuario` y del `CREATE TABLE`: bórrala (las migraciones ya documentan el esquema) |
 | `Comuna.java` | El `CREATE TABLE` comentado al final |
 | `Usuario.java` | Líneas en blanco de más |
+| `RegionRepository.java` | Tres líneas comentadas que sobraron de `UsuarioRepository` |
 
 IntelliJ marca los `import` sin usar en gris; `Ctrl+Alt+O` los quita.
 

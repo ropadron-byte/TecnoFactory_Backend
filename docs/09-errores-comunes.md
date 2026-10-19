@@ -68,6 +68,20 @@ Tabla única de síntomas, causas y soluciones. Los primeros nueve ya ocurrieron
 | `LazyInitializationException` | Se leyó una relación `LAZY` (`comuna.getRegion()`) fuera de una transacción (`open-in-view: false`) | Cargar los datos dentro del service con `@Transactional`, o convertir a DTO dentro de él |
 | Parece un error en el log pero es `INFO`: `Could not safely identify store assignment for repository candidate` | Spring prueba cada repository con JPA y con Redis | Ignorarlo ([14, sección 6](14-repositories-explicados.md#6-lo-que-sale-en-el-log-y-no-es-un-error)) |
 
+## DTOs, mapper y validaciones
+
+| Síntoma | Causa | Solución |
+| --- | --- | --- |
+| `Unmapped target property: "x"` al compilar | Un campo del destino no se llena | Mapearlo con `@Mapping` o ignorarlo con `ignore = true` ([18, 3.1](18-dto-mapper-y-validaciones-explicados.md#31-mapstruct)) |
+| `No property named "x" exists in source parameter(s)` | Error de tipeo en `source = "..."` | Usar los **atributos de la entidad**, no las columnas |
+| `No qualifying bean of type '...UsuarioMapper'` | Falta `componentModel = "spring"` en `@Mapper` | Agregarlo |
+| El código generado no encuentra `getNombre()` | Lombok no se procesó antes que MapStruct | Revisar el orden de `annotationProcessorPaths` en el `pom.xml` ([18, 7.5](18-dto-mapper-y-validaciones-explicados.md#75-cómo-está-configurado-mapstruct-en-tu-pomxml)) |
+| `No validator could be created for constraint` | Anotación aplicada a un tipo que no admite (por ejemplo `@Min` sobre un `String`) | Usar la anotación correcta para el tipo |
+| Un campo con `@NotNull` acepta `""` | `@NotNull` solo rechaza `null` | Usar `@NotBlank` en textos |
+| `Data too long for column '...'` | Falta `@Size(max = ...)` en el DTO | Copiar el largo de la columna de `V1` |
+| `LazyInitializationException` al mapear a `UsuarioResponse` | El mapper se llamó **fuera** de la transacción del service | Mapear dentro del service ([18, sección 2.1](18-dto-mapper-y-validaciones-explicados.md#21-por-qué-toresponse-va-dentro-del-service)) |
+| `./mvnw test` falla en `contextLoads` | Ese test arranca toda la app y necesita MySQL y variables | Ejecutar solo el test de validaciones: `./mvnw test -Dtest=UsuarioRequestTest` |
+
 ## Administrador inicial
 
 | Síntoma | Causa | Solución |

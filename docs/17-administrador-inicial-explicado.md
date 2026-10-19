@@ -8,7 +8,7 @@ Guía para entender, línea por línea, las tres piezas que crean el usuario adm
 | `UsuarioService.java` | `service/` | Contiene la **regla**: "crear el administrador si no existe" | [5](#5-usuarioservicejava) |
 | `AdministradorInicialRunner.java` | `config/` | Se ejecuta **al arrancar**, reúne los datos y llama al service | [6](#6-administradorinicialrunnerjava) |
 
-> Estado: **verificado en el log** el primer arranque (se ejecutaron las cuatro consultas y salió `Administrador inicial creado con el correo ...`). **Falta confirmar** tres cosas: el contenido de la fila en la base, que un segundo arranque no duplique nada y que la clave no aparezca en `logs/tecnofactory.log` (comandos en la [sección 8](#8-comandos-importantes)). Esta guía documenta el código **tal como se entregó en los pasos 6 y 7**; si alguno de tus archivos difiere, ajusta la guía.
+> Estado (19 oct): el código de tu repositorio (`DatosAdministrador`, `UsuarioService` y `AdministradorInicialRunner`) **es idéntico al de esta guía** (comparado archivo por archivo). **Verificado** con tus logs: la creación del administrador en el primer arranque, la rama "sin variables" (`WARN` y la app arranca igual) y que tu `ADMIN_PASSWORD` **no aparece** en los logs de archivo. **Falta confirmar** dos cosas: el contenido de la fila en la base y que un segundo arranque no duplique nada (comandos en la [sección 8](#8-comandos-importantes)).
 
 ---
 
@@ -571,9 +571,11 @@ tail -n 40 logs/tecnofactory.log                     # las últimas 40 líneas
 | `LAZY` en `Comuna.region` (la consulta no hace `JOIN` con `region`) | **Verificado** en el log |
 | El `insert` no muestra valores | **Verificado** |
 | `Administrador inicial creado con el correo ...` | **Verificado** |
+| Rama "sin variables": `WARN` y la app arranca igual | **Verificado**: dos arranques del 18 oct (23:30 y 23:31) sin variables cargadas mostraron `ADMIN_EMAIL o ADMIN_PASSWORD sin definir` y la app arrancó |
+| Tu código coincide con esta guía | **Verificado** (19 oct) |
 | Contenido de la fila (`rol`, `prefijo $2a$10$`, `largo 60`, `activo 1`) | **Pendiente** (8.4) |
-| Segundo arranque sin duplicar | **Pendiente** (8.8) |
-| La clave no aparece en `logs/tecnofactory.log` | **Pendiente** (8.5) |
+| Segundo arranque sin duplicar | **Pendiente**: los logs no registran ningún arranque posterior a la creación (el proceso de las 23:33 siguió corriendo hasta las 11:58 del día siguiente) ([8.8](#88-probar-los-casos)) |
+| La clave no aparece en `logs/tecnofactory.log` | **Verificado** (19 oct): 0 apariciones de tu `ADMIN_PASSWORD` en el log actual ni en el rotado del 18 oct. Alcance: el log de **archivo**; en la consola el `insert` muestra `?` en vez de valores |
 | Que la clave y el hash funcionen juntos al iniciar sesión | **Pendiente**: solo posible con el login (fase 4) |
 
 ## 10. Errores relacionados

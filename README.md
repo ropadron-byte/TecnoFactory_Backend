@@ -21,6 +21,7 @@
 | 15 | [Seguridad: código explicado](docs/15-seguridad-codigo-explicado.md) | `SecurityConfig` línea por línea, qué es BCrypt y qué cambia al llegar el login |
 | 16 | [Leer errores de Spring](docs/16-leer-errores-de-spring.md) | Método de 4 pasos para encontrar un error de arranque, con los casos reales resueltos |
 | 17 | [Administrador inicial explicado](docs/17-administrador-inicial-explicado.md) | `DatosAdministrador`, `UsuarioService` y el `ApplicationRunner` línea por línea, orden de ejecución del arranque, comandos importantes |
+| 18 | [DTOs, mapper y validaciones explicados](docs/18-dto-mapper-y-validaciones-explicados.md) | `UsuarioResponse`, `UsuarioRequest` y `UsuarioMapper` línea por línea, validaciones, cuándo se ejecuta cada pieza y el test de validaciones |
 
 **Archivo vivo (sin número):** [Cambios recientes](docs/cambios-recientes.md) reúne en un solo lugar **lo que falta por hacer** y **lo que ya se hizo**, sesión por sesión. No se crean copias numeradas: se agrega una entrada nueva al historial.
 
@@ -40,15 +41,16 @@
 | Repositories | **4** (uno por entidad); errores de nombres corregidos. Arranque completo **confirmado** (log del 18 oct). Ver [14](docs/14-repositories-explicados.md) |
 | `SecurityConfig` y `PasswordEncoder` (BCrypt) | **Escritos**; todas las rutas **abiertas** (`permitAll`) a propósito para desarrollar. Swagger carga y `/actuator/health` responde (confirmado). Ver [15](docs/15-seguridad-codigo-explicado.md) |
 | JWT (`JwtService`, `JwtAuthFilter`, `UserDetailsServiceImpl`) | Clases vacías (fase 4) |
-| Administrador inicial | **Se crea por código al arrancar** (no con `V4`): verificado en el log del 18 oct. Faltan 3 comprobaciones (fila en la base, segundo arranque, clave fuera del log). Ver [17](docs/17-administrador-inicial-explicado.md) |
+| Administrador inicial | **Se crea por código al arrancar** (no con `V4`): verificado en el log del 18 oct. Faltan 2 comprobaciones (fila en la base y segundo arranque); la clave fuera del log ya está verificada. Ver [17](docs/17-administrador-inicial-explicado.md) |
 | Services | Solo `UsuarioService` (administrador inicial) |
-| DTOs, mappers y controllers | No existen todavía |
+| DTOs y mapper de `Usuario` | `UsuarioResponse`, `UsuarioRequest` y `UsuarioMapper` **escritos** (8.1 compiló; 8.2 sin confirmar). Ver [18](docs/18-dto-mapper-y-validaciones-explicados.md) |
+| Controllers | No existen todavía |
 | `Dockerfile` y servicio `backend` del compose | Vacío / comentado |
 
 ## Reglas de oro
 
 1. **Spring no lee el `.env`.** Lo lee Docker Compose; a Spring hay que pasarle las variables al arrancar.
-2. **Una migración aplicada no se edita.** Los cambios son archivos nuevos (`V3__...`). Mientras `V1` y `V2` solo existan en tu máquina, puedes recrearlas con `docker compose down -v`.
+2. **Una migración aplicada no se edita.** Los cambios son archivos nuevos (`V4__...` en adelante). Mientras `V1` y `V2` solo existan en tu máquina, puedes recrearlas con `docker compose down -v`.
 3. **Los scripts de `docker/mysql-init` y las claves `MYSQL_*` solo se aplican al crear el volumen.**
 4. **`docker compose down -v` borra los datos.** Nunca en producción.
 5. **La app en producción usa `tecnofactory_app`**, nunca `root`.
@@ -56,3 +58,4 @@
 7. **Los métodos de repository se escriben con los atributos de Java, no con las columnas** (`findByNombre`, no `findByNombreComuna`). Ver [14](docs/14-repositories-explicados.md#34-los-nombres-se-escriben-contra-los-atributos-java-no-las-columnas).
 8. **La entidad refleja a `V1`, no al revés.** `unique`, `nullable` y `length` en `@Column` no crean ni verifican nada: manda el esquema. Ver [13](docs/13-entidades-explicadas.md#13-qué-comprueba-ddl-auto-validate).
 9. **`.anyRequest().permitAll()` en `SecurityConfig` es temporal** y no se despliega. Ver [15](docs/15-seguridad-codigo-explicado.md#5-lo-que-cambia-cuando-llegue-el-login).
+10. **El DTO de salida nunca lleva la contraseña; el de entrada nunca lleva rol, `id` ni `activo`.** El mapper copia datos; los hashes y las decisiones son del service. Ver [18](docs/18-dto-mapper-y-validaciones-explicados.md#12-mass-assignment-por-qué-el-request-no-tiene-rol).

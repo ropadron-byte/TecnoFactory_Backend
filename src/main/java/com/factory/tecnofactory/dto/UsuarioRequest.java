@@ -1,9 +1,11 @@
 package com.factory.tecnofactory.dto;
 
+import com.factory.tecnofactory.validation.RunValido;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 
+@RunValido
 public record UsuarioRequest(
 
         @NotNull(message = "El RUN es obligatorio")
