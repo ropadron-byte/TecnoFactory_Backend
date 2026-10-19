@@ -68,13 +68,14 @@ Lo que falta construir, en orden recomendado, y qué cambia en la configuración
 | `repository/*` restantes | Pendiente: uno por entidad nueva |
 | `SecurityConfig` **temporal** | **Hecho** (18 oct): `PasswordEncoder` BCrypt, CSRF desactivado, sin sesiones, todas las rutas abiertas. Se reemplaza en la fase 4 y **no se despliega**. Swagger carga (confirmado). Explicado en [15](15-seguridad-codigo-explicado.md) |
 | `service/DatosAdministrador`, `service/UsuarioService`, `config/AdministradorInicialRunner` | **Hechos** (18 oct): el administrador se crea por código al arrancar. Verificado en el log; faltan 2 comprobaciones (fila en la base y segundo arranque). Explicados en [17](17-administrador-inicial-explicado.md) |
-| `dto/UsuarioResponse`, `dto/UsuarioRequest`, `mapper/UsuarioMapper`, `UsuarioRequestTest` | **Escritos** (comprobado contra tu repositorio el 19 oct). 8.1 compiló; 8.2 sin confirmar. Explicados en [18](18-dto-mapper-y-validaciones-explicados.md) |
+| `dto/UsuarioResponse`, `dto/UsuarioRequest`, `mapper/UsuarioMapper`, `UsuarioRequestTest` | **Hechos y confirmados** (19 oct): 10 tests de `UsuarioRequestTest`. Explicados en [18](18-dto-mapper-y-validaciones-explicados.md) |
+| `validation/RunUtil`, `RunValido`, `RunValidoValidator`, `UsuarioService.registrar` y `buscarPorId`, `controller/UsuarioController` y sus tres pruebas | **Hechos y confirmados** (19 oct): 14 + 5 + 8 tests y la app arranca. Explicados en [19](19-validacion-run-service-y-controller-explicados.md). Falta probar en Swagger (9.3) |
 
 Cómo comprobar: arrancar con `local` y `validate`; si Hibernate no se queja, las entidades calzan con el esquema.
 
 ### Siguiente tramo de la fase 2: administrador al arrancar y primer controller
 
-Se avanza **de a un paso** y se arranca la app al terminar cada uno. Los pasos 1 a 8.1 ya están hechos y el 8.2 está escrito (falta confirmarlo).
+Se avanza **de a un paso** y se arranca la app al terminar cada uno. Los pasos 1 a 9.2 ya están hechos y confirmados; falta el 9.3 (probar en Swagger).
 
 | Paso | Qué | Qué se aprende | Estado |
 | --- | --- | --- | --- |
@@ -86,10 +87,10 @@ Se avanza **de a un paso** y se arranca la app al terminar cada uno. Los pasos 1
 | 6 | `UsuarioService` con "crear administrador si no existe" | Dónde va la lógica de negocio; `@Service`, `@Transactional`; usar `existsByTipoUsuarioNombre` | Hecho |
 | 7 | `ApplicationRunner` + variables `ADMIN_EMAIL` y `ADMIN_PASSWORD` | Ejecutar código al arrancar; leer variables de entorno | Hecho |
 | 8.1 | `UsuarioResponse` y `UsuarioMapper.toResponse` | Por qué no se expone la entidad; MapStruct | Hecho (compiló; código generado revisado) |
-| 8.2 | `UsuarioRequest` con validaciones, `toEntity` y `UsuarioRequestTest` | Bean Validation; mass assignment; tests sin base de datos | Escrito; **falta confirmar** `./mvnw compile` y los 8 tests |
-| 8.3 | Validar que el dígito verificador corresponda al RUN (módulo 11) | Validación personalizada de clase | Pendiente |
-| 9.1 | `UsuarioService`: registrar (hash, rol `CLIENTE`, unicidad, comuna existente) y buscar por id | Mapear dentro de la transacción | Pendiente |
-| 9.2 | `UsuarioController` con `@Valid` | La capa HTTP | Pendiente |
+| 8.2 | `UsuarioRequest` con validaciones, `toEntity` y `UsuarioRequestTest` | Bean Validation; mass assignment; tests sin base de datos | **Hecho** (confirmado el 19 oct) |
+| 8.3 | Validar que el dígito verificador corresponda al RUN (módulo 11) | Validación personalizada de clase | **Hecho** (14 tests) |
+| 9.1 | `UsuarioService`: registrar (hash, rol `CLIENTE`, unicidad, comuna existente) y buscar por id | Mapear dentro de la transacción | **Hecho** (5 tests) |
+| 9.2 | `UsuarioController` con `@Valid` | La capa HTTP | **Hecho** (8 tests) |
 | 9.3 | Probar en Swagger y ver los errores formateados | El flujo completo; sirve de **ejemplo para tu compañero** | Pendiente |
 
 Antes del paso 8 conviene aplicar las tres mejoras a las entidades ([13, sección 7](13-entidades-explicadas.md#7-observaciones-sobre-el-código-actual)).

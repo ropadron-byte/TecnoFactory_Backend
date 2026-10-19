@@ -21,16 +21,33 @@ El plan completo por fases está en [10-pendientes-y-futuro.md](10-pendientes-y-
 - [ ] **Quitar `unique = true`** de `nombre_region` (`Region`) y `nombre_comuna` (`Comuna`): siguen puestos ([13, 7.2](13-entidades-explicadas.md#72-unique--true-en-nombres-de-region-y-comuna)).
 - [x] **Paso 6: `UsuarioService`** y **paso 7: `AdministradorInicialRunner`**: el primer arranque creó al administrador.
 - [x] **Administrador: clave fuera del log** (0 apariciones en los logs de archivo, 19 oct) y **rama sin variables** (`WARN` y la app arranca igual).
-- [ ] **Administrador: la fila en la base** (`rol`, `$2a$10$`, largo 60, `activo = 1`) y **un segundo arranque** que no duplique ([17, sección 8](17-administrador-inicial-explicado.md#8-comandos-importantes)). Los logs no registran todavía ningún arranque posterior a la creación.
+- [x] **Administrador: la fila en la base**: vista en MySQL Workbench (19 oct), existe.
+- [ ] **Administrador: un segundo arranque** que no duplique: al reiniciar la app debe aparecer `Ya existe un administrador: no se crea otro` ([17, sección 8](17-administrador-inicial-explicado.md#8-comandos-importantes)). Por hacer; basta mirar esa línea la próxima vez que reinicies.
 - [x] **Paso 8.1: `UsuarioResponse` y `toResponse`**: compiló y se revisó el código generado.
-- [ ] **Paso 8.2: `UsuarioRequest`, `toEntity` y `UsuarioRequestTest`**: los archivos están en tu repo y coinciden con la guía; falta ejecutar `./mvnw compile` y `./mvnw test -Dtest=UsuarioRequestTest` (esperado: 8 tests, 0 fallos).
-- [ ] **Paso 8.3: validar el dígito verificador** (módulo 11) con una validación personalizada de clase.
-- [ ] **Paso 9.1: `UsuarioService`**: registrar (hash, rol `CLIENTE`, unicidad de correo y RUN, comuna existente) y buscar por id, mapeando **dentro** de la transacción.
-- [ ] **Paso 9.2: `UsuarioController`** con `@Valid`.
+- [x] **Paso 8.2: `UsuarioRequest`, `toEntity` y `UsuarioRequestTest`**: confirmado el 19 oct (los 8 tests pasan, dentro de la ejecución del 8.3).
+- [x] **Paso 8.3: validar el dígito verificador** (módulo 11) con una validación personalizada de clase: **14 tests pasan** (19 oct). Ver [19](19-validacion-run-service-y-controller-explicados.md).
+- [x] **Paso 9.1: `UsuarioService`**: registrar (hash, rol `CLIENTE`, unicidad de correo y RUN, comuna existente) y buscar por id, mapeando **dentro** de la transacción: **5 tests pasan** y la app arranca (19 oct).
+- [x] **Paso 9.2: `UsuarioController`** con `@Valid`, 201 con `Location`, más el handler de `MethodArgumentTypeMismatchException`: **8 tests pasan** y la app arranca (19 oct).
+- [ ] **Limpieza del 9.1:** quitar los comentarios `// NUEVO` que quedaron en `UsuarioService`.
 - [ ] **Paso 9.3: probar en Swagger** y ver los errores formateados por el `GlobalExceptionHandler`; será el **ejemplo para tu compañero**.
 - [ ] **Entidades y repositories restantes**: `Categoria`, `Producto`, `ImagenUrl`, `Carrito`, `DetalleCarrito`, `Boleta`, `DetalleBoleta`, `Blog` (mapeo en [06](06-base-de-datos.md#mapeo-a-entidades-java)). Cuidado con `TEXT` (`blog.contenido`) y con la clave compuesta de `detalle_carrito`.
 - [ ] **Primera "rebanada" completa**: `Categoria` (DTOs, mapper, service, controller) probada en Swagger; después `Producto`.
-- [ ] **Probar el `GlobalExceptionHandler`** con las pruebas de [Cobertura de los errores de Spring](#cobertura-de-los-errores-de-spring) cuando exista el primer controller.
+- [x] **Probar el `GlobalExceptionHandler`** con un controller: los 8 tests de `UsuarioControllerTest` cubren 400 (validación, JSON roto, id mal escrito), 404, 405 y 409 (19 oct). **Sin cubrir todavía:** 500 y `DataIntegrityViolationException` (409 por el `UNIQUE` de la base).
+
+### Configuración base antes de la segunda entidad
+
+Lo que conviene dejar resuelto **una sola vez**, para que `Categoria`, `Producto` y las demás solo repitan la [receta de la guía 19](19-validacion-run-service-y-controller-explicados.md#13-la-receta-para-la-próxima-entidad) sin configurar nada de camino.
+
+- [ ] **`spring.jpa.open-in-view: false`**: el `application.yaml` del ZIP del 19 oct dice `true`, y los docs 04, 09 y 18 suponen `false`. Cambiarlo y volver a ejecutar los tests y la app: si algo lee una relación `LAZY` fuera del service, fallará ahora y no cuando haya 12 entidades.
+- [ ] **Handlers que faltan** en `GlobalExceptionHandler`: `HttpMediaTypeNotSupportedException` (415: un `POST` sin `Content-Type: application/json` hoy sale como 500) y `MissingServletRequestParameterException` (400: falta un `?parametro=`). Los dos caen hoy en el handler genérico (500).
+- [ ] **Convención de paginación**: un `record PageResponse<T>` y un tamaño máximo de página, **antes** del primer endpoint que liste (`GET /api/categorias`, `GET /api/productos`). Después cuesta cambiar el contrato con el frontend.
+- [ ] **Zona horaria**: `spring.jackson.time-zone` y `spring.jpa.properties.hibernate.jdbc.time_zone` en `America/Santiago` (o `UTC` y convertir en el frontend), antes de guardar la primera `Boleta` con fecha y hora.
+- [ ] **`OpenApiConfig`** (hoy vacía): título de la API y esquema de seguridad `bearer` para que Swagger tenga el botón **Authorize** cuando llegue el JWT; y desactivar Swagger en `prod`.
+- [ ] **`CorsConfig` y `WebConfig`** (hoy vacías): CORS con el origen del frontend leído de una variable de entorno. Se necesita el día que el frontend llame a la API desde otro puerto.
+- [ ] **Decidir el login/JWT (fase 4) antes de los controllers de `Producto`, `Carrito` y `Boleta`**: es lo único que **modifica código ya escrito** (cada controller gana sus reglas por rol). `Categoria` puede ir antes con `permitAll`.
+- [ ] **Un ejemplo de prueba de repository** con Testcontainers (ya está en el `pom.xml`), para consultas propias complejas (carrito, boleta). Una sola prueba sirve de plantilla.
+- [ ] **Limpieza de las entidades** que se copiarán como modelo: los `unique = true` de `Region` y `Comuna`, imports sobrantes y `Optional<List<...>>` (ver Limpieza pendiente).
+- [ ] **No hace falta ahora:** Redis y caché (`@Cacheable`), correo, subida de imágenes y el `Dockerfile` del backend. Los starters ya están en el `pom.xml`; se configuran el día que se usen.
 
 ### Verificaciones pendientes
 
@@ -63,6 +80,42 @@ El plan completo por fases está en [10-pendientes-y-futuro.md](10-pendientes-y-
 ---
 
 ## Historial
+
+### 19 oct 2026 (tarde): validación del RUN, service y controller (pasos 8.3, 9.1 y 9.2)
+
+Se completó el **primer flujo de punta a punta** de `Usuario`: `POST /api/usuarios` y `GET /api/usuarios/{id}`.
+
+| Paso | Qué se hizo | Resultado |
+| --- | --- | --- |
+| 8.3 | `RunUtil` (módulo 11), `@RunValido` y `RunValidoValidator`; dos tests nuevos en `UsuarioRequestTest` | **Pasa**: 14 tests (10 de `UsuarioRequestTest` + 4 de `RunUtilTest`). Confirma también el 8.2 |
+| 9.1 | `UsuarioService`: `registrar` y `buscarPorId`, con `UsuarioServiceTest` (Mockito, 5 tests) | **Pasa** y la app arranca con el mapper inyectado |
+| 9.2 | `UsuarioController` (`@Valid`, 201 con `Location`) y `UsuarioControllerTest` (`@WebMvcTest`, 8 tests) | **Pasa** y la app arranca |
+| — | `GlobalExceptionHandler`: handler nuevo de `MethodArgumentTypeMismatchException` (400) | Sin él, `GET /api/usuarios/abc` salía como 500. Cubierto por un test |
+
+**Qué se comprobó con las pruebas:** 27 tests sin base de datos (14 + 5 + 8). El controller es la **primera vez** que se prueba el `GlobalExceptionHandler`: 400 por campo (`detalles.runDv`), 400 por JSON roto, 404, 405 y 409.
+
+**Decisiones:**
+
+| Decisión | Motivo |
+| --- | --- |
+| La validación del dígito verificador es una **validación de clase**, no de campo | Necesita dos campos a la vez (`run` y `runDv`); el error se asocia a `runDv` |
+| El service **normaliza** la `k` a `K` antes de guardar | El Request acepta ambas |
+| El rol `CLIENTE` lo fija el service, nunca el Request | Evita *mass assignment* |
+| Correo o RUN repetido = 409; comuna o rol inexistente = 404 | El handler no tiene un 422/400 para reglas de negocio |
+| `toResponse` se ejecuta **dentro** de la transacción del service | La región es `LAZY` |
+| El `UNIQUE` de la base queda como segunda barrera contra duplicados simultáneos | Dos peticiones a la vez pueden pasar `existsByCorreo` |
+| El controller **no tiene lógica**: valida, delega y responde | Facilita copiarlo para otras entidades |
+
+**Hallazgo al revisar el ZIP:** `application.yaml` tiene `open-in-view: true`, pero los docs 04, 09 y 18 dicen `false`. No rompe nada porque el service mapea dentro de la transacción, pero esconde errores de carga perezosa. Quedó en la sección **Configuración base antes de la segunda entidad**.
+
+**Documentación:** nueva [19-validacion-run-service-y-controller-explicados.md](19-validacion-run-service-y-controller-explicados.md) (las tres piezas del RUN, el service, el controller, las tres pruebas, comandos, errores y la **receta para la próxima entidad**). Actualizados: `README.md`, `04`, `10`, `11` (sección 8.11 nueva), `18` y este archivo.
+
+**Qué no se pudo verificar:**
+
+- Registro, 409, 404 y 400 contra **MySQL real desde Swagger** (paso 9.3), y la fila del nuevo usuario con su hash (`$2a$10$`, largo 60).
+- El segundo arranque del administrador (`Ya existe un administrador`).
+- El `UNIQUE` de la base como segunda barrera (409 por `DataIntegrityViolationException`) y el 500 genérico.
+- Que el código de los docs coincida **línea por línea** con tus archivos: se tomó del que se entregó en cada paso y de los tests que ya pasan. El `UsuarioController`, su test y el handler nuevo no se ejecutaron donde se escribieron (sin acceso a Maven); los ejecutaste tú.
 
 ### 19 oct 2026: documentación al día (pasos 8.1 y 8.2)
 

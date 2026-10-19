@@ -19,7 +19,7 @@ Si no defines ningún perfil, corre solo `application.yaml` (perfil `default`): 
 | --- | --- | --- |
 | `datasource` | `${DB_URL:...localhost...}`, `${DB_USER:root}`, `${DB_PASSWORD:root}` | Valores por defecto de desarrollo |
 | `jpa.hibernate.ddl-auto` | `validate` | Hibernate solo comprueba; **nunca crea ni modifica tablas** |
-| `jpa.open-in-view` | `false` | Evita consultas perezosas fuera de la capa de servicio (buena práctica) |
+| `jpa.open-in-view` | `false` (**intención**) | Evita consultas perezosas fuera de la capa de servicio (buena práctica). **Ojo:** el `application.yaml` del ZIP del 19 oct decía `true`; pendiente de corregir ([Cambios recientes](cambios-recientes.md#configuración-base-antes-de-la-segunda-entidad)) |
 | `servlet.multipart` | `5MB` | Límite de subida de imágenes |
 | `mail` | `localhost:1025` | Para Mailpit en desarrollo (aún sin uso) |
 | `data.redis` / `cache` | Redis, TTL 10 min | **Por defecto el caché es Redis**, que hoy no existe; los perfiles lo apagan |

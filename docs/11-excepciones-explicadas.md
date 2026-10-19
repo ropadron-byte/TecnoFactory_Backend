@@ -754,6 +754,21 @@ Resumen (las líneas son las de tu archivo):
 - **Matiz importante para la fase 4:** normalmente, Spring Security distingue entre un visitante **sin token** (401, "identifícate") y un usuario **identificado sin permiso** (403). Como este handler atrapa la excepción *antes* de que Spring Security decida, **ambos recibirían 403**. Cuando se escriba la seguridad habrá que elegir: aceptar esa simplificación, o dejar que esta excepción siga de largo (relanzarla) para que Spring Security la resuelva.
 - **No cubre** las reglas por ruta de `SecurityConfig` (`.requestMatchers(...).hasRole(...)`): esas se resuelven en los filtros, antes de llegar a los controllers.
 
+### 8.11 `MethodArgumentTypeMismatchException` → 400
+
+```java
+@ExceptionHandler(MethodArgumentTypeMismatchException.class)
+public ResponseEntity<ErrorResponse> tipoDeParametroInvalido(MethodArgumentTypeMismatchException ex, HttpServletRequest req) {
+    return build(HttpStatus.BAD_REQUEST, "El parámetro '" + ex.getName() + "' tiene un formato inválido", req, null);
+}
+```
+
+- **Quién la lanza:** Spring cuando no puede convertir un valor de la URL al tipo del parámetro: por ejemplo `GET /api/usuarios/abc` con `@PathVariable Long id`.
+- **Por qué 400:** el cliente envió algo que no es un número. Sin este handler caería en el genérico `Exception` y saldría **500**, que sugiere un fallo del servidor cuando es un error del cliente.
+- **`ex.getName()`:** el nombre del parámetro (`id`), un texto del código sin datos sensibles. **No** se muestra el valor enviado.
+- **Cómo se descubrió:** al diseñar el `UsuarioController` (19 oct). Lo cubre el test `buscarConIdNoNumericoDevuelve400`.
+- **Casos parecidos pendientes** (hoy caen en el 500 genérico): `HttpMediaTypeNotSupportedException` (415: `POST` sin `Content-Type: application/json`) y `MissingServletRequestParameterException` (400: falta un `?parametro=`). Ver [Cambios recientes](cambios-recientes.md#configuración-base-antes-de-la-segunda-entidad).
+
 ---
 
 ## 9. Cómo elige Spring el handler
@@ -824,6 +839,7 @@ Requiere un controller y un `SecurityConfig` mínimo (ver [Cambios recientes](ca
 | 404 registro | `curl -i localhost:8080/api/categorias/999999` | 404 y `Categoria no encontrado con id 999999` |
 | 404 ruta | `curl -i localhost:8080/api/categoriass` | 404 y `Ruta no encontrada` |
 | 405 | `curl -i -X DELETE localhost:8080/api/categorias` (si no existe ese `DELETE`) | 405 |
+| 400 id mal escrito | `curl -i localhost:8080/api/usuarios/abc` | 400 y `El parámetro 'id' tiene un formato inválido` |
 | 400 JSON roto | `curl -i -X POST localhost:8080/api/categorias -H "Content-Type: application/json" -d '{"nombre":'` | 400 y `El cuerpo de la petición no es un JSON válido` |
 | 400 validación | `curl -i -X POST localhost:8080/api/categorias -H "Content-Type: application/json" -d '{"nombre":""}'` | 400 con `detalles` |
 | 409 duplicado | Crear dos categorías con el mismo nombre | 409 (de tu service o de la base) |

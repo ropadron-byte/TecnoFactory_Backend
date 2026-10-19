@@ -9,7 +9,7 @@ Guía para entender, línea por línea, los tres archivos de `Usuario` que descr
 | `UsuarioMapper.java` | `mapper/` | Convierte entre entidad y DTOs (lo escribe MapStruct al compilar) | [7](#7-usuariomapperjava) |
 | `UsuarioRequestTest.java` | `src/test/java/com/factory/tecnofactory/dto/` | Comprueba las validaciones sin base de datos ni controller | [9](#9-usuariorequesttestjava) |
 
-> Estado (19 oct): los cuatro archivos **existen en tu repositorio y coinciden con esta guía** (comparados uno a uno; `UsuarioRequestTest` tiene los 8 tests). `UsuarioResponse` y `toResponse` **compilaron y se revisó el código generado** (18 oct). **Sin confirmar**: que `./mvnw compile` pase con `UsuarioRequest` y `toEntity`, y que los 8 tests pasen. La validación del dígito verificador del RUN (módulo 11) es el sub-paso **8.3**, aún pendiente.
+> Estado (19 oct): los cuatro archivos **existen en tu repositorio y coinciden con esta guía** (comparados uno a uno; `UsuarioRequestTest` tiene los 8 tests). `UsuarioResponse` y `toResponse` **compilaron y se revisó el código generado** (18 oct). **Confirmado el 19 oct**: compila y los tests de `UsuarioRequestTest` pasan (ahora son 10, con los dos del 8.3). La validación del dígito verificador del RUN (módulo 11) está en la [guía 19](19-validacion-run-service-y-controller-explicados.md).
 
 ---
 
@@ -501,11 +501,11 @@ class UsuarioRequestTest {
 | `UsuarioResponse` y `toResponse` compilan | **Verificado** (18 oct) |
 | El `UsuarioMapperImpl` generado se revisó: está todo menos la contraseña | **Verificado** por ti (18 oct) |
 | `UsuarioRequest`, `toEntity` y el test existen en tu repositorio y coinciden con esta guía | **Verificado** (19 oct, comparación de archivos) |
-| `UsuarioRequest` y `toEntity` compilan | **Pendiente** |
+| `UsuarioRequest` y `toEntity` compilan | **Verificado** por ti (19 oct) |
 | `UsuarioMapperImpl.toEntity` no llama a `setContrasenia`, `setTipoUsuario`, `setComuna` ni `setId` | **Pendiente** (`grep -c "Contrasenia"` debe dar `0`) |
-| Los 8 tests de `UsuarioRequestTest` pasan | **Pendiente**: no se ejecutaron donde se escribió esta guía |
-| Que las validaciones respondan 400 con `@Valid` en un controller | **Pendiente**: paso 9 |
-| Que `toResponse` funcione dentro de una transacción (sin `LazyInitializationException`) | **Pendiente**: paso 9 |
+| Los tests de `UsuarioRequestTest` pasan | **Verificado** por ti (19 oct: 8 originales + 2 del 8.3) |
+| Que las validaciones respondan 400 con `@Valid` en un controller | **Verificado** por tests (19 oct, `UsuarioControllerTest`); falta Swagger con MySQL (9.3) |
+| Que `toResponse` funcione dentro de una transacción (sin `LazyInitializationException`) | **Verificado** con mocks (19 oct); con MySQL real y `open-in-view: false`, pendiente (9.3) |
 
 ---
 
@@ -524,9 +524,4 @@ class UsuarioRequestTest {
 
 ## 13. Lo que viene
 
-| Paso | Qué |
-| --- | --- |
-| **8.3** | Validación personalizada: que el dígito verificador **corresponda** al RUN (módulo 11) |
-| **9.1** | `UsuarioService`: registrar (hash, rol `CLIENTE`, unicidad de correo y RUN, comuna existente) y buscar por id |
-| **9.2** | `UsuarioController` con `@Valid` |
-| **9.3** | Probar en Swagger y ver los errores formateados por el `GlobalExceptionHandler` |
+Los pasos 8.3, 9.1 y 9.2 ya están hechos y explicados en la [guía 19](19-validacion-run-service-y-controller-explicados.md). Sigue el **9.3**: probar en Swagger contra MySQL real.
