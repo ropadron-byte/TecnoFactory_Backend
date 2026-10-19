@@ -14,7 +14,7 @@ public class Comuna {
 
     @Id
     @Column(name = "id_comuna")
-    private int id;
+    private Integer id;
 
     @Column(name = "nombre_comuna", nullable = false, unique = true)
     private String nombre;
@@ -25,7 +25,7 @@ public class Comuna {
 
 }
 
-//
+
 //CREATE TABLE comuna (
 //        id_comuna INT NOT NULL,
 //        nombre_comuna VARCHAR(255) NOT NULL,
