@@ -96,5 +96,12 @@ public class UsuarioService {
         return usuarioMapper.toResponse(usuario);
     }
 
+    @Transactional(readOnly = true)
+    public UsuarioResponse buscarPorCorreo(String correo) {
+        Usuario usuario = usuarioRepository.findByCorreo(correo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario", correo));
+        return usuarioMapper.toResponse(usuario);
+    }
+
 
 }

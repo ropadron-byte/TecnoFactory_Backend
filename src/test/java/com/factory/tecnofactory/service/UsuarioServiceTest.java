@@ -118,4 +118,11 @@ class UsuarioServiceTest {
 
         assertThrows(RecursoNoEncontradoException.class, () -> service.buscarPorId(99L));
     }
+    @Test
+    void buscarPorCorreoInexistenteLanzaRecursoNoEncontrado() {
+        when(usuarioRepository.findByCorreo("nadie@correo.cl")).thenReturn(Optional.empty());
+
+        assertThrows(RecursoNoEncontradoException.class, () -> service.buscarPorCorreo("nadie@correo.cl"));
+    }
+
 }

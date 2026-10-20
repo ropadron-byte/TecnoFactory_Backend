@@ -4,6 +4,7 @@ import com.factory.tecnofactory.dto.UsuarioRequest;
 import com.factory.tecnofactory.dto.UsuarioResponse;
 import com.factory.tecnofactory.exception.RecursoNoEncontradoException;
 import com.factory.tecnofactory.exception.ReglaNegocioException;
+import com.factory.tecnofactory.security.JwtService;
 import com.factory.tecnofactory.security.SecurityConfig;
 import com.factory.tecnofactory.service.UsuarioService;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -20,6 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -37,6 +41,13 @@ class UsuarioControllerTest {
     @MockitoBean
     private UsuarioService usuarioService;
 
+    // SecurityConfig los necesita para construir el filtro JWT y el AuthenticationManager
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private UserDetailsService userDetailsService;
+
     private static final String JSON_VALIDO = """
             {
               "run": 12345678, "runDv": "5", "nombre": "Ana", "apellidos": "Pérez",
@@ -45,6 +56,10 @@ class UsuarioControllerTest {
               "telefono": "+56912345678", "idComuna": 13101
             }
             """;
+
+    private static org.springframework.test.web.servlet.request.RequestPostProcessor admin() {
+        return user("admin@correo.cl").roles("ADMINISTRADOR");
+    }
 
     private static UsuarioResponse respuesta() {
         return new UsuarioResponse(7L, 12345678, "5", "Ana", "Pérez", "ana@correo.cl",
@@ -97,7 +112,7 @@ class UsuarioControllerTest {
     void buscarDevuelve200() throws Exception {
         when(usuarioService.buscarPorId(7L)).thenReturn(respuesta());
 
-        mockMvc.perform(get("/api/usuarios/7"))
+        mockMvc.perform(get("/api/usuarios/7").with(admin()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.correo").value("ana@correo.cl"));
     }
@@ -106,20 +121,20 @@ class UsuarioControllerTest {
     void buscarInexistenteDevuelve404() throws Exception {
         when(usuarioService.buscarPorId(99L)).thenThrow(new RecursoNoEncontradoException("Usuario", 99L));
 
-        mockMvc.perform(get("/api/usuarios/99"))
+        mockMvc.perform(get("/api/usuarios/99").with(admin()))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void buscarConIdNoNumericoDevuelve400() throws Exception {
-        mockMvc.perform(get("/api/usuarios/abc"))
+        mockMvc.perform(get("/api/usuarios/abc").with(admin()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.mensaje").value("El parámetro 'id' tiene un formato inválido"));
     }
 
     @Test
     void metodoNoPermitidoDevuelve405() throws Exception {
-        mockMvc.perform(delete("/api/usuarios"))
+        mockMvc.perform(delete("/api/usuarios").with(admin()))
                 .andExpect(status().isMethodNotAllowed());
     }
 
@@ -128,5 +143,52 @@ class UsuarioControllerTest {
         mockMvc.perform(post("/api/usuarios").contentType(MediaType.TEXT_PLAIN).content("hola"))
                 .andExpect(status().isUnsupportedMediaType())
                 .andExpect(jsonPath("$.mensaje").value("El tipo de contenido no está soportado; usa application/json"));
+    }
+
+    @Test
+    void buscarSinTokenDevuelve401ConJson() throws Exception {
+        mockMvc.perform(get("/api/usuarios/7"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.mensaje").exists());
+        verify(usuarioService, never()).buscarPorId(any());
+    }
+
+    @Test
+    void buscarComoClienteDevuelve403() throws Exception {
+        mockMvc.perform(get("/api/usuarios/7").with(user("ana@correo.cl").roles("CLIENTE")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.mensaje").value("No tienes permiso para esta acción"));
+        verify(usuarioService, never()).buscarPorId(any());
+    }
+
+    @Test
+    void miPerfilDevuelveElUsuarioAutenticado() throws Exception {
+        when(usuarioService.buscarPorCorreo("ana@correo.cl")).thenReturn(respuesta());
+
+        mockMvc.perform(get("/api/usuarios/me").with(user("ana@correo.cl").roles("CLIENTE")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.correo").value("ana@correo.cl"));
+    }
+
+    @Test
+    void tokenBearerValidoAutenticaAtravesDelFiltro() throws Exception {
+        when(jwtService.esValido("token-bueno")).thenReturn(true);
+        when(jwtService.obtenerCorreo("token-bueno")).thenReturn("ana@correo.cl");
+        when(userDetailsService.loadUserByUsername("ana@correo.cl")).thenReturn(
+                User.builder().username("ana@correo.cl").password("hash").roles("CLIENTE").build());
+        when(usuarioService.buscarPorCorreo("ana@correo.cl")).thenReturn(respuesta());
+
+        mockMvc.perform(get("/api/usuarios/me").header("Authorization", "Bearer token-bueno"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.correo").value("ana@correo.cl"));
+    }
+
+    @Test
+    void tokenBearerInvalidoDevuelve401() throws Exception {
+        when(jwtService.esValido("token-malo")).thenReturn(false);
+
+        mockMvc.perform(get("/api/usuarios/me").header("Authorization", "Bearer token-malo"))
+                .andExpect(status().isUnauthorized());
     }
 }
