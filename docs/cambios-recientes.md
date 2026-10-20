@@ -29,7 +29,7 @@ El plan completo por fases está en [10-pendientes-y-futuro.md](10-pendientes-y-
 - [x] **Paso 9.1: `UsuarioService`**: registrar (hash, rol `CLIENTE`, unicidad de correo y RUN, comuna existente) y buscar por id, mapeando **dentro** de la transacción: **5 tests pasan** y la app arranca (19 oct).
 - [x] **Paso 9.2: `UsuarioController`** con `@Valid`, 201 con `Location`, más el handler de `MethodArgumentTypeMismatchException`: **8 tests pasan** y la app arranca (19 oct).
 - [ ] **Limpieza del 9.1:** quitar los comentarios `// NUEVO` que quedaron en `UsuarioService`.
-- [ ] **Paso 9.3: probar en Swagger** y ver los errores formateados por el `GlobalExceptionHandler`; será el **ejemplo para tu compañero**.
+- [x] **Paso 9.3: probar en Swagger**: `POST /api/usuarios` devuelve 201 con comuna y región (20 oct). Sigue como **ejemplo para tu compañero**: y ver los errores formateados por el `GlobalExceptionHandler`; será el **ejemplo para tu compañero**.
 - [ ] **Entidades y repositories restantes**: `Categoria`, `Producto`, `ImagenUrl`, `Carrito`, `DetalleCarrito`, `Boleta`, `DetalleBoleta`, `Blog` (mapeo en [06](06-base-de-datos.md#mapeo-a-entidades-java)). Cuidado con `TEXT` (`blog.contenido`) y con la clave compuesta de `detalle_carrito`.
 - [ ] **Primera "rebanada" completa**: `Categoria` (DTOs, mapper, service, controller) probada en Swagger; después `Producto`.
 - [x] **Probar el `GlobalExceptionHandler`** con un controller: los 8 tests de `UsuarioControllerTest` cubren 400 (validación, JSON roto, id mal escrito), 404, 405 y 409 (19 oct). **Sin cubrir todavía:** 500 y `DataIntegrityViolationException` (409 por el `UNIQUE` de la base).
@@ -38,12 +38,12 @@ El plan completo por fases está en [10-pendientes-y-futuro.md](10-pendientes-y-
 
 Lo que conviene dejar resuelto **una sola vez**, para que `Categoria`, `Producto` y las demás solo repitan la [receta de la guía 19](19-validacion-run-service-y-controller-explicados.md#13-la-receta-para-la-próxima-entidad) sin configurar nada de camino.
 
-- [ ] **`spring.jpa.open-in-view: false`**: el `application.yaml` del ZIP del 19 oct dice `true`, y los docs 04, 09 y 18 suponen `false`. Cambiarlo y volver a ejecutar los tests y la app: si algo lee una relación `LAZY` fuera del service, fallará ahora y no cuando haya 12 entidades.
-- [ ] **Handlers que faltan** en `GlobalExceptionHandler`: `HttpMediaTypeNotSupportedException` (415: un `POST` sin `Content-Type: application/json` hoy sale como 500) y `MissingServletRequestParameterException` (400: falta un `?parametro=`). Los dos caen hoy en el handler genérico (500).
-- [ ] **Convención de paginación**: un `record PageResponse<T>` y un tamaño máximo de página, **antes** del primer endpoint que liste (`GET /api/categorias`, `GET /api/productos`). Después cuesta cambiar el contrato con el frontend.
-- [ ] **Zona horaria**: `spring.jackson.time-zone` y `spring.jpa.properties.hibernate.jdbc.time_zone` en `America/Santiago` (o `UTC` y convertir en el frontend), antes de guardar la primera `Boleta` con fecha y hora.
-- [ ] **`OpenApiConfig`** (hoy vacía): título de la API y esquema de seguridad `bearer` para que Swagger tenga el botón **Authorize** cuando llegue el JWT; y desactivar Swagger en `prod`.
-- [ ] **`CorsConfig` y `WebConfig`** (hoy vacías): CORS con el origen del frontend leído de una variable de entorno. Se necesita el día que el frontend llame a la API desde otro puerto.
+- [x] **`spring.jpa.open-in-view: false`** (20 oct): el `application.yaml` del ZIP del 19 oct dice `true`, y los docs 04, 09 y 18 suponen `false`. Cambiarlo y volver a ejecutar los tests y la app: si algo lee una relación `LAZY` fuera del service, fallará ahora y no cuando haya 12 entidades.
+- [x] **Handlers que faltan** (20 oct) en `GlobalExceptionHandler`: `HttpMediaTypeNotSupportedException` (415: un `POST` sin `Content-Type: application/json` hoy sale como 500) y `MissingServletRequestParameterException` (400: falta un `?parametro=`). Los dos caen hoy en el handler genérico (500).
+- [x] **Convención de paginación** (20 oct): un `record PageResponse<T>` y un tamaño máximo de página, **antes** del primer endpoint que liste (`GET /api/categorias`, `GET /api/productos`). Después cuesta cambiar el contrato con el frontend.
+- [x] **Zona horaria** (20 oct): `spring.jackson.time-zone` y `spring.jpa.properties.hibernate.jdbc.time_zone` en `America/Santiago` (o `UTC` y convertir en el frontend), antes de guardar la primera `Boleta` con fecha y hora.
+- [x] **`OpenApiConfig`** (20 oct; Swagger ya estaba desactivado en `prod`): título de la API y esquema de seguridad `bearer` para que Swagger tenga el botón **Authorize** cuando llegue el JWT; y desactivar Swagger en `prod`.
+- [x] **`CorsConfig`** hecha; **`WebConfig`** borrada por estar vacía (20 oct): CORS con el origen del frontend leído de una variable de entorno. Se necesita el día que el frontend llame a la API desde otro puerto.
 - [ ] **Decidir el login/JWT (fase 4) antes de los controllers de `Producto`, `Carrito` y `Boleta`**: es lo único que **modifica código ya escrito** (cada controller gana sus reglas por rol). `Categoria` puede ir antes con `permitAll`.
 - [ ] **Un ejemplo de prueba de repository** con Testcontainers (ya está en el `pom.xml`), para consultas propias complejas (carrito, boleta). Una sola prueba sirve de plantilla.
 - [ ] **Limpieza de las entidades** que se copiarán como modelo: los `unique = true` de `Region` y `Comuna`, imports sobrantes y `Optional<List<...>>` (ver Limpieza pendiente).
@@ -74,12 +74,37 @@ Lo que conviene dejar resuelto **una sola vez**, para que `Categoria`, `Producto
 - [x] No compartir el ZIP del proyecto con el `.env` ni `target/`: **tenido en cuenta**.
 - [ ] Limpiar las entidades (siguen así el 19 oct): `import jakarta.validation.constraints.Min` sin usar y bloques comentados al final de `Region.java` y `Comuna.java`, y tres líneas comentadas en `RegionRepository.java`; `Ctrl+Alt+O` en IntelliJ quita los `import` sobrantes de las entidades y los repositories.
 - [ ] Cambiar `Optional<List<...>>` por `List<...>` en `RegionRepository`, `ComunaRepository` y `UsuarioRepository` (funciona, pero sobra el `Optional`).
+- [ ] Borrar `src/test/.../controller/UsuarioController.java` (copia sobrante del controller en la carpeta de tests).
 - [ ] Borrar `docs/11-cambios-recientes.md` (**sigue en tu repositorio el 19 oct**): es una copia antigua de este archivo y el README indica que no se crean copias numeradas.
 - [x] El `README.md` enlaza `02-docker-y-mysql.md` y `03-variables-y-claves.md`, que no venían en el ZIP revisado: **recuperados** y añadidos al paquete de documentación (18 oct).
 
 ---
 
 ## Historial
+
+### 20 oct 2026: configuración base (pasos A a F) y revisión de integridad
+
+Se dejó resuelta la configuración que `Categoria`, `Producto` y las demás heredan. Detalle y explicación en [20-configuracion-base-explicada.md](20-configuracion-base-explicada.md).
+
+| Paso | Qué se hizo | Resultado |
+| --- | --- | --- |
+| A | Handlers 415 y parámetro faltante | Test del 415 pasa; el de parámetro faltante queda para el primer listado con filtro |
+| B | `PageResponse<T>` y tope de página (20 / 100) | `PageResponseTest` pasa |
+| C | Zona horaria `America/Santiago` | **Estaba mal escrita** (ver abajo); corregida |
+| D | `OpenApiConfig` | Swagger muestra "TecnoFactory API" y el botón Authorize |
+| E | `CorsConfig`, `cors.allowed-origins` y `.cors(...)` en `SecurityConfig` | La app arranca |
+| F | `WebConfig` borrada | — |
+| — | `open-in-view: false` | Registro sigue devolviendo 201 con comuna y región |
+
+**Comprobado por ti (20 oct):** **29 tests sin fallos**, la app arranca, Swagger carga y `POST /api/usuarios` devuelve 201.
+
+**Hallazgos de la revisión del ZIP:**
+
+- `application.yaml` tenía `spring.jpa.time_zone` y `Jackson: time_zone`: propiedades que no existen. Spring las ignora sin avisar, así que los tests pasaban y la zona horaria no estaba aplicada. Corregido a `spring.jpa.properties.hibernate.jdbc.time_zone` y `spring.jackson.time-zone`.
+- Había una copia de `UsuarioController.java` en `src/test/.../controller/`. Hay que borrarla; la válida está en `src/main`.
+- `cors.allowed-origins` solo trae `http://localhost:5173`; agregar el puerto 3000 si el frontend usa Create React App.
+
+**Qué no se pudo verificar:** que la zona horaria surta efecto (se verá con la primera `Boleta`) y el handler de parámetro faltante (sin test).
 
 ### 19 oct 2026 (tarde): validación del RUN, service y controller (pasos 8.3, 9.1 y 9.2)
 

@@ -75,7 +75,7 @@ Cómo comprobar: arrancar con `local` y `validate`; si Hibernate no se queja, la
 
 ### Siguiente tramo de la fase 2: administrador al arrancar y primer controller
 
-Se avanza **de a un paso** y se arranca la app al terminar cada uno. Los pasos 1 a 9.2 ya están hechos y confirmados; falta el 9.3 (probar en Swagger).
+Se avanza **de a un paso** y se arranca la app al terminar cada uno. Los pasos 1 a 9.3 ya están hechos y confirmados.
 
 | Paso | Qué | Qué se aprende | Estado |
 | --- | --- | --- | --- |
@@ -91,7 +91,7 @@ Se avanza **de a un paso** y se arranca la app al terminar cada uno. Los pasos 1
 | 8.3 | Validar que el dígito verificador corresponda al RUN (módulo 11) | Validación personalizada de clase | **Hecho** (14 tests) |
 | 9.1 | `UsuarioService`: registrar (hash, rol `CLIENTE`, unicidad, comuna existente) y buscar por id | Mapear dentro de la transacción | **Hecho** (5 tests) |
 | 9.2 | `UsuarioController` con `@Valid` | La capa HTTP | **Hecho** (8 tests) |
-| 9.3 | Probar en Swagger y ver los errores formateados | El flujo completo; sirve de **ejemplo para tu compañero** | Pendiente |
+| 9.3 | Probar en Swagger y ver los errores formateados | El flujo completo; sirve de **ejemplo para tu compañero** | **Hecho** (20 oct, 201) |
 
 Antes del paso 8 conviene aplicar las tres mejoras a las entidades ([13, sección 7](13-entidades-explicadas.md#7-observaciones-sobre-el-código-actual)).
 

@@ -23,6 +23,7 @@
 | 17 | [Administrador inicial explicado](docs/17-administrador-inicial-explicado.md) | `DatosAdministrador`, `UsuarioService` y el `ApplicationRunner` línea por línea, orden de ejecución del arranque, comandos importantes |
 | 18 | [DTOs, mapper y validaciones explicados](docs/18-dto-mapper-y-validaciones-explicados.md) | `UsuarioResponse`, `UsuarioRequest` y `UsuarioMapper` línea por línea, validaciones, cuándo se ejecuta cada pieza y el test de validaciones |
 | 19 | [Validación del RUN, service, controller y pruebas](docs/19-validacion-run-service-y-controller-explicados.md) | `RunUtil` y `@RunValido`, `UsuarioService` (registrar y buscar), `UsuarioController`, las tres pruebas y la **receta para la próxima entidad** |
+| 20 | [Configuración base explicada](docs/20-configuracion-base-explicada.md) | Handlers 415 y 400, paginación (`PageResponse`), zona horaria, `OpenApiConfig` y CORS, y por qué se hizo cada uno antes de la segunda entidad |
 
 **Archivo vivo (sin número):** [Cambios recientes](docs/cambios-recientes.md) reúne en un solo lugar **lo que falta por hacer** y **lo que ya se hizo**, sesión por sesión. No se crean copias numeradas: se agrega una entrada nueva al historial.
 
@@ -37,7 +38,7 @@
 | `V2` con 3 roles, 16 regiones y 346 comunas | **Aplicada en MySQL 8.4** |
 | `V3` con categorías base | **Aplicada en MySQL 8.4** (Flyway quedó en la versión 3) |
 | `application-local.yaml` | Corregido |
-| Manejo de errores (`exception/`) | **Probado** con el primer controller (19 oct): 400, 404, 405 y 409. Faltan 500 y 409 por el `UNIQUE` de la base. Ver [11](docs/11-excepciones-explicadas.md) |
+| Manejo de errores (`exception/`) | **Probado** con el primer controller: 400, 404, 405, 409 y 415. Faltan 500 y 409 por el `UNIQUE` de la base. Ver [11](docs/11-excepciones-explicadas.md) |
 | Entidades | **4 de 12** (`TipoUsuario`, `Region`, `Comuna`, `Usuario`); **validan** contra MySQL 8.4. Ver [13](docs/13-entidades-explicadas.md) |
 | Repositories | **4** (uno por entidad); errores de nombres corregidos. Arranque completo **confirmado** (log del 18 oct). Ver [14](docs/14-repositories-explicados.md) |
 | `SecurityConfig` y `PasswordEncoder` (BCrypt) | **Escritos**; todas las rutas **abiertas** (`permitAll`) a propósito para desarrollar. Swagger carga y `/actuator/health` responde (confirmado). Ver [15](docs/15-seguridad-codigo-explicado.md) |
@@ -45,7 +46,8 @@
 | Administrador inicial | **Se crea por código al arrancar** (no con `V4`): verificado en el log del 18 oct y en la base (fila vista en Workbench). Falta el segundo arranque; la clave fuera del log ya está verificada. Ver [17](docs/17-administrador-inicial-explicado.md) |
 | Services | `UsuarioService`: administrador inicial, `registrar` y `buscarPorId` (**5 tests**, 19 oct). Ver [19](docs/19-validacion-run-service-y-controller-explicados.md) |
 | DTOs y mapper de `Usuario` | `UsuarioResponse`, `UsuarioRequest` y `UsuarioMapper` **confirmados** (10 tests de `UsuarioRequestTest`), con validación del dígito verificador (módulo 11, `RunUtilTest`). Ver [18](docs/18-dto-mapper-y-validaciones-explicados.md) y [19](docs/19-validacion-run-service-y-controller-explicados.md) |
-| Controllers | `UsuarioController` (`POST /api/usuarios`, `GET /api/usuarios/{id}`), **8 tests** y arranque confirmados (19 oct). Falta probarlo en Swagger contra MySQL (9.3) |
+| Controllers | `UsuarioController` (`POST /api/usuarios`, `GET /api/usuarios/{id}`): **9 tests**, arranque y prueba en Swagger contra MySQL confirmados (201, 20 oct) |
+| Configuración base | `open-in-view: false`, handlers 415 y 400, `PageResponse`, zona horaria, `OpenApiConfig` y CORS: **29 tests** y arranque confirmados (20 oct). Ver [20](docs/20-configuracion-base-explicada.md) |
 | `Dockerfile` y servicio `backend` del compose | Vacío / comentado |
 
 ## Reglas de oro

@@ -58,7 +58,7 @@ TecnoFactory/
     ├── main/
     │   ├── java/com/factory/tecnofactory/
     │   │   ├── TecnoFactoryApplication.java
-    │   │   ├── config/        # CorsConfig, OpenApiConfig, WebConfig
+    │   │   ├── config/        # CorsConfig, OpenApiConfig
     │   │   ├── controller/    # endpoints REST
     │   │   ├── dto/           # entrada y salida de la API
     │   │   ├── entity/        # modelo de datos (tablas)

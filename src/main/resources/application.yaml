@@ -2,6 +2,16 @@ spring:
   application:
     name: TecnoFactory
 
+  data:
+    web:
+      pageable:
+        default-page-size: 20
+        max-page-size: 100
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: 6379
+
+
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/tecnofactory}
     username: ${DB_USER:root}
@@ -10,7 +20,15 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    open-in-view: true
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: America/Santiago
+
+  jackson:
+    time-zone: America/Santiago
+
 
   servlet:
     multipart:
@@ -29,10 +47,7 @@ spring:
           starttls:
             enable: false
 
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: 6379
+
 
   cache:
     type: redis
@@ -42,6 +57,9 @@ spring:
 jwt:
   secret: ${JWT_SECRET:cambia-esta-clave-por-una-de-al-menos-32-caracteres}
   expiration-ms: 3600000
+
+cors:
+  allowed-origins: ${CORS_ORIGINS:http://localhost:5173}
 
 management:
   endpoints:
