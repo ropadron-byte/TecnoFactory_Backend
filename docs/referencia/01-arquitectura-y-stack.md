@@ -58,22 +58,24 @@ TecnoFactory/
     ├── main/
     │   ├── java/com/factory/tecnofactory/
     │   │   ├── TecnoFactoryApplication.java
-    │   │   ├── config/        # CorsConfig, OpenApiConfig
+    │   │   ├── config/        # AdministradorInicialRunner, CorsConfig, OpenApiConfig
     │   │   ├── controller/    # endpoints REST
     │   │   ├── dto/           # entrada y salida de la API
     │   │   ├── entity/        # modelo de datos (tablas)
     │   │   ├── exception/     # GlobalExceptionHandler, ErrorResponse y excepciones propias
     │   │   ├── mapper/        # entidad <-> DTO (MapStruct)
     │   │   ├── repository/    # interfaces JpaRepository
-    │   │   ├── security/      # JwtService, JwtAuthFilter, SecurityConfig, UserDetailsServiceImpl
-    │   │   └── service/       # lógica de negocio
+    │   │   ├── security/      # JwtService, JwtAuthFilter, SecurityConfig, UserDetailsServiceImpl, ManejadorErroresSeguridad
+    │   │   ├── service/       # lógica de negocio (UsuarioService, AuthService)
+    │   │   └── validation/    # validación personalizada del RUN (RunUtil, @RunValido)
     │   └── resources/
     │       ├── application.yaml
     │       ├── application-local.yaml
     │       ├── application-prod.yaml
     │       └── db/migration/
     │           ├── V1__esquema_inicial.sql   # 13 tablas
-    │           └── V2__datos_iniciales.sql   # roles, regiones y comunas
+    │           ├── V2__datos_iniciales.sql   # roles, regiones y comunas
+    │           └── V3__categorias_base.sql   # categorías base
     └── test/
 ```
 
@@ -81,9 +83,12 @@ Estado actual:
 
 | Paquete | Estado |
 | --- | --- |
-| `exception` | **Escrito**: `RecursoNoEncontradoException`, `ReglaNegocioException`, `ErrorResponse` y `GlobalExceptionHandler` (ver [Cambios recientes](cambios-recientes.md)) |
-| `config`, `security` | Clases **vacías** |
-| `controller`, `dto`, `entity`, `mapper`, `repository`, `service` | Sin archivos todavía |
+| `exception` | **Escrito**: `RecursoNoEncontradoException`, `ReglaNegocioException`, `ErrorResponse` y `GlobalExceptionHandler` (ver [Cambios recientes](../estado/cambios-recientes.md)) |
+| `security` | **Escrito** (20 oct): `JwtService`, `JwtAuthFilter`, `UserDetailsServiceImpl`, `SecurityConfig` con reglas por rol y `ManejadorErroresSeguridad`. Ver [21](21-seguridad-jwt-y-roles-explicada.md) |
+| `config` | `AdministradorInicialRunner`, `CorsConfig` y `OpenApiConfig` escritas (`WebConfig` se borró por estar vacía) |
+| `entity`, `repository` | 4 de 12 entidades y sus 4 repositories |
+| `dto`, `mapper`, `validation` | `Usuario` completo (Request, Response, mapper, validación del RUN), `LoginRequest`, `AuthResponse` y `PageResponse` |
+| `service`, `controller` | `Usuario` y login (`UsuarioService`, `AuthService`, `UsuarioController`, `AuthController`) |
 
 > En Java, cada clase `public` va en **su propio archivo** con el mismo nombre (`ErrorResponse.java` contiene solo `ErrorResponse`).
 
@@ -98,6 +103,7 @@ Estado actual:
 | `service` | Reglas de negocio; los controllers no llevan lógica |
 | `controller` | Endpoints REST: recibe, delega y responde |
 | `security` | JWT y autorización en un solo lugar |
+| `validation` | Reglas de validación propias que no caben en una anotación estándar (el RUN) |
 | `config` | CORS, Swagger, recursos estáticos |
 | `exception` | Respuestas de error uniformes para el frontend |
 

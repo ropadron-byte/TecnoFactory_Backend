@@ -8,7 +8,7 @@ Cómo mantenerlo:
 2. Al empezar una sesión, agrega arriba del Historial un título nuevo (`### fecha: tema`) y describe lo que cambió, por qué y cómo comprobarlo.
 3. Las decisiones que sigan abiertas viven en Pendiente hasta que se resuelvan.
 
-El plan completo por fases está en [10-pendientes-y-futuro.md](10-pendientes-y-futuro.md); este archivo es la lista corta de **lo próximo**.
+El plan completo por fases está en [10-pendientes-y-futuro.md](../referencia/10-pendientes-y-futuro.md); este archivo es la lista corta de **lo próximo**.
 
 ---
 
@@ -18,25 +18,25 @@ El plan completo por fases está en [10-pendientes-y-futuro.md](10-pendientes-y-
 
 - [x] **Confirmar un arranque completo** (`Found 4 JPA repository interfaces`, `Started ...`, Swagger y `/actuator/health`).
 - [x] **`camelCase` en `Usuario`** (`runDv`, `fechaNacimiento`), **`unique = false` en `run_dv`** e **`Integer id`** en `Region` y `Comuna`: comprobado contra tu repositorio el 19 oct.
-- [ ] **Quitar `unique = true`** de `nombre_region` (`Region`) y `nombre_comuna` (`Comuna`): siguen puestos ([13, 7.2](13-entidades-explicadas.md#72-unique--true-en-nombres-de-region-y-comuna)).
+- [ ] **Quitar `unique = true`** de `nombre_region` (`Region`) y `nombre_comuna` (`Comuna`): siguen puestos ([13, 7.2](../referencia/13-entidades-explicadas.md#72-unique--true-en-nombres-de-region-y-comuna)).
 - [x] **Paso 6: `UsuarioService`** y **paso 7: `AdministradorInicialRunner`**: el primer arranque creó al administrador.
 - [x] **Administrador: clave fuera del log** (0 apariciones en los logs de archivo, 19 oct) y **rama sin variables** (`WARN` y la app arranca igual).
 - [x] **Administrador: la fila en la base**: vista en MySQL Workbench (19 oct), existe.
-- [ ] **Administrador: un segundo arranque** que no duplique: al reiniciar la app debe aparecer `Ya existe un administrador: no se crea otro` ([17, sección 8](17-administrador-inicial-explicado.md#8-comandos-importantes)). Por hacer; basta mirar esa línea la próxima vez que reinicies.
+- [ ] **Administrador: un segundo arranque** que no duplique: al reiniciar la app debe aparecer `Ya existe un administrador: no se crea otro` ([17, sección 8](../referencia/17-administrador-inicial-explicado.md#8-comandos-importantes)). Por hacer; basta mirar esa línea la próxima vez que reinicies.
 - [x] **Paso 8.1: `UsuarioResponse` y `toResponse`**: compiló y se revisó el código generado.
 - [x] **Paso 8.2: `UsuarioRequest`, `toEntity` y `UsuarioRequestTest`**: confirmado el 19 oct (los 8 tests pasan, dentro de la ejecución del 8.3).
-- [x] **Paso 8.3: validar el dígito verificador** (módulo 11) con una validación personalizada de clase: **14 tests pasan** (19 oct). Ver [19](19-validacion-run-service-y-controller-explicados.md).
+- [x] **Paso 8.3: validar el dígito verificador** (módulo 11) con una validación personalizada de clase: **14 tests pasan** (19 oct). Ver [19](../referencia/19-validacion-run-service-y-controller-explicados.md).
 - [x] **Paso 9.1: `UsuarioService`**: registrar (hash, rol `CLIENTE`, unicidad de correo y RUN, comuna existente) y buscar por id, mapeando **dentro** de la transacción: **5 tests pasan** y la app arranca (19 oct).
 - [x] **Paso 9.2: `UsuarioController`** con `@Valid`, 201 con `Location`, más el handler de `MethodArgumentTypeMismatchException`: **8 tests pasan** y la app arranca (19 oct).
 - [ ] **Limpieza del 9.1:** quitar los comentarios `// NUEVO` que quedaron en `UsuarioService`.
-- [x] **Paso 9.3: probar en Swagger**: `POST /api/usuarios` devuelve 201 con comuna y región (20 oct). Sigue como **ejemplo para tu compañero**: y ver los errores formateados por el `GlobalExceptionHandler`; será el **ejemplo para tu compañero**.
-- [ ] **Entidades y repositories restantes**: `Categoria`, `Producto`, `ImagenUrl`, `Carrito`, `DetalleCarrito`, `Boleta`, `DetalleBoleta`, `Blog` (mapeo en [06](06-base-de-datos.md#mapeo-a-entidades-java)). Cuidado con `TEXT` (`blog.contenido`) y con la clave compuesta de `detalle_carrito`.
+- [x] **Paso 9.3: probar en Swagger**: `POST /api/usuarios` devuelve 201 con comuna y región (20 oct). Es el **ejemplo para tu compañero**; falta ver todos los errores formateados desde Swagger con la seguridad nueva.
+- [ ] **Entidades y repositories restantes**: `Categoria`, `Producto`, `ImagenUrl`, `Carrito`, `DetalleCarrito`, `Boleta`, `DetalleBoleta`, `Blog` (mapeo en [06](../referencia/06-base-de-datos.md#mapeo-a-entidades-java)). Cuidado con `TEXT` (`blog.contenido`) y con la clave compuesta de `detalle_carrito`.
 - [ ] **Primera "rebanada" completa**: `Categoria` (DTOs, mapper, service, controller) probada en Swagger; después `Producto`.
 - [x] **Probar el `GlobalExceptionHandler`** con un controller: los 8 tests de `UsuarioControllerTest` cubren 400 (validación, JSON roto, id mal escrito), 404, 405 y 409 (19 oct). **Sin cubrir todavía:** 500 y `DataIntegrityViolationException` (409 por el `UNIQUE` de la base).
 
 ### Configuración base antes de la segunda entidad
 
-Lo que conviene dejar resuelto **una sola vez**, para que `Categoria`, `Producto` y las demás solo repitan la [receta de la guía 19](19-validacion-run-service-y-controller-explicados.md#13-la-receta-para-la-próxima-entidad) sin configurar nada de camino.
+Lo que conviene dejar resuelto **una sola vez**, para que `Categoria`, `Producto` y las demás solo repitan la [receta de la guía 19](../referencia/19-validacion-run-service-y-controller-explicados.md#13-la-receta-para-la-próxima-entidad) sin configurar nada de camino.
 
 - [x] **`spring.jpa.open-in-view: false`** (20 oct): el `application.yaml` del ZIP del 19 oct dice `true`, y los docs 04, 09 y 18 suponen `false`. Cambiarlo y volver a ejecutar los tests y la app: si algo lee una relación `LAZY` fuera del service, fallará ahora y no cuando haya 12 entidades.
 - [x] **Handlers que faltan** (20 oct) en `GlobalExceptionHandler`: `HttpMediaTypeNotSupportedException` (415: un `POST` sin `Content-Type: application/json` hoy sale como 500) y `MissingServletRequestParameterException` (400: falta un `?parametro=`). Los dos caen hoy en el handler genérico (500).
@@ -44,10 +44,26 @@ Lo que conviene dejar resuelto **una sola vez**, para que `Categoria`, `Producto
 - [x] **Zona horaria** (20 oct): `spring.jackson.time-zone` y `spring.jpa.properties.hibernate.jdbc.time_zone` en `America/Santiago` (o `UTC` y convertir en el frontend), antes de guardar la primera `Boleta` con fecha y hora.
 - [x] **`OpenApiConfig`** (20 oct; Swagger ya estaba desactivado en `prod`): título de la API y esquema de seguridad `bearer` para que Swagger tenga el botón **Authorize** cuando llegue el JWT; y desactivar Swagger en `prod`.
 - [x] **`CorsConfig`** hecha; **`WebConfig`** borrada por estar vacía (20 oct): CORS con el origen del frontend leído de una variable de entorno. Se necesita el día que el frontend llame a la API desde otro puerto.
-- [ ] **Decidir el login/JWT (fase 4) antes de los controllers de `Producto`, `Carrito` y `Boleta`**: es lo único que **modifica código ya escrito** (cada controller gana sus reglas por rol). `Categoria` puede ir antes con `permitAll`.
+- [x] **Login con JWT (fase 4) antes de los controllers de `Producto`, `Carrito` y `Boleta`**: código aplicado el 20 oct (ver la sección siguiente); falta confirmar los tests y el flujo en Swagger. `Categoria` ya nace con reglas por rol.
 - [ ] **Un ejemplo de prueba de repository** con Testcontainers (ya está en el `pom.xml`), para consultas propias complejas (carrito, boleta). Una sola prueba sirve de plantilla.
 - [ ] **Limpieza de las entidades** que se copiarán como modelo: los `unique = true` de `Region` y `Comuna`, imports sobrantes y `Optional<List<...>>` (ver Limpieza pendiente).
 - [ ] **No hace falta ahora:** Redis y caché (`@Cacheable`), correo, subida de imágenes y el `Dockerfile` del backend. Los starters ya están en el `pom.xml`; se configuran el día que se usen.
+
+### Seguridad: login con JWT y roles (fase 4)
+
+Guía completa: [21-seguridad-jwt-y-roles-explicada.md](../referencia/21-seguridad-jwt-y-roles-explicada.md).
+
+- [x] **Paso 1: `JwtService`** (`generarToken`, `esValido`, `obtenerCorreo`, `obtenerRol`) y `JwtServiceTest` (6): **confirmado por ti** (20 oct).
+- [x] **Paso 2: `UserDetailsServiceImpl`** y su test (3): entregado y aplicado; seguiste con el paso siguiente.
+- [x] **Paso 3: `JwtAuthFilter`** y su test (6): entregado y aplicado; seguiste con el paso siguiente.
+- [ ] **Paso 4: `LoginRequest`, `AuthResponse`, `AuthService`, `AuthController`** (`POST /api/auth/login`), con `AuthServiceTest` (3) y `AuthControllerTest` (3): **aplicado en tu repo; falta confirmar** los tests.
+- [ ] **Paso 5: `SecurityConfig` nueva** (reglas por ruta, filtro conectado, 401 y 403 en JSON con `ManejadorErroresSeguridad`, sin `httpBasic`), `UsuarioController` con `/me`, `UsuarioService.buscarPorCorreo` y dos handlers (`BadCredentialsException`, `AuthenticationException`): **aplicado en tu repo; falta confirmar**.
+- [ ] **Confirmar los 56 tests** (`./mvnw test -Dtest="*Test"`), que la app arranca y que **desaparece** el aviso `Using generated security password` del log.
+- [ ] **Probar el flujo en Swagger** ([21, sección 14](../referencia/21-seguridad-jwt-y-roles-explicada.md#14-cómo-probarlo-a-mano)): login del administrador, Authorize, `/me`, `/api/usuarios/1`, 401 sin token, 403 con un cliente.
+- [ ] **Usuarios con roles:** `GET /api/usuarios` paginado (administrador y vendedor, solo lectura), `PUT /api/usuarios/me` (editar el propio perfil) y una ruta de administrador para **crear vendedores** (el rol nunca viene del cliente).
+- [ ] **Reglas por rol de cada entidad nueva** (`Categoria`: administrador; `Producto` y órdenes: vendedor y administrador). Se agregan **antes** de `.anyRequest().authenticated()`.
+- [ ] **Límite de intentos de login** y **HTTPS** antes de un despliegue real.
+- [ ] **Mover `JwtServiceTest` y `UserDetailsServiceImplTest`** a `src/test/.../security/` (hoy están en `service/`; `JwtServiceTest` declara el paquete `security` y compila igual, pero la carpeta no coincide).
 
 ### Verificaciones pendientes
 
@@ -59,9 +75,10 @@ Lo que conviene dejar resuelto **una sola vez**, para que `Categoria`, `Producto
 
 ### Decisiones abiertas
 
-- [x] **Administrador inicial**: se decidió el **18 oct** crearlo por código al arrancar (opción B de [08](08-seguridad.md#administrador-inicial)) y descartar la plantilla `V4`.
+- [x] **Administrador inicial**: se decidió el **18 oct** crearlo por código al arrancar (opción B de [08](../referencia/08-seguridad.md#administrador-inicial)) y descartar la plantilla `V4`.
 - [x] **Datos del administrador**: correo y clave vienen de `ADMIN_EMAIL` y `ADMIN_PASSWORD`; el resto (RUN `11111111-1`, nombre, apellidos, fecha, dirección, teléfono, comuna `13101`) son **valores de relleno fijos** en el runner. Se eligió por defecto al no haber otra indicación; se puede cambiar.
-- [ ] **401 frente a 403** en `AccessDeniedException` (fase 4): hoy un visitante sin token recibiría 403; ver [11](11-excepciones-explicadas.md#810-accessdeniedexception--403).
+- [x] **401 frente a 403** (20 oct): resuelto. Sin token o con token inválido, **401** (`AuthenticationException`); con token pero sin el rol, **403** (`AccessDeniedException`). `ManejadorErroresSeguridad` los reenvía a `GlobalExceptionHandler`. Ver [21, sección 9](../referencia/21-seguridad-jwt-y-roles-explicada.md#9-manejadorerroresseguridadjava-y-los-dos-handlers-nuevos).
+- [x] **Quién ve `GET /api/usuarios/{id}`** (20 oct): solo el administrador; el perfil propio es `/api/usuarios/me`.
 - [ ] **Cómo se aplica el descuento** (0 a 100) sobre el `precio` y su copia en `detalle_boleta`.
 - [ ] **Detalle por parámetro** en `HandlerMethodValidationException` (hoy solo dice "Parámetros inválidos").
 
@@ -69,7 +86,7 @@ Lo que conviene dejar resuelto **una sola vez**, para que `Categoria`, `Producto
 
 - [x] Reemplazar los manuales viejos (`COMO_EJECUTAR.md`, `MANUAL_TECNOFACTORY.md`, `TecnoFactory - Guía del proyecto.md`) por la carpeta `docs/`: **hecho**.
 - [x] Mover `ExplicacionesCrudas.md` fuera del repositorio o a `docs/archivo/`: **hecho**.
-- [ ] Si activas el log en archivo, agregar `logs/` y `*.log` a `.gitignore` (ver [12](12-logs.md#8-guardar-el-log-en-un-archivo-opcional)).
+- [ ] Si activas el log en archivo, agregar `logs/` y `*.log` a `.gitignore` (ver [12](../referencia/12-logs.md#8-guardar-el-log-en-un-archivo-opcional)).
 - [ ] Actualizar el diagrama de `Diagrama/`: **pospuesto** (es de Oracle Data Modeler y sus tipos de dato difieren de los de MySQL; la fuente de verdad es `V1`).
 - [x] No compartir el ZIP del proyecto con el `.env` ni `target/`: **tenido en cuenta**.
 - [ ] Limpiar las entidades (siguen así el 19 oct): `import jakarta.validation.constraints.Min` sin usar y bloques comentados al final de `Region.java` y `Comuna.java`, y tres líneas comentadas en `RegionRepository.java`; `Ctrl+Alt+O` en IntelliJ quita los `import` sobrantes de las entidades y los repositories.
@@ -82,9 +99,68 @@ Lo que conviene dejar resuelto **una sola vez**, para que `Categoria`, `Producto
 
 ## Historial
 
+
+### 21 oct 2026: documentación reorganizada en tres niveles
+
+- **`docs/guias/`**: 16 guías rápidas, una por tema, con analogía, piezas, reglas y tabla «si algo falla».
+- **`docs/personal/`**: manual por tareas (levantar, agregar una entidad, algo falla, comandos, probar la API, roles, desplegar, reglas y trampas).
+- **`docs/referencia/`**: los 21 documentos técnicos de antes, **movidos sin cambiar su contenido** (solo se ajustaron los enlaces).
+- **`docs/estado/`**: este archivo.
+- Se eliminó la copia duplicada `docs/11-cambios-recientes.md`.
+- Para aplicarlo: **borra la carpeta `docs/` antigua** y copia la nueva.
+### 20 oct 2026 (noche): login con JWT, roles y documentación (pasos 1 a 5 de seguridad)
+
+Se escribió la fase 4 en cinco pasos. Detalle, analogía y código línea por línea en [21-seguridad-jwt-y-roles-explicada.md](../referencia/21-seguridad-jwt-y-roles-explicada.md).
+
+| Paso | Qué se hizo | Resultado |
+| --- | --- | --- |
+| 1 | `JwtService` y `JwtServiceTest` (6) | Confirmado por ti |
+| 2 | `UserDetailsServiceImpl` y su test (3) | Aplicado |
+| 3 | `JwtAuthFilter` y su test (6) | Aplicado |
+| 4 | Login: `LoginRequest`, `AuthResponse`, `AuthService`, `AuthController` y 6 tests | Aplicado; falta confirmar |
+| 5 | `SecurityConfig` nueva, `ManejadorErroresSeguridad`, `/api/usuarios/me`, `buscarPorCorreo` y 2 handlers; `UsuarioControllerTest` pasa de 9 a 14 | Aplicado; falta confirmar |
+
+**Reglas de acceso resultantes:**
+
+| Ruta | Quién entra |
+| --- | --- |
+| Swagger, `/actuator/health`, `POST /api/auth/login`, `POST /api/usuarios` | Todos |
+| `GET /api/usuarios/me` | Cualquiera con sesión |
+| Resto de `/api/usuarios/**` | Solo `ADMINISTRADOR` |
+| Todo lo demás | Cualquiera con token válido |
+
+**Decisiones:**
+
+| Decisión | Motivo |
+| --- | --- |
+| Correo inexistente, clave incorrecta y usuario desactivado dan el **mismo** 401 | Nadie puede averiguar qué correos están registrados |
+| `GET /api/usuarios/{id}` solo para administrador; el perfil propio es `/me` | Un cliente no debe leer a otros cambiando el id |
+| El filtro consulta la base en cada petición | Desactivar a un usuario o cambiarle el rol surte efecto al instante |
+| `JwtAuthFilter` sin `@Component` | Evita que `@WebMvcTest` lo cargue y falle por no encontrar `JwtService` |
+| `.anyRequest().authenticated()` al final | Una ruta olvidada queda protegida, no abierta |
+| Los errores 401 y 403 salen por `GlobalExceptionHandler` | Mismo JSON (`ErrorResponse`) que el resto de errores |
+
+**Revisión del ZIP (comparado archivo por archivo):** todo el código de los pasos 1 a 5 está presente, y la configuración base del 20 oct está bien aplicada (`open-in-view: false`, zona horaria con la ruta correcta, paginación, CORS, `WebConfig` borrada). Hallazgos menores:
+
+- `UsuarioService` conserva siete comentarios `// NUEVO`.
+- `JwtServiceTest` y `UserDetailsServiceImplTest` están en `src/test/.../service/`; deberían estar en `security/`.
+- `docs/11-cambios-recientes.md` sigue en el repositorio.
+- El ZIP incluye el `.env`; para desarrollo local no importa, pero no lo compartas ni reutilices sus claves en producción.
+- Los `logs/` son del 19 oct: no sirven para confirmar el arranque con la seguridad nueva.
+
+**Documentación:** nueva guía **21**. Actualizados: `README.md`, `01`, `03`, `08`, `09`, `10`, `11` (secciones 8.12 y 8.13), `15`, y este archivo. Se agregó una sección **«En palabras simples»** a `04`, `08`, `11`, `15`, `19`, `20` y `21`, **sin borrar** las explicaciones técnicas.
+
+**Qué no se pudo verificar:**
+
+- Los **56 tests**, el arranque y el flujo de login en Swagger: no hay salida posterior a los pasos 4 y 5.
+- Que desaparezca el aviso `Using generated security password`.
+- Que el código se ejecute: el entorno donde se escribió no podía compilar.
+
+**Lo que viene:** confirmar los 56 tests y el login; luego `GET /api/usuarios` y `PUT /api/usuarios/me`, y la primera rebanada completa con `Categoria` (con sus reglas por rol).
+
 ### 20 oct 2026: configuración base (pasos A a F) y revisión de integridad
 
-Se dejó resuelta la configuración que `Categoria`, `Producto` y las demás heredan. Detalle y explicación en [20-configuracion-base-explicada.md](20-configuracion-base-explicada.md).
+Se dejó resuelta la configuración que `Categoria`, `Producto` y las demás heredan. Detalle y explicación en [20-configuracion-base-explicada.md](../referencia/20-configuracion-base-explicada.md).
 
 | Paso | Qué se hizo | Resultado |
 | --- | --- | --- |
@@ -133,7 +209,7 @@ Se completó el **primer flujo de punta a punta** de `Usuario`: `POST /api/usuar
 
 **Hallazgo al revisar el ZIP:** `application.yaml` tiene `open-in-view: true`, pero los docs 04, 09 y 18 dicen `false`. No rompe nada porque el service mapea dentro de la transacción, pero esconde errores de carga perezosa. Quedó en la sección **Configuración base antes de la segunda entidad**.
 
-**Documentación:** nueva [19-validacion-run-service-y-controller-explicados.md](19-validacion-run-service-y-controller-explicados.md) (las tres piezas del RUN, el service, el controller, las tres pruebas, comandos, errores y la **receta para la próxima entidad**). Actualizados: `README.md`, `04`, `10`, `11` (sección 8.11 nueva), `18` y este archivo.
+**Documentación:** nueva [19-validacion-run-service-y-controller-explicados.md](../referencia/19-validacion-run-service-y-controller-explicados.md) (las tres piezas del RUN, el service, el controller, las tres pruebas, comandos, errores y la **receta para la próxima entidad**). Actualizados: `README.md`, `04`, `10`, `11` (sección 8.11 nueva), `18` y este archivo.
 
 **Qué no se pudo verificar:**
 
@@ -150,7 +226,7 @@ Se revisó el ZIP nuevo del proyecto contra la documentación: código, `pom.xml
 
 **Qué cambió en las entidades desde la última revisión:**
 
-| Observación de la [guía 13, sección 7](13-entidades-explicadas.md#7-observaciones-sobre-el-código-actual) | Estado |
+| Observación de la [guía 13, sección 7](../referencia/13-entidades-explicadas.md#7-observaciones-sobre-el-código-actual) | Estado |
 | --- | --- |
 | `run_dv` con `unique = true` | ✅ Ahora `unique = false` |
 | `run_dv` y `fecha_nacimiento` con guion bajo | ✅ `runDv` y `fechaNacimiento` |
@@ -170,7 +246,7 @@ Se revisó el ZIP nuevo del proyecto contra la documentación: código, `pom.xml
 
 **Documentación actualizada:** `README.md` (fila 18, estado, regla 10), `08`, `09` (sección de DTOs, mapper y validaciones), `10` (pasos 8.1 a 9.3), `13` (código real y estado de la sección 7), `17` y `18` (estado verificado) y este archivo.
 
-**Nota de seguridad:** el ZIP incluía el `.env` con las claves reales (`DB_PASSWORD`, `JWT_SECRET`, `ADMIN_PASSWORD`...). Tu propia regla ([03](03-variables-y-claves.md#reglas-de-seguridad-para-los-secretos)) dice que las claves compartidas fuera de tu equipo **ya no son secretas**. Para desarrollo local no importa, pero **no las reutilices en producción**; allí se generan otras. Conviene también quitar `.env` y `target/` de los ZIP que compartas.
+**Nota de seguridad:** el ZIP incluía el `.env` con las claves reales (`DB_PASSWORD`, `JWT_SECRET`, `ADMIN_PASSWORD`...). Tu propia regla ([03](../referencia/03-variables-y-claves.md#reglas-de-seguridad-para-los-secretos)) dice que las claves compartidas fuera de tu equipo **ya no son secretas**. Para desarrollo local no importa, pero **no las reutilices en producción**; allí se generan otras. Conviene también quitar `.env` y `target/` de los ZIP que compartas.
 
 **Qué no se pudo verificar:** que `./mvnw compile` y `UsuarioRequestTest` pasen con el código actual (no se ejecutó el proyecto), la fila del administrador en la base y el segundo arranque.
 
@@ -182,21 +258,21 @@ Se revisó el ZIP nuevo del proyecto contra la documentación: código, `pom.xml
 | 6 | `DatosAdministrador` (record) y `UsuarioService` con `crearAdministradorSiNoExiste` | Compila y arranca |
 | 7 | `AdministradorInicialRunner` (`ApplicationRunner`) y variables `ADMIN_EMAIL` / `ADMIN_PASSWORD` en el `.env` | **El primer arranque creó al administrador** (log: `Administrador inicial creado con el correo ...`) |
 
-**Qué mostró el log del primer arranque** (detalle en [17, sección 2](17-administrador-inicial-explicado.md#2-orden-de-ejecución)):
+**Qué mostró el log del primer arranque** (detalle en [17, sección 2](../referencia/17-administrador-inicial-explicado.md#2-orden-de-ejecución)):
 
 - El runner se ejecuta **después** de `Started TecnoFactoryApplication` y con Tomcat ya arriba.
 - Cuatro consultas, en este orden: `existsByTipoUsuarioNombre` (con `JOIN` y `limit`), búsqueda del rol, búsqueda de la comuna e `insert into usuario`.
 - La consulta de la comuna **no** hace `JOIN` con `region`: `LAZY` funciona.
 - El `insert` muestra `?` en vez de valores: la clave no aparece en el log por esa vía.
-- Sigue saliendo `Using generated security password` (inofensiva, ver [15](15-seguridad-codigo-explicado.md#36-dos-detalles-que-sorprenden)).
+- Sigue saliendo `Using generated security password` (inofensiva, ver [15](../referencia/15-seguridad-codigo-explicado.md#36-dos-detalles-que-sorprenden)).
 
 **Decisión tomada por defecto** (no hubo respuesta a la consulta): correo y clave desde variables de entorno; RUN, nombre, apellidos, fecha, dirección, teléfono y comuna como valores de relleno fijos en el runner.
 
-**Documentación:** nueva [17-administrador-inicial-explicado.md](17-administrador-inicial-explicado.md) (código línea por línea, orden de ejecución, glosario, comandos y casos de error). Actualizados: `README.md`, `03`, `08`, `10`, `13`, `14`, `15` y este archivo.
+**Documentación:** nueva [17-administrador-inicial-explicado.md](../referencia/17-administrador-inicial-explicado.md) (código línea por línea, orden de ejecución, glosario, comandos y casos de error). Actualizados: `README.md`, `03`, `08`, `10`, `13`, `14`, `15` y este archivo.
 
 **Qué no se pudo verificar:**
 
-- El contenido de la fila en la base, el segundo arranque sin duplicar y la ausencia de la clave en `logs/tecnofactory.log`: son los comandos de [17, sección 8](17-administrador-inicial-explicado.md#8-comandos-importantes); el log pegado solo cubre el primer arranque.
+- El contenido de la fila en la base, el segundo arranque sin duplicar y la ausencia de la clave en `logs/tecnofactory.log`: son los comandos de [17, sección 8](../referencia/17-administrador-inicial-explicado.md#8-comandos-importantes); el log pegado solo cubre el primer arranque.
 - Que se quitaron los `unique = true` de las entidades (no se vieron tus archivos finales).
 - La guía 17 documenta el código **tal como se entregó en los pasos 6 y 7**; no se compararon con tus archivos. El log es coherente con él (mismo mensaje y mismo orden de consultas).
 - Que la clave y el hash funcionen juntos al iniciar sesión: solo posible con el login (fase 4).
@@ -225,14 +301,14 @@ Se avanzó **de a un paso**, arrancando la app al terminar cada uno. Cada pieza 
 
 | Archivo | Contenido |
 | --- | --- |
-| [13-entidades-explicadas.md](13-entidades-explicadas.md) | Cada anotación (`@Entity`, `@ManyToOne`, `@JdbcTypeCode`...), cada entidad línea por línea y tres observaciones sobre el código actual |
-| [14-repositories-explicados.md](14-repositories-explicados.md) | Cómo se lee el nombre de un método, qué retorno elegir, cada repository línea por línea |
-| [15-seguridad-codigo-explicado.md](15-seguridad-codigo-explicado.md) | `SecurityConfig` línea por línea, BCrypt, qué cambia al llegar el login |
-| [16-leer-errores-de-spring.md](16-leer-errores-de-spring.md) | Método de 4 pasos para leer un error de arranque, con los tres casos reales |
+| [13-entidades-explicadas.md](../referencia/13-entidades-explicadas.md) | Cada anotación (`@Entity`, `@ManyToOne`, `@JdbcTypeCode`...), cada entidad línea por línea y tres observaciones sobre el código actual |
+| [14-repositories-explicados.md](../referencia/14-repositories-explicados.md) | Cómo se lee el nombre de un método, qué retorno elegir, cada repository línea por línea |
+| [15-seguridad-codigo-explicado.md](../referencia/15-seguridad-codigo-explicado.md) | `SecurityConfig` línea por línea, BCrypt, qué cambia al llegar el login |
+| [16-leer-errores-de-spring.md](../referencia/16-leer-errores-de-spring.md) | Método de 4 pasos para leer un error de arranque, con los tres casos reales |
 
 **Documentación actualizada:** `03` (variables `ADMIN_EMAIL` y `ADMIN_PASSWORD` planificadas), `README.md` (índice, estado y reglas de oro), `06` (mapeo de `CHAR(1)`, estado de las entidades), `08` (`SecurityConfig`, administrador por código), `09` (sección de entidades y repositories), `10` (fases, paso a paso del administrador).
 
-**Observaciones sobre el código (no impiden arrancar):** `unique = true` en `run_dv`, `nombre_region` y `nombre_comuna` que `V1` no declara; `run_dv` y `fecha_nacimiento` con guion bajo en Java. Detalle y corrección en [13, sección 7](13-entidades-explicadas.md#7-observaciones-sobre-el-código-actual).
+**Observaciones sobre el código (no impiden arrancar):** `unique = true` en `run_dv`, `nombre_region` y `nombre_comuna` que `V1` no declara; `run_dv` y `fecha_nacimiento` con guion bajo en Java. Detalle y corrección en [13, sección 7](../referencia/13-entidades-explicadas.md#7-observaciones-sobre-el-código-actual).
 
 **Qué no se pudo verificar:**
 
@@ -258,7 +334,7 @@ Se avanzó **de a un paso**, arrancando la app al terminar cada uno. Cada pieza 
 | `V3__categorias_base.sql` | 8 categorías de ejemplo para una tienda de tecnología | Ajustar nombres y descripciones a lo que venda TecnoFactory |
 | `V4__administrador_inicial.sql` | `INSERT` del administrador: rol buscado **por nombre** (no por id), comuna 13101 | Generar el hash BCrypt y cambiar los valores marcados con `CAMBIAR` |
 
-Decisión de diseño: el administrador se crea con una migración que guarda el **hash** (nunca la clave). La alternativa de crearlo al arrancar desde variables de entorno queda para antes de producción, porque necesita las entidades y el `PasswordEncoder`. Detalle y pasos en [08](08-seguridad.md#administrador-inicial).
+Decisión de diseño: el administrador se crea con una migración que guarda el **hash** (nunca la clave). La alternativa de crearlo al arrancar desde variables de entorno queda para antes de producción, porque necesita las entidades y el `PasswordEncoder`. Detalle y pasos en [08](../referencia/08-seguridad.md#administrador-inicial).
 
 Pendiente de comprobar con el login real: que la clave y el hash funcionen juntos (fase 4).
 
@@ -284,7 +360,7 @@ Aclaración que motivó la guía: **`@Slf4j` (Lombok) no crea ningún archivo**;
 | `detalle_boleta` guarda el producto; `carrito` borra en cascada; `boleta.estado` con valor por defecto | `V1__esquema_inicial.sql` | Hecho |
 | Corrección de la indentación de `jpa:` | `application-local.yaml` | Hecho |
 | Datos de referencia: roles, 16 regiones, 346 comunas | `V2__datos_iniciales.sql` (**nuevo**) | Hecho |
-| Manejo de errores de la API, incluidos los errores propios de Spring (400, 404, 405, 403) | `exception/` (4 archivos) | Escrito y revisado por lectura; **sin compilar ni probar**. Explicado en [11](11-excepciones-explicadas.md) |
+| Manejo de errores de la API, incluidos los errores propios de Spring (400, 404, 405, 403) | `exception/` (4 archivos) | Escrito y revisado por lectura; **sin compilar ni probar**. Explicado en [11](../referencia/11-excepciones-explicadas.md) |
 | Documentación actualizada | `README.md` y `docs/` | Hecho |
 | `SecurityConfig` mínimo, entidades, repositorios | — | **Siguiente paso** |
 
@@ -339,7 +415,7 @@ estado BOOLEAN NOT NULL DEFAULT TRUE,
 
 Así un `INSERT` que no lo envíe no falla. Ojo: el valor por defecto de la base **no se aplica** si Hibernate manda `NULL` explícito, por eso la entidad también debe inicializarlo (`private Boolean estado = true;`).
 
-**Decisión que se mantiene:** `detalle_boleta` → `boleta` queda en `RESTRICT` (no `CASCADE` como decía la documentación antigua), porque las boletas son registros de compra y no deben borrarse nunca. Tabla completa de reglas en [06](06-base-de-datos.md#reglas-de-borrado-on-delete).
+**Decisión que se mantiene:** `detalle_boleta` → `boleta` queda en `RESTRICT` (no `CASCADE` como decía la documentación antigua), porque las boletas son registros de compra y no deben borrarse nunca. Tabla completa de reglas en [06](../referencia/06-base-de-datos.md#reglas-de-borrado-on-delete).
 
 > Cada vez que se edita `V1` hay que recrear la base: `docker compose down -v` y `docker compose up -d`. Si no, Flyway falla con `Migration checksum mismatch`.
 
@@ -619,7 +695,7 @@ Puntos a tener en cuenta:
 | `ErrorResponse(LocalDateTime, int, ...) cannot be applied to (java.time.LocalDateTime, ...)` | Faltaban los `import` en el archivo del `record` | Agregar `java.time.LocalDateTime` y `java.util.Map` |
 | Dos opciones al importar `MethodArgumentNotValidException` | Existen en `spring-web` y en `spring-messaging` | Elegir `org.springframework.web.bind...` |
 
-Más casos en [09](09-errores-comunes.md#java-e-intellij).
+Más casos en [09](../referencia/09-errores-comunes.md#java-e-intellij).
 
 ---
 

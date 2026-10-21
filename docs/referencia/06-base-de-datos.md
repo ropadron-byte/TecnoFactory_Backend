@@ -107,7 +107,7 @@ Las 17 observaciones de la revisión inicial quedaron así:
 | `region` | 16 | Número de región (Ñuble = 16, Arica y Parinacota = 15) | |
 | `comuna` | 346 | Código **CUT** de SUBDERE (Santiago = 13101, Valparaíso = 5101) | Los códigos de las regiones I a IX no llevan cero a la izquierda porque la columna es `INT` |
 
-No incluye el administrador ni categorías: ver [Cambios recientes](cambios-recientes.md#qué-queda-fuera-de-v2-a-propósito).
+No incluye el administrador ni categorías: ver [Cambios recientes](../estado/cambios-recientes.md#qué-queda-fuera-de-v2-a-propósito).
 
 ## Mapeo a entidades Java
 
@@ -189,7 +189,7 @@ Se evaluó y **no se usan por ahora**: la API usa un solo usuario de MySQL, así
 
 ## Verificación realizada
 
-`V1` y `V2` se aplicaron **sin errores** en una base limpia de prueba (**MariaDB 10.11**, no MySQL 8.4): 13 tablas, 15 FK, 3 tipos de usuario, 16 regiones y 346 comunas. La sintaxis usada (`CHECK`, `DEFAULT`, FK) es válida en MySQL 8.4, pero **la prueba definitiva es arrancar la app contra tu contenedor MySQL 8.4** (ver [Cambios recientes](cambios-recientes.md#cómo-verificar-todo-en-tu-máquina)).
+`V1` y `V2` se aplicaron **sin errores** en una base limpia de prueba (**MariaDB 10.11**, no MySQL 8.4): 13 tablas, 15 FK, 3 tipos de usuario, 16 regiones y 346 comunas. La sintaxis usada (`CHECK`, `DEFAULT`, FK) es válida en MySQL 8.4, pero **la prueba definitiva es arrancar la app contra tu contenedor MySQL 8.4** (ver [Cambios recientes](../estado/cambios-recientes.md#cómo-verificar-todo-en-tu-máquina)).
 
 **18 oct 2026:** `V1`, `V2` y `V3` se aplicaron con Flyway en tu MySQL 8.4 (`Successfully applied 3 migrations ... now at version v3`) y las cuatro entidades actuales validaron contra ese esquema. Con eso queda confirmado en MySQL 8.4 lo que antes solo se había probado en MariaDB.
 

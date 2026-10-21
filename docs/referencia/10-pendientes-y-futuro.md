@@ -10,7 +10,7 @@ Lo que falta construir, en orden recomendado, y qué cambia en la configuración
 | 1 | Esquema definitivo y datos iniciales (`V1`, `V2`, `V3`) | 0 | **Ahora** | **Hecha** (el administrador pasó a crearse por código, ver fase 2) |
 | 2 | Entidades, repositorios y manejo de errores | 1 | Alta | **En curso**: 4 de 12 entidades, 4 repositories, `SecurityConfig` temporal y errores escritos; falta el primer controller |
 | 3 | Catálogo: categorías y productos | 2 | Alta | Pendiente |
-| 4 | Seguridad: JWT, roles y usuarios | 2 | Alta | Pendiente |
+| 4 | Seguridad: JWT, roles y usuarios | 2 | Alta | **En curso**: login, filtro, `SecurityConfig` con reglas por rol y 401/403 en JSON **escritos** (20 oct); falta confirmar los 56 tests y el flujo en Swagger |
 | 5 | Carrito, boleta y pago simulado | 3, 4 | Media | Pendiente |
 | 6 | Imágenes y blog | 3, 4 | Media | Pendiente |
 | 7 | Correo y caché (Redis) | 4 | Baja | Pendiente |
@@ -24,7 +24,7 @@ Lo que falta construir, en orden recomendado, y qué cambia en la configuración
 
 - [x] **Verificar que `.env` no está en Git.** `git ls-files | grep -i env` no devuelve nada y `.gitignore` contiene `.env`, `target/` y `.idea/`. **Hecho.**
 - [x] Corregir la indentación de `jpa:` en `application-local.yaml` (ver 04). **Hecho.**
-- [x] Actualizar la documentación (`README.md` y `docs/`) al estado actual. **Hecho** (ver [Cambios recientes](cambios-recientes.md)).
+- [x] Actualizar la documentación (`README.md` y `docs/`) al estado actual. **Hecho** (ver [Cambios recientes](../estado/cambios-recientes.md)).
 - [x] Reemplazar los manuales viejos (`COMO_EJECUTAR.md`, `MANUAL_TECNOFACTORY.md`, `TecnoFactory - Guía del proyecto.md`) por esta carpeta `docs/`. **Hecho.**
 - [x] Mover `ExplicacionesCrudas.md` fuera del repositorio o a `docs/archivo/`. **Hecho.**
 - [x] No compartir el ZIP del proyecto con el `.env` ni la carpeta `target/`. **Tenido en cuenta.**
@@ -61,12 +61,12 @@ Lo que falta construir, en orden recomendado, y qué cambia en la configuración
 | `exception/RecursoNoEncontradoException` | **Hecho** (extiende `RuntimeException`) |
 | `exception/ReglaNegocioException` | **Hecho** |
 | `exception/ErrorResponse` | **Hecho** (`record`) |
-| `exception/GlobalExceptionHandler` | **Hecho** (con los errores de Spring incluidos); falta compilarlo y probarlo ([Cambios recientes](cambios-recientes.md#cobertura-de-los-errores-de-spring)) |
+| `exception/GlobalExceptionHandler` | **Hecho** (con los errores de Spring incluidos); falta compilarlo y probarlo ([Cambios recientes](../estado/cambios-recientes.md#cobertura-de-los-errores-de-spring)) |
 | `entity/TipoUsuario`, `Region`, `Comuna`, `Usuario` | **Hechas**; las cuatro validan contra MySQL 8.4. Explicadas en [13](13-entidades-explicadas.md). Mejoras de la sección 7 de esa guía: **aplicadas** `camelCase` (`runDv`, `fechaNacimiento`), `unique = false` en `run_dv` e `Integer id` en `Region` y `Comuna` (comprobado el 19 oct); **pendientes** quitar `unique = true` de `nombre_region` y `nombre_comuna` y limpiar los comentarios |
 | `entity/*` restantes | Pendiente: `Categoria`, `Producto`, `ImagenUrl`, `Carrito`, `DetalleCarrito`, `Boleta`, `DetalleBoleta`, `Blog` (mapeo en [06](06-base-de-datos.md#mapeo-a-entidades-java)) |
 | `repository/*` de las 4 entidades | **Hechos**; errores de nombres de método corregidos. Arranque completo confirmado (18 oct). Explicados en [14](14-repositories-explicados.md) |
 | `repository/*` restantes | Pendiente: uno por entidad nueva |
-| `SecurityConfig` **temporal** | **Hecho** (18 oct): `PasswordEncoder` BCrypt, CSRF desactivado, sin sesiones, todas las rutas abiertas. Se reemplaza en la fase 4 y **no se despliega**. Swagger carga (confirmado). Explicado en [15](15-seguridad-codigo-explicado.md) |
+| `SecurityConfig` | **Reescrito el 20 oct**: la versión temporal (todo abierto) ya no existe. Ver [21](21-seguridad-jwt-y-roles-explicada.md) y, para la primera versión, [15](15-seguridad-codigo-explicado.md) |
 | `service/DatosAdministrador`, `service/UsuarioService`, `config/AdministradorInicialRunner` | **Hechos** (18 oct): el administrador se crea por código al arrancar. Verificado en el log; faltan 2 comprobaciones (fila en la base y segundo arranque). Explicados en [17](17-administrador-inicial-explicado.md) |
 | `dto/UsuarioResponse`, `dto/UsuarioRequest`, `mapper/UsuarioMapper`, `UsuarioRequestTest` | **Hechos y confirmados** (19 oct): 10 tests de `UsuarioRequestTest`. Explicados en [18](18-dto-mapper-y-validaciones-explicados.md) |
 | `validation/RunUtil`, `RunValido`, `RunValidoValidator`, `UsuarioService.registrar` y `buscarPorId`, `controller/UsuarioController` y sus tres pruebas | **Hechos y confirmados** (19 oct): 14 + 5 + 8 tests y la app arranca. Explicados en [19](19-validacion-run-service-y-controller-explicados.md). Falta probar en Swagger (9.3) |
@@ -105,22 +105,29 @@ Antes del paso 8 conviene aplicar las tres mejoras a las entidades ([13, secció
 
 ## Fase 4. Seguridad y usuarios
 
-| Archivo | Contenido |
-| --- | --- |
-| `security/SecurityConfig` | Rutas públicas y protegidas, BCrypt, CORS, sin sesión |
-| `security/JwtService` | Genera y valida tokens (jjwt) |
-| `security/JwtAuthFilter` | Lee `Authorization: Bearer ...` en cada petición |
-| `security/UserDetailsServiceImpl` | Carga el usuario por correo y le asigna el rol |
-| `dto/LoginRequest`, `RegistroRequest`, `AuthResponse`, `UsuarioResponse` | La contraseña nunca sale en una respuesta |
-| `service/AuthService`, `controller/AuthController` | `/api/auth/**` |
-| `service/UsuarioService`, `controller/UsuarioController` | Perfil propio y gestión por administrador |
+Guía: [21-seguridad-jwt-y-roles-explicada.md](21-seguridad-jwt-y-roles-explicada.md).
 
-- **Validar el RUN chileno** (dígito verificador) en el servicio.
+| Archivo | Contenido | Estado (20 oct) |
+| --- | --- | --- |
+| `security/JwtService` | Genera y valida tokens (jjwt 0.12.6) | Hecho; test confirmado |
+| `security/UserDetailsServiceImpl` | Carga el usuario por correo y le asigna el rol | Hecho |
+| `security/JwtAuthFilter` | Lee `Authorization: Bearer ...` en cada petición | Hecho |
+| `security/SecurityConfig` | Rutas públicas, protegidas y por rol; BCrypt; CORS; sin sesión | Hecho; falta confirmar |
+| `security/ManejadorErroresSeguridad` | 401 y 403 con el JSON de `ErrorResponse` | Hecho; falta confirmar |
+| `dto/LoginRequest`, `AuthResponse` | Entrada y salida del login; la clave nunca sale | Hecho |
+| `service/AuthService`, `controller/AuthController` | `POST /api/auth/login` | Hecho; falta confirmar |
+| `UsuarioController` (`/me`) y `UsuarioService.buscarPorCorreo` | Perfil propio | Hecho; falta confirmar |
+| `config/OpenApiConfig`, `config/CorsConfig` | Botón Authorize en Swagger; dominio de React | Hechos (configuración base, [20](20-configuracion-base-explicada.md)) |
+
+**Pendiente de la fase:**
+
+- **Confirmar** los 56 tests, el arranque y el flujo de login en Swagger.
+- `GET /api/usuarios` paginado para administrador y vendedor (solo lectura), `PUT /api/usuarios/me` y una ruta de administrador para crear vendedores.
+- **Límite de intentos de login**.
 - Decidir el flujo de **recuperar contraseña** (necesita correo, fase 7).
-- `config/OpenApiConfig`: botón de token JWT en Swagger.
-- `config/CorsConfig`: dominio de React (por ejemplo `http://localhost:5173` en local).
+- **Validar el RUN chileno**: hecho (paso 8.3, [19](19-validacion-run-service-y-controller-explicados.md)).
 
-Cambios de configuración: ninguno, salvo `JWT_SECRET` de producción nuevo.
+Cambios de configuración: ninguno, salvo `JWT_SECRET` de producción nuevo (mínimo 32 caracteres) y `CORS_ORIGINS` con la URL real del frontend.
 
 ## Fase 5. Carrito, boleta y pago simulado
 

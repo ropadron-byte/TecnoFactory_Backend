@@ -11,7 +11,30 @@ Archivos que se explican (ruta `src/main/java/com/factory/tecnofactory/exception
 | `ErrorResponse.java` | Forma única del JSON de error | [6](#6-errorresponsejava) |
 | `GlobalExceptionHandler.java` | Atrapar las excepciones y convertirlas en `ErrorResponse` | [7](#7-globalexceptionhandlerjava) |
 
-> Estado: los cuatro archivos fueron revisados leyéndolos; **todavía no se han compilado ni probado** con un controller (ver [Cambios recientes](cambios-recientes.md#qué-no-se-pudo-verificar)).
+> Estado (20 oct): los cuatro archivos **compilan y se probaron con un controller**: 400, 401, 403, 404, 405, 409 y 415 tienen test (`UsuarioControllerTest`, `AuthControllerTest`). Sin cubrir todavía: el 500 genérico y el 409 por el `UNIQUE` de la base. Con el login se agregaron los handlers 401 (secciones 8.12 y 8.13).
+
+## En palabras simples
+
+Piensa en la API como una **oficina de correos** y en el `GlobalExceptionHandler` como el **mostrador de reclamos**.
+
+- Cuando algo sale mal en cualquier parte (un dato inválido, un registro que no existe, una regla del negocio), el programa «lanza» una **excepción**: levanta la mano y dice qué pasó.
+- Sin mostrador de reclamos, cada error saldría con un formato distinto (a veces una página HTML, a veces un texto técnico con datos internos).
+- Con el mostrador, **todos** los errores salen como la misma carta: `ErrorResponse`, con la fecha, el código, un mensaje claro y, si corresponde, qué campo falló.
+
+| Código | Cómo contárselo a alguien | Ejemplo en TecnoFactory |
+| --- | --- | --- |
+| **400** | «Tu pedido está mal escrito» | Falta el correo, el JSON está roto, `GET /api/usuarios/abc` |
+| **401** | «No sé quién eres» | Sin token, token vencido, clave incorrecta |
+| **403** | «Sé quién eres, pero esa puerta no es para ti» | Un cliente intenta ver `/api/usuarios/1` |
+| **404** | «Eso no existe» | Un usuario o una comuna con un id que no está |
+| **405** | «Esa ventanilla no atiende ese trámite» | `DELETE /api/usuarios` |
+| **409** | «Tu pedido es válido, pero choca con lo que ya hay» | Correo o RUN ya registrado |
+| **415** | «No leo ese tipo de documento» | `POST` con texto plano en vez de JSON |
+| **500** | «Se descompuso algo de nuestro lado» | Un error inesperado; el detalle va al log, **no** al cliente |
+
+**La regla para recordar:** 4xx = el que llama puede corregirlo; 5xx = es un problema del servidor.
+
+**Por qué los errores de seguridad necesitan ayuda extra:** el 401 y el 403 de las reglas por ruta ocurren en la «puerta de entrada» (los filtros), **antes** de que la petición llegue a ningún controller, y el mostrador de reclamos solo atiende lo que sale de un controller. Por eso existe `ManejadorErroresSeguridad`: recoge esos casos en la puerta y los **reenvía** al mismo mostrador ([21, sección 9](21-seguridad-jwt-y-roles-explicada.md#9-manejadorerroresseguridadjava-y-los-dos-handlers-nuevos)).
 
 ---
 
@@ -271,10 +294,12 @@ Aquí sí se atrapa la excepción, pero solo para **convertirla** y relanzarla, 
 | Código | Nombre | Significa |
 | --- | --- | --- |
 | 400 | Bad Request | La petición está mal hecha (datos inválidos, JSON roto) |
+| 401 | Unauthorized | No estás identificado (sin token, token inválido o expirado, login fallido) |
 | 403 | Forbidden | Estás identificado pero no tienes permiso |
 | 404 | Not Found | No existe lo que pides (un registro o una ruta) |
 | 405 | Method Not Allowed | La ruta existe, pero no con ese método (`GET`, `POST`...) |
 | 409 | Conflict | La petición es válida pero choca con el estado actual (duplicado, stock insuficiente) |
+| 415 | Unsupported Media Type | Enviaste un formato que la API no lee (no es JSON) |
 | 500 | Internal Server Error | Falló algo inesperado del lado del servidor |
 
 Regla práctica: **4xx = el cliente puede corregirlo; 5xx = es un problema del servidor.**
@@ -750,9 +775,9 @@ Resumen (las líneas son las de tu archivo):
 
 - **Quién la lanza:** Spring Security cuando un método protegido con seguridad por métodos (por ejemplo `@PreAuthorize("hasRole('ADMINISTRADOR')")`) lo invoca alguien sin el rol.
 - **Por qué 403:** sabemos quién eres, pero no puedes hacer esto.
-- **Hoy no se activa:** mientras `SecurityConfig` deje todo abierto (`permitAll`) y no existan `@PreAuthorize`, esta excepción no se lanza. Queda lista para la fase 4.
-- **Matiz importante para la fase 4:** normalmente, Spring Security distingue entre un visitante **sin token** (401, "identifícate") y un usuario **identificado sin permiso** (403). Como este handler atrapa la excepción *antes* de que Spring Security decida, **ambos recibirían 403**. Cuando se escriba la seguridad habrá que elegir: aceptar esa simplificación, o dejar que esta excepción siga de largo (relanzarla) para que Spring Security la resuelva.
-- **No cubre** las reglas por ruta de `SecurityConfig` (`.requestMatchers(...).hasRole(...)`): esas se resuelven en los filtros, antes de llegar a los controllers.
+- **Actualización 20 oct:** `SecurityConfig` ya no deja todo abierto. Cuando un usuario con sesión pide una ruta que su rol no permite (por ejemplo un cliente en `/api/usuarios/1`), `ManejadorErroresSeguridad` reenvía la excepción a este handler y el cliente recibe 403 con el JSON de siempre.
+- **El matiz 401/403, resuelto:** un visitante **sin token** recibe 401 (`AuthenticationException`, secciones 8.12 y 8.13) y un usuario **identificado sin permiso** recibe 403 (este handler). Son dos handlers distintos.
+- **Las reglas por ruta de `SecurityConfig`** (`.requestMatchers(...).hasRole(...)`) se resuelven en los filtros, antes de llegar a los controllers; por eso necesitan `ManejadorErroresSeguridad` para llegar a este handler ([21](21-seguridad-jwt-y-roles-explicada.md#9-manejadorerroresseguridadjava-y-los-dos-handlers-nuevos)).
 
 ### 8.11 `MethodArgumentTypeMismatchException` → 400
 
@@ -767,7 +792,34 @@ public ResponseEntity<ErrorResponse> tipoDeParametroInvalido(MethodArgumentTypeM
 - **Por qué 400:** el cliente envió algo que no es un número. Sin este handler caería en el genérico `Exception` y saldría **500**, que sugiere un fallo del servidor cuando es un error del cliente.
 - **`ex.getName()`:** el nombre del parámetro (`id`), un texto del código sin datos sensibles. **No** se muestra el valor enviado.
 - **Cómo se descubrió:** al diseñar el `UsuarioController` (19 oct). Lo cubre el test `buscarConIdNoNumericoDevuelve400`.
-- **Casos parecidos pendientes** (hoy caen en el 500 genérico): `HttpMediaTypeNotSupportedException` (415: `POST` sin `Content-Type: application/json`) y `MissingServletRequestParameterException` (400: falta un `?parametro=`). Ver [Cambios recientes](cambios-recientes.md#configuración-base-antes-de-la-segunda-entidad).
+- **Casos parecidos pendientes** (hoy caen en el 500 genérico): `HttpMediaTypeNotSupportedException` (415: `POST` sin `Content-Type: application/json`) y `MissingServletRequestParameterException` (400: falta un `?parametro=`). Ver [Cambios recientes](../estado/cambios-recientes.md#configuración-base-antes-de-la-segunda-entidad).
+
+### 8.12 `BadCredentialsException` → 401
+
+```java
+@ExceptionHandler(BadCredentialsException.class)
+public ResponseEntity<ErrorResponse> credencialesInvalidas(BadCredentialsException ex, HttpServletRequest req) {
+    return build(HttpStatus.UNAUTHORIZED, "Correo o contraseña incorrectos", req, null);
+}
+```
+
+- **Quién la lanza:** `AuthService.login` cuando el `AuthenticationManager` rechaza el intento.
+- **Por qué 401:** no se pudo comprobar quién es la persona.
+- **Un solo mensaje para tres casos:** correo inexistente, clave incorrecta y usuario desactivado. Así nadie descubre qué correos están registrados.
+- **Qué NO hace:** no dice cuál de los tres ocurrió, y el log solo registra «Intento de login fallido», sin correo ni clave.
+
+### 8.13 `AuthenticationException` → 401
+
+```java
+@ExceptionHandler(AuthenticationException.class)
+public ResponseEntity<ErrorResponse> noAutenticado(AuthenticationException ex, HttpServletRequest req) {
+    return build(HttpStatus.UNAUTHORIZED, "Se requiere un token válido en la cabecera Authorization: Bearer ...", req, null);
+}
+```
+
+- **Quién la lanza:** Spring Security, cuando alguien sin sesión pide una ruta protegida (sin token, o con token inválido o expirado). Llega aquí porque `ManejadorErroresSeguridad` la reenvía.
+- **Por qué 401:** «identifícate».
+- **Cómo elige Spring entre este handler y el anterior:** el **más específico**. `BadCredentialsException` es un tipo de `AuthenticationException`, así que el login fallido usa el 8.12 y cualquier otro caso usa este.
 
 ---
 
@@ -832,7 +884,7 @@ El mensaje es deliberadamente el mismo si falla el correo o la contraseña: sepa
 
 ## 12. Cómo probar cada error
 
-Requiere un controller y un `SecurityConfig` mínimo (ver [Cambios recientes](cambios-recientes.md#pendiente)). Los ejemplos suponen un `POST /api/categorias` y un `GET /api/categorias/{id}`; ajusta las rutas a las tuyas.
+Requiere un controller y un `SecurityConfig` mínimo (ver [Cambios recientes](../estado/cambios-recientes.md#pendiente)). Los ejemplos suponen un `POST /api/categorias` y un `GET /api/categorias/{id}`; ajusta las rutas a las tuyas.
 
 | Error | Petición de prueba | Resultado esperado |
 | --- | --- | --- |

@@ -19,13 +19,29 @@ Si no defines ningún perfil, corre solo `application.yaml` (perfil `default`): 
 | --- | --- | --- |
 | `datasource` | `${DB_URL:...localhost...}`, `${DB_USER:root}`, `${DB_PASSWORD:root}` | Valores por defecto de desarrollo |
 | `jpa.hibernate.ddl-auto` | `validate` | Hibernate solo comprueba; **nunca crea ni modifica tablas** |
-| `jpa.open-in-view` | `false` (**intención**) | Evita consultas perezosas fuera de la capa de servicio (buena práctica). **Ojo:** el `application.yaml` del ZIP del 19 oct decía `true`; pendiente de corregir ([Cambios recientes](cambios-recientes.md#configuración-base-antes-de-la-segunda-entidad)) |
+| `jpa.open-in-view` | `false` | Evita consultas perezosas fuera de la capa de servicio (buena práctica). **Corregido el 20 oct** (antes estaba en `true`) |
+| `jpa.properties.hibernate.jdbc.time_zone` | `America/Santiago` | Zona horaria con la que Hibernate guarda fechas y horas |
+| `jackson.time-zone` | `America/Santiago` | Zona horaria de las fechas en el JSON |
+| `data.web.pageable` | `default-page-size: 20`, `max-page-size: 100` | Tamaño de página por defecto y tope |
+| `jwt.secret` y `jwt.expiration-ms` | `JWT_SECRET` y `3600000` (1 hora) | Firma y vida del token |
+| `cors.allowed-origins` | `${CORS_ORIGINS:http://localhost:5173}` | Orígenes del frontend permitidos |
 | `servlet.multipart` | `5MB` | Límite de subida de imágenes |
 | `mail` | `localhost:1025` | Para Mailpit en desarrollo (aún sin uso) |
 | `data.redis` / `cache` | Redis, TTL 10 min | **Por defecto el caché es Redis**, que hoy no existe; los perfiles lo apagan |
 | `jwt.secret` | Valor por defecto de ejemplo | Solo para que arranque sin configurar; prod lo reemplaza sin valor por defecto |
 | `jwt.expiration-ms` | `3600000` (1 hora) | Vida del token |
 | `management.endpoints` | Solo `health` | Actuator mínimo |
+
+## En palabras simples: cuatro ajustes de `application.yaml`
+
+| Ajuste | Analogía | Qué pasaría sin él |
+| --- | --- | --- |
+| `open-in-view: false` | En una **biblioteca**, los libros se prestan solo mientras estás en el mostrador (el service). Con `true`, te dejan llevarte el libro a casa y seguir pidiendo hojas por teléfono (el controller) | Consultas escondidas a la base fuera del service; los errores de carga aparecen tarde |
+| Zona horaria | Un **reloj de pared** para toda la oficina: si cada máquina usa su propia hora, la misma compra aparece a las 15:00 en tu PC y a las 18:00 en el servidor | Boletas con la hora corrida |
+| Paginación (`max-page-size`) | Un **buscador** muestra 10 resultados por página, no los millones de una vez | Un listado largo congela la API y el navegador |
+| `cors.allowed-origins` | El **portero de un edificio**: solo deja pasar a quienes están en la lista de visitas (tu frontend) | El navegador bloquea al frontend aunque la API funcione |
+
+**Una trampa:** si escribes mal un nombre en el YAML (por ejemplo `Jackson:` con mayúscula o `jpa.time_zone`), Spring **no avisa**: lo ignora y los tests siguen pasando. Pasó el 20 oct con la zona horaria ([20, sección 4](20-configuracion-base-explicada.md#4-zona-horaria)). Cuando agregues una propiedad, comprueba su nombre exacto.
 
 ## Comparación `local` frente a `prod`
 
@@ -47,7 +63,7 @@ Si no defines ningún perfil, corre solo `application.yaml` (perfil `default`): 
 
 Detalle de niveles, dónde ver el log y cómo guardarlo en un archivo: [12](12-logs.md).
 
-Por qué en prod los errores no muestran nada: un mensaje de excepción puede revelar nombres de tablas, rutas o versiones. El `GlobalExceptionHandler` (ya escrito, ver [Cambios recientes](cambios-recientes.md)) decide qué se muestra al cliente. Ojo: la propiedad `server.error.include-message: never` solo afecta a la respuesta de error **por defecto** de Spring. Las respuestas del handler propio llevan el `mensaje` que tú escribas, por eso las excepciones propias (`RecursoNoEncontradoException`, `ReglaNegocioException`) deben tener mensajes pensados para el usuario, y el error 500 devuelve siempre un texto genérico.
+Por qué en prod los errores no muestran nada: un mensaje de excepción puede revelar nombres de tablas, rutas o versiones. El `GlobalExceptionHandler` (ya escrito, ver [Cambios recientes](../estado/cambios-recientes.md)) decide qué se muestra al cliente. Ojo: la propiedad `server.error.include-message: never` solo afecta a la respuesta de error **por defecto** de Spring. Las respuestas del handler propio llevan el `mensaje` que tú escribas, por eso las excepciones propias (`RecursoNoEncontradoException`, `ReglaNegocioException`) deben tener mensajes pensados para el usuario, y el error 500 devuelve siempre un texto genérico.
 
 ## Qué hace Flyway con cada perfil
 

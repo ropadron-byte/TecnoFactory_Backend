@@ -2,6 +2,22 @@
 
 Este archivo describe **qué medidas hay y cuáles faltan**. El código de `SecurityConfig` y el concepto de BCrypt están explicados línea por línea en [15-seguridad-codigo-explicado.md](15-seguridad-codigo-explicado.md).
 
+## En palabras simples
+
+La seguridad de la API responde dos preguntas **en cada petición**:
+
+1. **¿Quién eres?** (autenticación). Lo resuelve el **token**, como la tarjeta magnética de un hotel: la recibes al iniciar sesión y la muestras en cada puerta.
+2. **¿Qué puedes hacer?** (autorización). Lo resuelve el **rol**: un cliente entra a la tienda, un vendedor además a productos y ventas, el administrador a todo.
+
+| Si ocurre esto | La API responde |
+| --- | --- |
+| No muestras tarjeta, o está vencida o falsificada | **401** («no sé quién eres») |
+| Tu tarjeta es válida, pero no abre esa puerta | **403** («sé quién eres, pero no puedes») |
+| Todo en orden | La respuesta normal |
+
+Una regla de oro: **lo que no está permitido explícitamente, queda protegido**. Y otra: **ocultar un botón en el frontend no protege nada**; la regla de verdad vive aquí, en el backend. Detalle completo, con la analogía del hotel, en [21](21-seguridad-jwt-y-roles-explicada.md#1-en-palabras-simples).
+
+
 ## Lo que ya está resuelto
 
 | Medida | Dónde | Estado |
@@ -12,42 +28,57 @@ Este archivo describe **qué medidas hay y cuáles faltan**. El código de `Secu
 | Swagger y `api-docs` apagados en prod | `application-prod.yaml` | Hecho |
 | Errores sin mensaje, rastro ni detalle de validación en prod | `application-prod.yaml` | Hecho |
 | Actuator publica solo `health`, sin detalles | `application-prod.yaml` | Hecho |
-| Formato uniforme de errores de la API (`ErrorResponse`); el error 500 no revela detalles internos | `exception/GlobalExceptionHandler` | Escrito, con cobertura de errores de Spring (400, 404, 405, 403, 409, 500); **falta compilarlo y probarlo** con un controller (ver [Cambios recientes](cambios-recientes.md#cobertura-de-los-errores-de-spring)) |
+| Formato uniforme de errores de la API (`ErrorResponse`); el error 500 no revela detalles internos | `exception/GlobalExceptionHandler` | **Probado** con controller (20 oct): 400, 401, 403, 404, 405, 409 y 415; faltan 500 y el 409 de la base (ver [Cambios recientes](../estado/cambios-recientes.md#cobertura-de-los-errores-de-spring)) |
 | Secretos fuera del código, en `.env` | `.env` | Hecho (verificar `.gitignore`) |
-| Codificador de contraseñas BCrypt disponible como bean (`PasswordEncoder`) | `security/SecurityConfig` | Escrito (18 oct); aún sin usar |
-| CSRF desactivado y sin sesiones (`STATELESS`), como corresponde a una API con tokens | `security/SecurityConfig` | Escrito; Swagger carga (confirmado) |
-| Swagger y `/actuator/health` como rutas públicas explícitas | `security/SecurityConfig` | Escrito |
+| Contraseñas guardadas con BCrypt (`PasswordEncoder`): al registrar y al crear al administrador | `security/SecurityConfig`, `UsuarioService` | **En uso** (20 oct); el login compara contra el hash |
+| CSRF desactivado y sin sesiones (`STATELESS`), como corresponde a una API con tokens | `security/SecurityConfig` | Escrito |
+| Rutas públicas explícitas (Swagger, `health`, login y registro) y **todo lo demás protegido** (`anyRequest().authenticated()`) | `security/SecurityConfig` | Escrito (20 oct); falta confirmar |
+| Login con JWT: correo y clave contra la base, token firmado de 1 hora | `AuthService`, `JwtService` | Escrito (20 oct); `JwtService` confirmado |
+| Filtro que lee `Authorization: Bearer ...` y consulta la base en cada petición (un usuario desactivado pierde el acceso al instante) | `security/JwtAuthFilter` | Escrito (20 oct) |
+| 401 y 403 con el mismo JSON que los demás errores | `ManejadorErroresSeguridad` + `GlobalExceptionHandler` | Escrito (20 oct) |
+| Los fallos de login no revelan qué correos existen (mismo 401 para los tres casos) | `AuthService` | Escrito (20 oct) |
+| CORS: solo los orígenes de `CORS_ORIGINS` | `config/CorsConfig` | Escrito y la app arranca (20 oct) |
+| `JWT_SECRET` de al menos 32 caracteres, o la app no arranca | `JwtService` | Escrito |
 | Administrador inicial creado por código, con la clave guardada como hash BCrypt (nunca en Git) | `UsuarioService` y `AdministradorInicialRunner` | **Verificado en el log** (18 oct); faltan 2 comprobaciones ([17, sección 9](17-administrador-inicial-explicado.md#9-qué-se-verificó-y-qué-no)) |
 
 ## Lo que falta
 
 | Pendiente | Riesgo mientras no exista |
 | --- | --- |
-| **`SecurityConfig` definitivo.** Hoy está escrito pero **abierto**: `.anyRequest().permitAll()` | Cualquiera puede llamar a cualquier ruta. Aceptable solo en desarrollo local; **no se despliega** así. Pasa a `.authenticated()` en la fase 4 |
-| **JWT** (`JwtService`, `JwtAuthFilter`, `UserDetailsServiceImpl`) | No hay login real |
-| **Usar BCrypt** en el registro de usuarios y el login (ya se usa para el administrador inicial) | Nunca guardar texto plano en `usuario.contrasenia` |
-| **CORS** (`CorsConfig`) | El navegador bloquea las peticiones de React |
-| **Resolver los 401 y 403 en `SecurityConfig`** (token ausente o inválido; rutas por rol) | El `GlobalExceptionHandler` solo cubre el 403 de la seguridad por métodos; el resto lo decide Spring Security antes de llegar a los controllers |
-| **Confirmar el administrador inicial**: falta la fila en la base y un segundo arranque sin duplicar (la clave ausente del log ya está verificada, 19 oct) | Si algo falla, nadie podría gestionar el catálogo. Comandos en [17, sección 8](17-administrador-inicial-explicado.md#8-comandos-importantes) |
-| **HTTPS** | Las claves y tokens viajarían en texto plano |
+| **Confirmar la seguridad nueva**: los 56 tests, el arranque y el flujo de login en Swagger ([21, sección 14](21-seguridad-jwt-y-roles-explicada.md#14-cómo-probarlo-a-mano)) | Reglas escritas pero sin comprobar |
+| **Reglas por rol del resto de la API**: lista de usuarios (administrador y vendedor), editar el propio perfil, crear vendedores, catálogo, órdenes | Hoy solo hay dos niveles: administrador y «cualquiera con sesión» |
 | **Límite de intentos de login** | Fuerza bruta contra cuentas |
+| **Token no revocable** (sin *refresh token* ni lista de bloqueo) | Un token robado sirve hasta que expira (1 hora); desactivar al usuario sí lo bloquea de inmediato |
+| **Confirmar el administrador inicial**: falta un segundo arranque sin duplicar (la fila y la clave fuera del log ya están verificadas) | Si algo falla, nadie podría gestionar el catálogo. Comandos en [17, sección 8](17-administrador-inicial-explicado.md#8-comandos-importantes) |
+| **HTTPS** | Las claves y tokens viajarían en texto plano |
+| **Dónde guarda el frontend el token** | En `localStorage` lo podría leer un script malicioso (XSS) |
 | **Validación de subida de archivos** | Subida de archivos maliciosos |
 
 ## Diseño previsto del control de acceso
 
+**Hoy en `SecurityConfig` (20 oct):**
+
 | Ruta | Acceso |
 | --- | --- |
-| `POST /api/auth/**` (registro, login) | Público |
-| `GET /api/productos/**`, `GET /api/categorias/**` | Público |
-| `POST/PUT/DELETE` de catálogo | Administrador |
-| Carrito y boletas propias | Usuario autenticado |
-| Gestión de usuarios y roles | Administrador |
-| `/actuator/health` | Público (solo `UP`/`DOWN`) |
-| Swagger | Solo en `local` |
+| Swagger, `/v3/api-docs/**` (solo `local`), `/actuator/health` | Público |
+| `POST /api/auth/login` y `POST /api/usuarios` (registro) | Público |
+| `GET /api/usuarios/me` | Cualquiera con sesión |
+| Resto de `/api/usuarios/**` | Solo `ADMINISTRADOR` |
+| Todo lo demás | Cualquiera con token válido |
 
-Los roles vienen de la tabla `tipo_usuario` (`ADMINISTRADOR`, `VENDEDOR`, `CLIENTE`). Spring Security exige el prefijo `ROLE_` en las autoridades (`ROLE_ADMINISTRADOR`); `UserDetailsServiceImpl` debe añadirlo al convertir `nombre_tipo_usuario`.
+**Previsto al llegar cada entidad:**
 
-Los tokens JWT se firman con `JWT_SECRET` (mínimo 32 caracteres) y duran 1 hora (`jwt.expiration-ms`).
+| Ruta | Acceso |
+| --- | --- |
+| `GET /api/productos/**`, `GET /api/categorias/**` | Público (la tienda se ve sin sesión) |
+| `POST/PUT/DELETE` de productos y stock | `VENDEDOR` y `ADMINISTRADOR` |
+| `POST/PUT/DELETE` de categorías | `ADMINISTRADOR` |
+| Órdenes (ver ventas) | `VENDEDOR` y `ADMINISTRADOR` |
+| `GET /api/usuarios` (lista) | `ADMINISTRADOR` y `VENDEDOR` (solo lectura) |
+| Editar o desactivar a otros usuarios, crear vendedores, reportes | `ADMINISTRADOR` |
+| Carrito y boletas propias | Usuario autenticado, solo lo suyo |
+
+Los roles vienen de la tabla `tipo_usuario` (`ADMINISTRADOR`, `VENDEDOR`, `CLIENTE`). `UserDetailsServiceImpl` agrega el prefijo `ROLE_` al convertirlos. Los tokens JWT se firman con `JWT_SECRET` (mínimo 32 caracteres) y duran 1 hora (`jwt.expiration-ms`).
 
 ## Administrador inicial
 

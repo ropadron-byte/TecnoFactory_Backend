@@ -2,6 +2,19 @@
 
 Lo que se dejó resuelto **una sola vez** antes de la segunda entidad (20 oct 2026), para que `Categoria`, `Producto` y las demás solo repitan la [receta de la guía 19](19-validacion-run-service-y-controller-explicados.md#13-la-receta-para-la-próxima-entidad). Todo está **comprobado**: 29 tests pasan, la app arranca, Swagger muestra "TecnoFactory API" con el botón **Authorize** y `POST /api/usuarios` devuelve 201.
 
+## En palabras simples
+
+| Pieza | Analogía | Para qué sirve |
+| --- | --- | --- |
+| `open-in-view: false` | En una **biblioteca**, los libros se leen en el mostrador (el service); no te los puedes llevar y seguir pidiendo páginas por teléfono | Si algo intenta leer datos de la base fuera del service, falla enseguida en vez de esconder consultas |
+| Handler 415 y de parámetro faltante | El **mostrador de reclamos** que contesta «ese formato no lo leemos» o «falta un dato», en lugar de «se incendió la oficina» (500) | Que un error del cliente se vea como error del cliente |
+| `PageResponse` y tope de página | Un **buscador** muestra 10 resultados por página y te dice cuántas páginas hay | Que un listado de miles de filas no congele la API ni el navegador, y que **todos** los listados tengan la misma forma |
+| Zona horaria | Un **reloj de pared** común para toda la oficina | Que una compra guardada a las 15:00 no aparezca a las 18:00 |
+| `OpenApiConfig` | El **menú** del restaurante, con su nombre y un lugar para mostrar tu tarjeta | Un Swagger con título y el botón Authorize |
+| `CorsConfig` | El **portero** con la lista de visitas | El navegador solo deja que tu frontend llame a la API si el portero lo conoce |
+
+**Un detalle de CORS:** lo bloquea el **navegador**, no la API. Por eso Swagger y `curl` funcionan siempre, y el problema solo aparece cuando llama el frontend desde otro puerto.
+
 ## 1. Resumen
 
 | Pieza | Dónde | Qué hace |
@@ -61,7 +74,7 @@ Hoy no se nota (`fechaNacimiento` es solo fecha). Se nota con la primera `Boleta
 | `SecurityScheme` HTTP, bearer, JWT | Declara que la API usa `Authorization: Bearer <token>` |
 | `addSecurityItem` | Lo aplica a **todos** los endpoints: de ahí el candado en cada uno |
 
-Hoy el candado **no hace nada**: `SecurityConfig` sigue con `.anyRequest().permitAll()`. Queda listo para el login. Swagger está desactivado en `prod` (`springdoc.*.enabled: false`).
+**Actualización 20 oct (noche):** el candado ya **sí** tiene efecto. `SecurityConfig` dejó de usar `permitAll()` general y exige token en casi todas las rutas ([21](21-seguridad-jwt-y-roles-explicada.md)). Las rutas públicas (login y registro) llevan `@SecurityRequirements` para que Swagger les quite el candado. Swagger está desactivado en `prod` (`springdoc.*.enabled: false`).
 
 ## 6. CORS
 
@@ -79,7 +92,7 @@ En producción se define `CORS_ORIGINS` con la URL real, **sin `*`**.
 ./mvnw test -Dtest="*Test"
 ```
 
-Esperado: **29 tests, 0 fallos** (14 de RUN y request, 5 del service, 9 del controller y 1 de `PageResponse`). Luego arrancar la app, abrir `/swagger-ui/index.html` y repetir `POST /api/usuarios` (debe dar 201 con comuna y región).
+Esperado en ese momento: **29 tests, 0 fallos** (14 de RUN y request, 5 del service, 9 del controller y 1 de `PageResponse`). Con la seguridad del 20 oct (noche) son **56**: ver [21, sección 13](21-seguridad-jwt-y-roles-explicada.md#13-las-pruebas-56-en-total). Luego arrancar la app, abrir `/swagger-ui/index.html` y repetir `POST /api/usuarios` (debe dar 201 con comuna y región).
 
 ## 8. Errores que aparecieron
 

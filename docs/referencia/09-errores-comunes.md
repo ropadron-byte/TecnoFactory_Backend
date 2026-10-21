@@ -105,11 +105,19 @@ Detalle de cada caso en [17, sección 10](17-administrador-inicial-explicado.md#
 | Ningún perfil activo: la app intenta usar Redis | Se arrancó sin `SPRING_PROFILES_ACTIVE` | Arrancar siempre con `local` o `prod` |
 | `show-sql` no imprime nada en local | `jpa:`/`hibernate:` mal indentados en `application-local.yaml` | Corregir como en 04 |
 | `/actuator/health` sale DOWN | Un componente (Redis, correo) falla | Verificar que sus `health` estén desactivados en el perfil |
-| Un `403` o `401` en cualquier ruta | La seguridad por defecto está activa | Escribir el `SecurityConfig` |
+| Un `403` o `401` en cualquier ruta | La seguridad por defecto está activa, o falta la cabecera `Authorization: Bearer ...` | Escribir el `SecurityConfig`; con la seguridad nueva, iniciar sesión y enviar el token ([21, sección 14](21-seguridad-jwt-y-roles-explicada.md#14-cómo-probarlo-a-mano)) |
 | `403` solo en `POST`, `PUT` y `DELETE`; los `GET` funcionan | CSRF activo | `.csrf(AbstractHttpConfigurer::disable)` ([15, 3.4](15-seguridad-codigo-explicado.md#34-por-qué-se-desactiva-csrf)) |
 | La app no arranca: `Can't configure requestMatchers after anyRequest` | Una regla `requestMatchers(...)` escrita después de `anyRequest()` | Dejar `anyRequest()` como la última regla |
-| Sigue saliendo `Using generated security password` en el log | Normal hasta que exista un `UserDetailsService` propio | Ignorarlo en desarrollo ([15, 3.6](15-seguridad-codigo-explicado.md#36-dos-detalles-que-sorprenden)) |
-| CORS bloquea al frontend | `CorsConfig` vacío | Implementarlo con el dominio de React |
+| Sigue saliendo `Using generated security password` en el log | Normal hasta que exista un `UserDetailsService` propio. Desde el 20 oct existe `UserDetailsServiceImpl`: **debería desaparecer** | Si sigue apareciendo, revisar que `UserDetailsServiceImpl` tenga `@Service` |
+| CORS bloquea al frontend | El origen del frontend no está en `CORS_ORIGINS`, o falta `.cors(...)` en `SecurityConfig` | Agregar el origen exacto (con puerto y sin `/` final) ([20, sección 6](20-configuracion-base-explicada.md#6-cors)) |
+| La app no arranca: `WeakKeyException` | `JWT_SECRET` mide menos de 32 caracteres | Alargar el secreto en el `.env` |
+| La app no arranca por el bean `handlerExceptionResolver` | El `@Qualifier` de `SecurityConfig` no coincide | Debe ser exactamente `handlerExceptionResolver` |
+| `UsuarioControllerTest` falla con `No qualifying bean of type '...JwtService'` | `SecurityConfig` necesita `JwtService` y `UserDetailsService`; el test no los simula | Agregar un `@MockitoBean` de cada uno |
+| `401` en `/api/usuarios/me` con un token recién emitido | La cabecera lleva `Bearer` dos veces (Swagger ya lo agrega) o el token venció (1 hora) | En Swagger pegar **solo** el token; si venció, iniciar sesión otra vez |
+| `403` a un cliente en `GET /api/usuarios/7` | Es lo esperado: solo el administrador | Usar `/api/usuarios/me` |
+| `/api/usuarios/me` da 403 a un cliente | La regla de `/me` está **después** de `/api/usuarios/**` | Reordenar: lo más específico va primero ([21, 10.3](21-seguridad-jwt-y-roles-explicada.md#103-el-orden-de-las-reglas-importa)) |
+| El login falla con el mismo 401 sin importar qué se escriba | Es a propósito: correo inexistente, clave incorrecta y usuario desactivado dan el mismo mensaje | Revisar el correo, la clave y `activo` en la base |
+| Una propiedad del YAML «no hace nada» y no hay error | Nombre mal escrito (`Jackson:`, `jpa.time_zone`): Spring la ignora en silencio | Comprobar el nombre exacto de la propiedad ([04](04-perfiles-spring.md#en-palabras-simples-cuatro-ajustes-de-applicationyaml)) |
 
 ## Maven y compilación
 

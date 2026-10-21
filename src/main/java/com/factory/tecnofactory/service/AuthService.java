@@ -3,13 +3,16 @@ package com.factory.tecnofactory.service;
 import com.factory.tecnofactory.dto.AuthResponse;
 import com.factory.tecnofactory.dto.LoginRequest;
 import com.factory.tecnofactory.security.JwtService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -24,7 +27,9 @@ public class AuthService {
     private final JwtService jwtService;
 
     public AuthResponse login(LoginRequest request) {
+
         Authentication autenticacion;
+
         try {
             autenticacion = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.correo(), request.clave()));
@@ -38,5 +43,6 @@ public class AuthService {
         String rol = autenticacion.getAuthorities().iterator().next().getAuthority().substring(PREFIJO_ROL.length());
         String token = jwtService.generarToken(autenticacion.getName(), rol);
         return new AuthResponse(token, TIPO_TOKEN, autenticacion.getName(), rol);
+
     }
 }

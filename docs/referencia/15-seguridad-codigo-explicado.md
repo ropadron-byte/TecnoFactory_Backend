@@ -6,10 +6,20 @@ Archivo que se explica (ruta `src/main/java/com/factory/tecnofactory/security/`)
 
 | Archivo | Para qué sirve | Estado |
 | --- | --- | --- |
-| `SecurityConfig.java` | Reglas de acceso a las rutas y el codificador de contraseñas | **Escrito y confirmado** (Swagger carga y `/actuator/health` responde) |
-| `JwtService.java`, `JwtAuthFilter.java`, `UserDetailsServiceImpl.java` | Login con tokens | Siguen **vacías** (fase 4) |
+| `SecurityConfig.java` | Reglas de acceso a las rutas y el codificador de contraseñas | **Reescrito el 20 oct** (esta guía explica la **primera versión**; la actual está en la [guía 21](21-seguridad-jwt-y-roles-explicada.md#10-securityconfigjava-las-reglas-de-acceso)) |
+| `JwtService.java`, `JwtAuthFilter.java`, `UserDetailsServiceImpl.java` | Login con tokens | **Escritos** el 20 oct: ver la [guía 21](21-seguridad-jwt-y-roles-explicada.md) |
 
-> Importante: hoy **todas las rutas están abiertas** (`permitAll`). Es a propósito, para que tú y tu compañero puedan probar controllers sin que el sistema los limite. Es **temporal y no se despliega**: ver [sección 5](#5-lo-que-cambia-cuando-llegue-el-login).
+> **Actualización 20 oct:** las rutas **ya no están todas abiertas**. Lo que sigue en esta guía (secciones 3 a 5) describe la primera versión de `SecurityConfig`, con `permitAll()` temporal, y se conserva porque explica los conceptos base: filtros, CSRF, orden de las reglas y BCrypt. Para el código vigente, lee la [guía 21](21-seguridad-jwt-y-roles-explicada.md).
+
+## En palabras simples
+
+- **`SecurityConfig` es el reglamento de un edificio con varias puertas.** Dice qué puertas están abiertas a todos (Swagger, el registro), cuáles piden una tarjeta (casi todas) y cuáles piden una tarjeta de un nivel concreto (administración).
+- **Los filtros son los guardias.** Cada petición pasa por una fila de guardias antes de llegar al controller; cada uno revisa algo (¿trae tarjeta?, ¿es un ataque?, ¿viene del sitio permitido?).
+- **BCrypt es una trituradora de contraseñas con una particularidad:** convierte `Clave12345` en un código (`$2a$10$...`) del que **no se puede volver atrás**. Para comprobar una clave, se tritura la que escribe la persona y se compara el resultado con el guardado. Aunque alguien robe la base de datos, no obtiene las claves.
+- **«Sin sesiones» (`STATELESS`)** significa que el edificio **no recuerda** a nadie entre una visita y otra: en cada puerta hay que enseñar la tarjeta de nuevo.
+- **CSRF** es un ataque que aprovecha que el navegador manda solo las *cookies*. Como esta API no usa cookies sino una cabecera con el token, no aplica y se desactiva.
+
+Para la analogía completa del login y los tokens, mira [21, sección 1](21-seguridad-jwt-y-roles-explicada.md#1-en-palabras-simples).
 
 ---
 
@@ -237,6 +247,8 @@ Que `BCryptPasswordEncoder` funcione con claves reales y que el login acepte un 
 ---
 
 ## 5. Lo que cambia cuando llegue el login
+
+> **Esto ya ocurrió (20 oct).** La tabla de abajo era el plan; el resultado está en la [guía 21](21-seguridad-jwt-y-roles-explicada.md#10-securityconfigjava-las-reglas-de-acceso). Cambió así: `permitAll()` pasó a `authenticated()`, se agregó el filtro JWT, `httpBasic` se quitó, y CORS se activó con `CorsConfig`.
 
 | Hoy | En la fase 4 |
 | --- | --- |

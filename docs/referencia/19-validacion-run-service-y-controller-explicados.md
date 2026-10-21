@@ -13,6 +13,25 @@ Guía para entender, línea por línea, lo que completa el **primer flujo de pun
 
 > Estado (19 oct): **8.3, 9.1 y 9.2 confirmados por ti** (las pruebas pasaron y la app arrancó). Pendiente: **9.3**, probarlo a mano en Swagger contra tu MySQL, y el segundo arranque del administrador.
 
+## En palabras simples
+
+Un **restaurante** sirve para ver qué hace cada pieza:
+
+| En el restaurante | En TecnoFactory | Qué NO debe hacer |
+| --- | --- | --- |
+| El **mesero** toma el pedido y lo lleva a la cocina; trae el plato | `UsuarioController` | Cocinar |
+| El **cocinero** sigue la receta y decide si hay ingredientes | `UsuarioService` (las reglas: correo repetido, comuna inexistente, clave en hash) | Atender mesas |
+| La **despensa** guarda los ingredientes | `UsuarioRepository` y la base de datos | Decidir recetas |
+| La **hoja del pedido** (qué se puede pedir) | `UsuarioRequest` (sus validaciones) | Llevar datos que el cliente no debe elegir (como su rol) |
+| El **plato servido** | `UsuarioResponse` | Llevar la contraseña |
+| Un **cartel de «no hay ese plato»** | `GlobalExceptionHandler` | — |
+
+**La regla que importa:** cada pieza hace **una** cosa. Si el mesero empieza a cocinar (un `if` de negocio en el controller), nadie sabe dónde buscar el error.
+
+**Por qué el dígito verificador se valida aparte:** el RUN `12.345.678` tiene un dígito al final (`-5`) calculado a partir de los demás. Es como el dígito de control de un código de barras: sirve para detectar un número mal tipeado **sin consultar ninguna base de datos**. Por eso es un cálculo (`RunUtil`) y no una consulta.
+
+**Por qué `toResponse` va dentro del service:** el service es la cocina, y ahí todavía tienes abierta la despensa (la sesión de la base). Si sacas el ingrediente a la sala (el controller), ya no puedes volver a buscar lo que falte.
+
 ---
 
 ## 1. El flujo completo
@@ -291,7 +310,7 @@ public class UsuarioService {
 
 `toResponse` lee `comuna.region.nombre`, y la región es `LAZY`. Hibernate solo puede cargarla **mientras la sesión está abierta**, es decir, dentro de la transacción. Si el service devolviera la entidad y el controller la mapeara después, saldría `LazyInitializationException`. Devolviendo el DTO ya armado, el problema desaparece.
 
-> **Ojo con `open-in-view`:** el diseño y los docs suponen `spring.jpa.open-in-view: false`, pero el `application.yaml` del ZIP del 19 oct decía `true`. Con `true` la sesión sigue abierta durante toda la petición y el error **se esconde**; con `false` se ve enseguida. Ver [Cambios recientes](cambios-recientes.md#pendiente).
+> **Ojo con `open-in-view`:** el diseño y los docs suponen `spring.jpa.open-in-view: false`, pero el `application.yaml` del ZIP del 19 oct decía `true`. Con `true` la sesión sigue abierta durante toda la petición y el error **se esconde**; con `false` se ve enseguida. Ver [Cambios recientes](../estado/cambios-recientes.md#pendiente).
 
 ### 6.5 Dos aclaraciones de diseño
 
@@ -301,6 +320,8 @@ public class UsuarioService {
 ---
 
 ## 7. `UsuarioController.java`
+
+> **Actualización 20 oct:** el controller ganó `GET /api/usuarios/me` y `@SecurityRequirements` en el registro, y `buscarPorId` pasó a ser solo para administrador. La versión vigente y la explicación de la seguridad están en la [guía 21, sección 11](21-seguridad-jwt-y-roles-explicada.md#11-lo-que-cambió-en-usuariocontroller-y-usuarioservice). Lo explicado aquí (`@RestController`, `@Valid`, 201 con `Location`) sigue siendo válido.
 
 ```java
 @RestController
@@ -382,6 +403,8 @@ Los cinco tests: registro correcto (hash, `K` en mayúscula, rol `CLIENTE`, comu
 > **`UnnecessaryStubbingException`:** con `MockitoExtension`, si programas un `when(...)` que el test no usa, el test falla. Por eso cada test programa solo lo que realmente se ejecuta antes de que el service se detenga.
 
 ### 8.4 `UsuarioControllerTest` (8 tests, sin base de datos)
+
+> **Actualización 20 oct:** ahora tiene **14 tests** (el 415 y, con la seguridad, 401, 403, `/me` y el token Bearer) y tres `@MockitoBean`: `UsuarioService`, `JwtService` y `UserDetailsService`. Ver [21, sección 13](21-seguridad-jwt-y-roles-explicada.md#13-las-pruebas-56-en-total).
 
 ```java
 @WebMvcTest(UsuarioController.class)
@@ -518,5 +541,5 @@ Los errores (`404`, `409`, `400`) **no se repiten**: ya los resuelve `GlobalExce
 | Paso | Qué |
 | --- | --- |
 | **9.3** | Probar en Swagger contra MySQL real y comprobar la fila y el hash |
-| Configuración base | Lo que conviene dejar listo **antes** de la segunda entidad: ver [Cambios recientes](cambios-recientes.md#pendiente) y [10](10-pendientes-y-futuro.md) |
+| Configuración base | Lo que conviene dejar listo **antes** de la segunda entidad: ver [Cambios recientes](../estado/cambios-recientes.md#pendiente) y [10](10-pendientes-y-futuro.md) |
 | Primera "rebanada" | `Categoria` (DTOs, mapper, service, controller y pruebas) siguiendo la receta de la sección 13 |
