@@ -55,7 +55,7 @@ Un log puede copiarse a otro servidor, pegarse en un chat o subirse a Git: **esc
 1. **Un error esperado (404, 409) no necesita `log.error`.**
 2. **El log de un fallo de login no lleva correo ni clave** (`Intento de login fallido`).
 3. **`show-sql` imprime en la consola, no en el archivo de log.**
-4. **Si activas el log en archivo**, agrega `logs/` y `*.log` a `.gitignore` (ya están).
+4. **En `local` el log ya se guarda en `logs/tecnofactory.log`** (10 MB por archivo, 7 archivos). `logs/` y `*.log` deben estar en `.gitignore`.
 
 ## Para saber más
 

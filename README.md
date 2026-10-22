@@ -5,8 +5,8 @@ La documentación tiene **tres lugares**, según lo que necesites:
 | Necesito... | Carpeta |
 | --- | --- |
 | **Hacer algo** (levantar, agregar una entidad, arreglar un fallo) | [`docs/personal/`](docs/personal/00-empieza-aqui.md): manual por tareas |
-| **Entender un tema rápido**, con analogías | [`docs/guias/`](docs/guias/01-el-proyecto-en-una-pagina.md): 16 guías cortas |
-| **Todo el detalle**, línea por línea | [`docs/referencia/`](docs/referencia/): 21 documentos técnicos |
+| **Entender un tema rápido**, con analogías | [`docs/guias/`](docs/guias/01-el-proyecto-en-una-pagina.md): 17 guías cortas |
+| **Todo el detalle**, línea por línea | [`docs/referencia/`](docs/referencia/): 26 documentos técnicos |
 | **Saber qué cambió y qué falta** | [`docs/estado/cambios-recientes.md`](docs/estado/cambios-recientes.md) |
 
 **Primera vez:** empieza por [Empieza aquí](docs/personal/00-empieza-aqui.md).
@@ -25,6 +25,7 @@ La documentación tiene **tres lugares**, según lo que necesites:
 | 07 | [Roles y permisos](docs/personal/07-roles-y-permisos.md) |
 | 08 | [Antes de desplegar](docs/personal/08-antes-de-desplegar.md) |
 | 09 | [Reglas y trampas](docs/personal/09-reglas-y-trampas.md) |
+| 10 | [Preguntas frecuentes](docs/personal/10-preguntas-frecuentes.md) |
 
 ## Guías rápidas (un tema, una página)
 
@@ -46,6 +47,7 @@ La documentación tiene **tres lugares**, según lo que necesites:
 | 14 | [Leer errores y problemas](docs/guias/14-leer-errores-y-problemas.md) |
 | 15 | [Pruebas](docs/guias/15-pruebas.md) |
 | 16 | [Hoja de ruta](docs/guias/16-hoja-de-ruta.md) |
+| 17 | [Usar la API desde React](docs/guias/17-integracion-con-react.md) |
 
 ## Referencia técnica
 
@@ -72,6 +74,11 @@ La documentación tiene **tres lugares**, según lo que necesites:
 | 19 | [Validación del RUN, service, controller y pruebas](docs/referencia/19-validacion-run-service-y-controller-explicados.md) | `RunUtil` y `@RunValido`, `UsuarioService` (registrar y buscar), `UsuarioController`, las tres pruebas y la **receta para la próxima entidad** |
 | 20 | [Configuración base explicada](docs/referencia/20-configuracion-base-explicada.md) | Handlers 415 y 400, paginación (`PageResponse`), zona horaria, `OpenApiConfig` y CORS, y por qué se hizo cada uno antes de la segunda entidad |
 | 21 | [Seguridad con JWT y roles explicada](docs/referencia/21-seguridad-jwt-y-roles-explicada.md) | Login, token JWT, filtro, reglas por ruta, 401 y 403 en JSON; explicado primero con una analogía y después línea por línea |
+| 22 | [Diccionario de datos](docs/referencia/22-diccionario-de-datos.md) | Las 13 tablas columna por columna, relaciones, qué pasa al borrar y convenciones |
+| 23 | [Catálogo de endpoints](docs/referencia/23-catalogo-de-endpoints.md) | Cada ruta que existe: qué pide, qué devuelve, errores posibles y paginación |
+| 24 | [Decisiones de diseño](docs/referencia/24-decisiones-de-diseno.md) | 30 decisiones con su motivo, la alternativa descartada y su consecuencia |
+| 25 | [Glosario](docs/referencia/25-glosario.md) | Las palabras del proyecto, explicadas sin jerga |
+| 26 | [Configuración YAML explicada](docs/referencia/26-configuracion-yaml-explicada.md) | Cada propiedad de `application`, `local` y `prod`, y las observaciones para desplegar |
 
 
 **Archivo vivo:** [Cambios recientes](docs/estado/cambios-recientes.md) reúne lo que falta y lo que ya se hizo, sesión por sesión.

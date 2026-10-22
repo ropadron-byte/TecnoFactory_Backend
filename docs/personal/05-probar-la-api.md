@@ -20,7 +20,7 @@ Abre `http://localhost:8080/swagger-ui/index.html`.
 
 ### Probar un rol sin permiso
 
-1. Registra un cliente: `POST /api/usuarios` (no pide token; clave de 8 a 100 caracteres, RUN con dígito verificador válido).
+1. Registra un cliente: `POST /api/usuarios` (no pide token; clave de 8 a 72 caracteres, RUN con dígito verificador válido).
 2. `POST /api/auth/login` con ese correo y úsalo en Authorize.
 3. `GET /api/usuarios/1` → **403**.
 4. `GET /api/usuarios/me` → **200**.

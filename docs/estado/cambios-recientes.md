@@ -100,6 +100,14 @@ Guía completa: [21-seguridad-jwt-y-roles-explicada.md](../referencia/21-segurid
 ## Historial
 
 
+
+### 21 oct 2026: documentación ampliada
+
+- **Nuevos en `referencia/`:** [22 diccionario de datos](../referencia/22-diccionario-de-datos.md), [23 catálogo de endpoints](../referencia/23-catalogo-de-endpoints.md), [24 decisiones de diseño](../referencia/24-decisiones-de-diseno.md), [25 glosario](../referencia/25-glosario.md) y [26 configuración YAML explicada](../referencia/26-configuracion-yaml-explicada.md).
+- **Nuevos manuales:** [guía 17 (React)](../guias/17-integracion-con-react.md) y [preguntas frecuentes](../personal/10-preguntas-frecuentes.md).
+- **Correcciones:** la clave del registro es de **8 a 72** caracteres (no 100); en `local` el log a archivo ya está activo.
+- **Hallazgo anotado (sin cambiar el código):** `prod` no define `CORS_ORIGINS`; al desplegar hay que fijarla con el dominio real ([26](../referencia/26-configuracion-yaml-explicada.md)).
+- Los datos de estos documentos se sacaron leyendo `V1`, `V3`, los DTOs, `SecurityConfig` y los tres `application*.yaml`; **no se ejecutó nada** (Maven Central bloqueado).
 ### 21 oct 2026: documentación reorganizada en tres niveles
 
 - **`docs/guias/`**: 16 guías rápidas, una por tema, con analogía, piezas, reglas y tabla «si algo falla».

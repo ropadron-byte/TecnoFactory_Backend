@@ -15,10 +15,14 @@ Este manual es **tuyo**: está organizado por lo que quieres hacer, no por tema 
 | Saber quién puede hacer qué | [07 Roles y permisos](07-roles-y-permisos.md) |
 | Subir el proyecto a producción | [08 Antes de desplegar](08-antes-de-desplegar.md) |
 | Repasar lo que no debo olvidar | [09 Reglas y trampas](09-reglas-y-trampas.md) |
+| Resolver una duda rápida | [10 Preguntas frecuentes](10-preguntas-frecuentes.md) |
+| Conectar el frontend en React | [Guía 17](../guias/17-integracion-con-react.md) |
+| Consultar una tabla o una ruta | [Diccionario de datos](../referencia/22-diccionario-de-datos.md) · [Catálogo de endpoints](../referencia/23-catalogo-de-endpoints.md) |
+| Saber por qué algo es así | [Decisiones de diseño](../referencia/24-decisiones-de-diseno.md) · [Glosario](../referencia/25-glosario.md) |
 
 ## Si necesitas entender, no solo hacer
 
-- **Explicaciones cortas con analogías:** [guías rápidas](../guias/) (16, una por tema).
+- **Explicaciones cortas con analogías:** [guías rápidas](../guias/) (17, una por tema).
 - **Todo el detalle, línea por línea:** [referencia técnica](../referencia/).
 - **Qué cambió y qué falta:** [estado](../estado/cambios-recientes.md) y [hoja de ruta](../guias/16-hoja-de-ruta.md).
 
