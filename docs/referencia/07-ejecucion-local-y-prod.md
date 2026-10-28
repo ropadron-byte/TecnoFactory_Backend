@@ -134,6 +134,13 @@ DB_URL=jdbc:mysql://localhost:3306/tecnofactory \
 DB_USER=root \
 ./mvnw spring-boot:run
 ```
+```bash
+$env:SPRING_PROFILES_ACTIVE="local"
+$env:DB_URL="jdbc:mysql://localhost:3306/tecnofactory"
+$env:DB_USER="root"
+.\mvnw.cmd spring-boot:run
+```
+
 
 `source .env` exporta `DB_PASSWORD` (clave de root) y `JWT_SECRET`, que es justo lo que pide el perfil `local`.
 
