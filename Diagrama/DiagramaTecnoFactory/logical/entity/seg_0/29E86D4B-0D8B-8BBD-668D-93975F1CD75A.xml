@@ -3,8 +3,9 @@
 <createdBy>roman</createdBy>
 <createdTime>2026-10-16 02:44:44 UTC</createdTime>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<shouldEngineer>false</shouldEngineer>
 <engineerTo>
-<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="true"/>
+<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="false"/>
 </engineerTo>
 <adequatelyNormalized>NO</adequatelyNormalized>
 <expectedVolumes>0</expectedVolumes>
@@ -20,8 +21,9 @@
 <createdTime>2026-10-16 02:44:58 UTC</createdTime>
 <generatorID>84D32BBD-C4A0-F53B-FCD0-BACCDFB7C8FF</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<shouldEngineer>false</shouldEngineer>
 <engineerTo>
-<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="true"/>
+<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="false"/>
 </engineerTo>
 <referedAttribute>BF3E27E4-A5AE-8EEB-355A-44787E559DB7</referedAttribute>
 <useDomainConstraints>false</useDomainConstraints>
@@ -34,8 +36,9 @@
 <createdTime>2026-10-16 02:45:22 UTC</createdTime>
 <generatorID>2DDAF4FC-3B44-401C-FABF-D523BACCC1B0</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<shouldEngineer>false</shouldEngineer>
 <engineerTo>
-<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="true"/>
+<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="false"/>
 </engineerTo>
 <referedAttribute>4C8FF0CB-F96E-0247-45B0-35CB2E2133FB</referedAttribute>
 <useDomainConstraints>false</useDomainConstraints>

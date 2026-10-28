@@ -3,8 +3,9 @@
 <createdBy>roman</createdBy>
 <createdTime>2026-10-16 03:21:19 UTC</createdTime>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<shouldEngineer>false</shouldEngineer>
 <engineerTo>
-<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="true"/>
+<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="false"/>
 </engineerTo>
 <sourcePk>F06D9F23-983F-8F82-CC63-D9B8EB6340B9</sourcePk>
 <identifying>false</identifying>

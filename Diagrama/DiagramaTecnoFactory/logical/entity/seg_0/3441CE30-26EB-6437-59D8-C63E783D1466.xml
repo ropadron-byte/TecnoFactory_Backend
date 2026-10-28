@@ -3,8 +3,9 @@
 <createdBy>roman</createdBy>
 <createdTime>2026-10-16 02:39:25 UTC</createdTime>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<shouldEngineer>false</shouldEngineer>
 <engineerTo>
-<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="true"/>
+<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="false"/>
 </engineerTo>
 <adequatelyNormalized>NO</adequatelyNormalized>
 <expectedVolumes>0</expectedVolumes>
@@ -19,8 +20,9 @@
 <createdBy>roman</createdBy>
 <createdTime>2026-10-16 02:41:00 UTC</createdTime>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<shouldEngineer>false</shouldEngineer>
 <engineerTo>
-<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="true"/>
+<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="false"/>
 </engineerTo>
 <useDomainConstraints>false</useDomainConstraints>
 <use>1</use>
@@ -32,8 +34,9 @@
 <createdBy>roman</createdBy>
 <createdTime>2026-10-16 02:41:17 UTC</createdTime>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<shouldEngineer>false</shouldEngineer>
 <engineerTo>
-<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="true"/>
+<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="false"/>
 </engineerTo>
 <useDomainConstraints>false</useDomainConstraints>
 <use>1</use>
@@ -46,15 +49,16 @@
 <createdTime>2026-10-16 02:42:16 UTC</createdTime>
 <generatorID>ADFC95EF-DCFD-C865-2365-166A7785F777</generatorID>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<shouldEngineer>false</shouldEngineer>
 <engineerTo>
-<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="true"/>
+<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="false"/>
 </engineerTo>
 <referedAttribute>9CE26D8B-D4DB-19D1-6AF1-0BAE2119168B</referedAttribute>
 <useDomainConstraints>false</useDomainConstraints>
 <use>1</use>
 <logicalDatatype>LOGDT019</logicalDatatype>
 <dataTypePrecision>3</dataTypePrecision>
-<ownDataTypeParameters>,,</ownDataTypeParameters>
+<ownDataTypeParameters>,3,</ownDataTypeParameters>
 </Attribute>
 </attributes>
 <identifiers itemClass="oracle.dbtools.crest.model.design.logical.CandidateKey">
@@ -62,8 +66,9 @@
 <createdBy>roman</createdBy>
 <createdTime>2026-10-16 02:41:16 UTC</createdTime>
 <ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<shouldEngineer>false</shouldEngineer>
 <engineerTo>
-<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="true"/>
+<item key="C776F1DF-3A1F-D842-0417-0324C66D9DCF" value="false"/>
 </engineerTo>
 <pk>true</pk>
 <usedAttributes>

@@ -1,0 +1,77 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="F4126797-BAE9-6146-DD9A-DC2617FD37BA" name="CONTACTO">
+<createdBy>pv-alumno</createdBy>
+<createdTime>2026-10-28 14:14:09 UTC</createdTime>
+<generatorID>39451093-377B-C333-1E9E-9EEBD088EFDC</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<allowColumnReorder>false</allowColumnReorder>
+<existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
+<parsed>true</parsed>
+<columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
+<Column name="id_contacto" id="CEDA58FA-6FD5-625C-EBA7-FE45FD877410">
+<createdBy>pv-alumno</createdBy>
+<createdTime>2026-10-28 14:14:09 UTC</createdTime>
+<generatorID>500906D6-EDAD-B5EF-1CC9-4244EAA16135</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT019</logicalDatatype>
+<dataTypePrecision>8</dataTypePrecision>
+<ownDataTypeParameters>,8,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="nombre" id="DF9213F3-5FAE-2B34-0582-A23188BB0428">
+<createdBy>pv-alumno</createdBy>
+<createdTime>2026-10-28 14:14:09 UTC</createdTime>
+<generatorID>C5F80501-DB51-F466-0E5C-D765C7A5869C</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<dataTypeSize>100</dataTypeSize>
+<ownDataTypeParameters>100,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="correo" id="98BA093C-580C-FB1F-156D-D3A3539A119E">
+<createdBy>pv-alumno</createdBy>
+<createdTime>2026-10-28 14:14:09 UTC</createdTime>
+<generatorID>A46FFECB-5B17-4F80-45FC-F2B3549E9EC0</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<dataTypeSize>250</dataTypeSize>
+<ownDataTypeParameters>250,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="Comentario" id="CE119373-05E9-D853-1025-B8EB5FE033B7">
+<createdBy>pv-alumno</createdBy>
+<createdTime>2026-10-28 14:14:09 UTC</createdTime>
+<generatorID>66DFC47D-2D44-BB04-6657-353622BC543E</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<dataTypeSize>500</dataTypeSize>
+<ownDataTypeParameters>500,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+</columns>
+<indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
+<ind_PK_UK id="2302A0A9-CD4F-DEE7-082C-9408307902F6" name="CONTACTO_PK">
+<createdBy>pv-alumno</createdBy>
+<createdTime>2026-10-28 14:14:09 UTC</createdTime>
+<generatorID>3A851FC1-DDEF-A563-379D-A0FE98A3AFB1</generatorID>
+<ownerDesignName>DiagramaTecnoFactory</ownerDesignName>
+<pk>true</pk>
+<indexState>Primary Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="CEDA58FA-6FD5-625C-EBA7-FE45FD877410"/>
+</indexColumnUsage>
+</ind_PK_UK>
+</indexes>
+</Table>
