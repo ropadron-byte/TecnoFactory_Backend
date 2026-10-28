@@ -22,6 +22,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 public class SecurityConfig {
 
     private static final String ROL_ADMINISTRADOR = "ADMINISTRADOR";
+    private static final String ROL_VENDEDOR = "VENDEDOR";
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -64,6 +65,13 @@ public class SecurityConfig {
 
                         // El resto de /api/usuarios: solo administrador
                         .requestMatchers("/api/usuarios/**").hasRole(ROL_ADMINISTRADOR)
+
+                        // Públicos: imágenes subidas (un <img> del navegador no envía el JWT)
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
+
+                        // Administrador y vendedor: subir y borrar imágenes
+                        .requestMatchers(HttpMethod.POST, "/api/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                        .requestMatchers(HttpMethod.DELETE, "/api/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
 
                         // Todo lo demás exige token válido
                         .anyRequest().authenticated()
