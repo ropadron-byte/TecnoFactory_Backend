@@ -32,6 +32,9 @@ Antes de buscar la solución, **escribe tu propia interpretación** de lo que di
 | API: **409** | Duplicado o regla de negocio | Lee el `mensaje` |
 | API: **500** | Falló algo del servidor | Lee el log (`ERROR` y `Caused by`) |
 | Un error de cliente sale como 500 | Falta un handler | Agrégalo en `GlobalExceptionHandler` |
+| `?sort=algo` o un archivo sin `archivo` / de más de 5 MB | Antes salían como 500; ahora 400, 400 y 413 | Si vuelve a salir 500, revisa que el handler siga en `GlobalExceptionHandler` |
+| Swagger: el cuadro `pageable` con `{ "page": 0, ... }` falla o no ordena | Falta `@ParameterObject` en el `Pageable` del controller | Agrégala (ver [23](../referencia/23-catalogo-de-endpoints.md)) |
+| El test `contextLoads` falla con `Could not resolve placeholder 'jwt.secret'` | `jwt.secret` ya no tiene valor por defecto | El test define el suyo; en la app usa `./scripts/dev.sh` |
 | El frontend da error de CORS | Origen no permitido | `CORS_ORIGINS` |
 | Cambié el YAML y no hace nada | Propiedad mal escrita (Spring la ignora) | Revisa el nombre exacto |
 

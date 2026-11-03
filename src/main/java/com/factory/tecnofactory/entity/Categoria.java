@@ -4,6 +4,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Tabla categoria. Se incluye porque ProductoCategoria la necesita.
@@ -27,4 +31,13 @@ public class Categoria {
 
     @Column(name = "descripcion_categoria", nullable = false)
     private String descripcion;
+
+    // Imágenes compartidas. La relación vive en categoria_imagen y la maneja Categoria.
+    @ManyToMany
+    @JoinTable(
+            name = "categoria_imagen",
+            joinColumns = @JoinColumn(name = "categoria_id_categoria"),
+            inverseJoinColumns = @JoinColumn(name = "imagen_id_url"))
+    @BatchSize(size = 50)
+    private Set<ImagenUrl> imagenesCategoria = new HashSet<>();
 }

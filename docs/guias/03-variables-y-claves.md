@@ -44,7 +44,7 @@ Comprobar que una variable está cargada **sin mostrarla**: `echo "${#JWT_SECRET
 
 ## Reglas que no hay que olvidar
 
-1. **`JWT_SECRET` mide al menos 32 caracteres.** Si no, la app no arranca (`WeakKeyException`).
+1. **`JWT_SECRET` mide al menos 32 caracteres.** Si no, la app no arranca (`WeakKeyException`). **Tampoco tiene valor por defecto**: si falta, falla con `Could not resolve placeholder 'JWT_SECRET'` (así nadie puede olvidarla y quedar con una clave pública).
 2. **Las claves compartidas fuera de tu equipo ya no son secretas.** No las reutilices en producción.
 3. **No subas el `.env` ni `target/` al compartir un ZIP.**
 4. **Genera claves con** `openssl rand -hex 16` (solo letras y números, sin caracteres problemáticos).

@@ -38,7 +38,9 @@ Una regla de oro: **lo que no está permitido explícitamente, queda protegido**
 | 401 y 403 con el mismo JSON que los demás errores | `ManejadorErroresSeguridad` + `GlobalExceptionHandler` | Escrito (20 oct) |
 | Los fallos de login no revelan qué correos existen (mismo 401 para los tres casos) | `AuthService` | Escrito (20 oct) |
 | CORS: solo los orígenes de `CORS_ORIGINS` | `config/CorsConfig` | Escrito y la app arranca (20 oct) |
-| `JWT_SECRET` de al menos 32 caracteres, o la app no arranca | `JwtService` | Escrito |
+| `JWT_SECRET` de al menos 32 caracteres, o la app no arranca; **sin valor por defecto** en ningún perfil (3 nov) | `JwtService` y `application.yaml` | Escrito |
+| Subida de imágenes: el contenido (primeros bytes) debe coincidir con el `Content-Type`, no solo el header que escribe el cliente (3 nov) | `AlmacenamientoService` | Escrito; probado con 10 tests nuevos |
+| Un blog oculto lo ven solo el administrador y su autor; para el resto responde 404 (3 nov) | `BlogAutorizacion`, `BlogService`, `ImagenService` | Escrito |
 | Administrador inicial creado por código, con la clave guardada como hash BCrypt (nunca en Git) | `UsuarioService` y `AdministradorInicialRunner` | **Verificado en el log** (18 oct); faltan 2 comprobaciones ([17, sección 9](17-administrador-inicial-explicado.md#9-qué-se-verificó-y-qué-no)) |
 
 ## Lo que falta

@@ -125,6 +125,7 @@ Formato: **Decisión · Motivo · Alternativa descartada · Consecuencia.**
 | Dónde guarda React el token | `localStorage` (simple, expuesto a XSS) o cookie `HttpOnly` (más segura, exige ajustes de CORS y CSRF) |
 | Cómo se crean los vendedores | Ruta de administrador (decidido), forma exacta pendiente |
 | Revocación de tokens | Lista de tokens anulados (Redis) o *refresh tokens* |
+| Blogs ocultos en `GET /api/imagenes` | Hoy el listado público devuelve también las imágenes de blogs ocultos y, en `duenos`, el id de esos blogs. Opciones: dejarlo (las URLs ya son públicas en `/uploads/**`) o filtrar los dueños ocultos para quien no sea administrador ni autor (exige pasar `Authentication` al service) |
 
 ## Para saber más
 

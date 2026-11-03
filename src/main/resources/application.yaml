@@ -56,7 +56,7 @@ spring:
       time-to-live: 10m
 
 jwt:
-  secret: ${JWT_SECRET:cambia-esta-clave-por-una-de-al-menos-32-caracteres}
+  secret: ${JWT_SECRET} # sin valor por defecto: si falta, la app no arranca (una clave pública permitiría falsificar tokens)
   expiration-ms: 3600000
 
 cors:

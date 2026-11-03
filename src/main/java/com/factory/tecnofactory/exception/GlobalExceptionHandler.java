@@ -3,6 +3,8 @@ package com.factory.tecnofactory.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -19,6 +21,8 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 
@@ -41,6 +45,11 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.CONFLICT, ex.getMessage(), req, null);
     }
 
+    @ExceptionHandler(ArchivoNoValidoException.class)
+    public ResponseEntity<ErrorResponse> archivoNoValido(ArchivoNoValidoException ex, HttpServletRequest req) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), req, null);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> validacion(MethodArgumentNotValidException ex, HttpServletRequest req) {
         Map<String, String> campos = new LinkedHashMap<>();
@@ -52,6 +61,31 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> integridad(DataIntegrityViolationException ex, HttpServletRequest req) {
         return build(HttpStatus.CONFLICT, "La operación viola una restricción de datos", req, null);
+    }
+
+    /** `?sort=campoQueNoExiste` en un listado: error de quien llama, no del servidor. */
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<ErrorResponse> ordenInvalido(PropertyReferenceException ex, HttpServletRequest req) {
+        return build(HttpStatus.BAD_REQUEST, "No se puede ordenar por '" + ex.getPropertyName() + "'", req, null);
+    }
+
+    /** Spring Data a veces envuelve el error de orden en esta excepción; cualquier otra causa sigue siendo 500. */
+    @ExceptionHandler(InvalidDataAccessApiUsageException.class)
+    public ResponseEntity<ErrorResponse> usoInvalidoDeDatos(InvalidDataAccessApiUsageException ex, HttpServletRequest req) {
+        if (ex.getCause() instanceof PropertyReferenceException causa) {
+            return ordenInvalido(causa, req);
+        }
+        return generico(ex, req);
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<ErrorResponse> parteFaltante(MissingServletRequestPartException ex, HttpServletRequest req) {
+        return build(HttpStatus.BAD_REQUEST, "Falta el archivo obligatorio '" + ex.getRequestPartName() + "'", req, null);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> archivoMuyGrande(MaxUploadSizeExceededException ex, HttpServletRequest req) {
+        return build(HttpStatus.PAYLOAD_TOO_LARGE, "El archivo supera el tamaño máximo permitido (5 MB)", req, null);
     }
 
     @ExceptionHandler(Exception.class)

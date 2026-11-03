@@ -23,12 +23,13 @@ Cuando es un error de validación, `detalles` trae el campo que falló: `{ "runD
 
 | Código | Cómo contarlo | Ejemplo en TecnoFactory | Excepción |
 | --- | --- | --- | --- |
-| **400** | «Tu pedido está mal escrito» | Falta el correo; JSON roto; `GET /api/usuarios/abc` | `MethodArgumentNotValidException`, `HttpMessageNotReadableException`, `MethodArgumentTypeMismatchException`, `MissingServletRequestParameterException` |
+| **400** | «Tu pedido está mal escrito» | Falta el correo; JSON roto; `GET /api/usuarios/abc`; `?sort=campoQueNoExiste`; subir sin el campo `archivo`; un archivo que no es imagen | `MethodArgumentNotValidException`, `HttpMessageNotReadableException`, `MethodArgumentTypeMismatchException`, `MissingServletRequestParameterException`, `PropertyReferenceException`, `MissingServletRequestPartException`, `ArchivoNoValidoException` |
 | **401** | «No sé quién eres» | Sin token, token vencido, clave incorrecta | `AuthenticationException`, `BadCredentialsException` |
 | **403** | «Sé quién eres, pero no puedes» | Un cliente en `/api/usuarios/1` | `AccessDeniedException` |
 | **404** | «Eso no existe» | Usuario o comuna inexistente; ruta inexistente | `RecursoNoEncontradoException`, `NoResourceFoundException` |
 | **405** | «Ese método no está permitido aquí» | `DELETE /api/usuarios` | `HttpRequestMethodNotSupportedException` |
 | **409** | «Es válido, pero choca con lo que hay» | Correo o RUN repetido | `ReglaNegocioException`, `DataIntegrityViolationException` |
+| **413** | «Eso pesa demasiado» | Subir una imagen de más de 5 MB | `MaxUploadSizeExceededException` |
 | **415** | «No leo ese formato» | `POST` con texto plano | `HttpMediaTypeNotSupportedException` |
 | **500** | «Se descompuso algo nuestro» | Un fallo inesperado | `Exception` (el detalle va al log, **no** al cliente) |
 
@@ -39,6 +40,7 @@ Cuando es un error de validación, `detalles` trae el campo que falló: `{ "runD
 ```java
 throw new RecursoNoEncontradoException("Producto", id);   // 404: "Producto no encontrado con id 5"
 throw new ReglaNegocioException("Stock insuficiente");    // 409
+throw new ArchivoNoValidoException("El archivo está vacío"); // 400 (hija de ReglaNegocioException)
 ```
 
 Nada más: el handler hace el resto. **No** escribas `try/catch` para esto en el controller.

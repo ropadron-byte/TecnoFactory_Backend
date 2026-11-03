@@ -66,6 +66,13 @@ public class SecurityConfig {
                         // El resto de /api/usuarios: solo administrador
                         .requestMatchers("/api/usuarios/**").hasRole(ROL_ADMINISTRADOR)
 
+                        // Blogs e imágenes: lectura pública (un <img> no envía JWT)
+                        .requestMatchers(HttpMethod.GET, "/api/blogs/**", "/api/imagenes/**").permitAll()
+
+                        // Crear blogs, subir imágenes y cambiar portadas: administrador o vendedor
+                        .requestMatchers(HttpMethod.POST, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                        .requestMatchers(HttpMethod.PUT, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+
                         // Públicos: imágenes subidas (un <img> del navegador no envía el JWT)
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 

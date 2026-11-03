@@ -143,15 +143,19 @@ Cualquier usuario por id. **Solo `ADMINISTRADOR`.**
 
 `detalles` solo lleva contenido en los errores de validación (`campo → mensaje`). Detalle de cada código en la [guía 10](../guias/10-errores-de-la-api.md).
 
-## Paginación (para los listados futuros)
+## Paginación
 
-Aún no hay listados, pero la forma ya está decidida:
+Ya existen dos listados paginados: `GET /api/imagenes` y `GET /api/blogs`. La forma es la misma en ambos:
 
 | Parámetro | Efecto |
 | --- | --- |
 | `?page=0` | Número de página, **desde 0** |
 | `?size=20` | Tamaño (por defecto 20, **máximo 100**) |
 | `?sort=nombre,asc` | Orden |
+
+En **Swagger** esos tres parámetros aparecen como campos separados gracias a `@ParameterObject` en el `Pageable` del controller (3 nov). Sin esa anotación, Swagger muestra un solo cuadro JSON y lo envía mal (`?pageable={...}`). **Todo `Pageable` nuevo debe llevarla.**
+
+Si `sort` nombra un campo que no existe (`?sort=string`), la API responde **400** «No se puede ordenar por 'string'» (antes salía 500).
 
 Respuesta (`PageResponse`):
 

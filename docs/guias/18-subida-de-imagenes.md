@@ -52,22 +52,24 @@ Sin permiso: sin token → **401**; con token de `CLIENTE` → **403**.
 
 | Control | Regla | Si falla |
 | --- | --- | --- |
-| Tipo | Solo `image/jpeg`, `image/png` e `image/webp` | 409 «Solo se permiten imágenes JPG, PNG o WEBP» |
-| Archivo vacío | No se acepta | Mismo 409 |
+| Tipo | Solo `image/jpeg`, `image/png` e `image/webp` (si no viene `Content-Type`, también se rechaza) | **400** «Solo se permiten imágenes JPG, PNG o WEBP» |
+| Contenido | Los primeros bytes del archivo deben coincidir con el tipo declarado (JPEG `FF D8 FF`, PNG `89 50 4E 47…`, WEBP `RIFF…WEBP`): el `Content-Type` lo escribe el cliente y no basta | **400** «El contenido del archivo no corresponde a una imagen…» |
+| Archivo vacío | No se acepta | **400** «El archivo está vacío» |
 | Carpeta de destino | Solo `productos`, `categorias` o `blog` | 409 «Carpeta de destino no válida» |
-| Tamaño | Máximo 5 MB (`spring.servlet.multipart`) | Hoy sale como **500**: falta su handler (ver abajo) |
+| Tamaño | Máximo 5 MB (`spring.servlet.multipart`) | **413** «El archivo supera el tamaño máximo permitido (5 MB)» |
+| Campo `archivo` | Obligatorio | **400** «Falta el archivo obligatorio 'archivo'» |
 | Nombre | Se ignora el original; se genera un UUID | — |
 
 ## Qué hay y qué falta
 
 | Hecho | Pendiente |
 | --- | --- |
-| Guardar el archivo con nombre único | Entidad `ImagenUrl` y su repository |
-| Servir la imagen por URL | Guardar la `url` en `imagen_url` ligada a su producto, categoría o blog |
+| Guardar el archivo con nombre único y registrarlo en `imagen_url` (3 nov) | Asignar a productos y categorías por id (faltan sus controllers) |
+| Servir la imagen por URL | — |
 | Reglas por rol | Endpoint `DELETE` (borra la fila **y** el archivo) |
-| Límite de 5 MB | Handler para `MaxUploadSizeExceededException` (413) |
+| Límite de 5 MB con su 413 (3 nov) | — |
 
-Hoy el endpoint solo **sube y devuelve la URL**: aún no la anota en la base. Cuando exista `ImagenUrl`, un service hará las dos cosas juntas.
+Desde el 3 nov, subir **guarda el archivo y crea la fila en `imagen_url`** (sin dueño) y devuelve `201` con `id`, `url` y `duenos: []`. Dos rutas, mismo comportamiento: `POST /api/imagenes` (carpeta `general`) y `POST /api/imagenes/productos` (carpeta `productos`). Después se asigna por id: a un blog con `POST /api/blogs/{id}/imagenes/{idImagen}` (galería) y `PUT /api/blogs/{id}/imagen-principal/{idImagen}` (portada). Asignar a productos y categorías llegará con sus controllers. Si falla el INSERT, el archivo se borra.
 
 ## Cómo probarlo
 
@@ -97,9 +99,9 @@ Con curl está en el [manual personal 11](../personal/11-subir-y-ver-imagenes.md
 | 403 al subir | Eres `CLIENTE` | Usa un usuario `ADMINISTRADOR` o `VENDEDOR` |
 | 401 al **ver** la imagen | Falta `GET /uploads/**` en `SecurityConfig` o está después de `anyRequest()` | Ponla antes, con `permitAll()` |
 | 404 al ver la imagen | Url mal escrita, archivo borrado, o la carpeta `uploads/` no existía al arrancar | Revisa la URL; crea `uploads/` y reinicia |
-| 409 «Solo se permiten imágenes…» | El archivo no es JPG, PNG o WEBP (o está vacío) | Cambia el formato |
-| 500 al subir un archivo grande | Pasa de 5 MB y falta el handler | Reduce la imagen; ver el pendiente |
-| 500 sin enviar `archivo` | El campo no se llama `archivo` | El nombre del campo debe ser exactamente `archivo` |
+| 400 «Solo se permiten imágenes…» o «El contenido del archivo no corresponde…» | El archivo no es JPG, PNG o WEBP, está vacío, o se renombró otro formato (un `.txt` llamado `a.png` no pasa) | Sube una imagen real en uno de los tres formatos |
+| 413 al subir | Pasa de 5 MB | Reduce la imagen |
+| 400 «Falta el archivo obligatorio» | El campo no se llama `archivo` | El nombre del campo debe ser exactamente `archivo` |
 | 415 | No se envió como `multipart/form-data` | No pongas `Content-Type` a mano al usar `FormData` |
 | Las imágenes desaparecen al recrear Docker | `uploads/` estaba dentro del contenedor | Monta un volumen (`uploads_data`) |
 

@@ -18,6 +18,10 @@ Abre `http://localhost:8080/swagger-ui/index.html`.
 | 6 | `GET /api/usuarios/abc` | 400 |
 | 7 | Cierra la sesión (Authorize → Logout) y repite el 3 | 401 |
 
+### Listados con paginación
+
+En `GET /api/imagenes` y `GET /api/blogs`, *Try it out* muestra tres campos: `page` (desde 0), `size` y `sort` (por ejemplo `id,desc`). **Borra el `"string"` que Swagger pone de ejemplo en `sort`**: no es un campo real y devuelve 400.
+
 ### Probar un rol sin permiso
 
 1. Registra un cliente: `POST /api/usuarios` (no pide token; clave de 8 a 72 caracteres, RUN con dígito verificador válido).

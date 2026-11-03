@@ -93,7 +93,7 @@ El lanzador levanta MySQL en el puerto **3307** (deja libre el 3306 para otro My
 
 **Archivo vivo:** [Cambios recientes](docs/estado/cambios-recientes.md) reúne lo que falta y lo que ya se hizo, sesión por sesión.
 
-## Estado del proyecto (oct 2026)
+## Estado del proyecto (oct-nov 2026)
 
 | Pieza | Estado |
 | --- | --- |
@@ -104,7 +104,7 @@ El lanzador levanta MySQL en el puerto **3307** (deja libre el 3306 para otro My
 | `V2` con 3 roles, 16 regiones y 346 comunas | **Aplicada en MySQL 8.4** |
 | `V3` con categorías base | **Aplicada en MySQL 8.4** (Flyway quedó en la versión 3) |
 | `application-local.yaml` | Corregido |
-| Manejo de errores (`exception/`) | **Probado** con el primer controller: 400, 404, 405, 409 y 415. Faltan 500 y 409 por el `UNIQUE` de la base. Ver [11](docs/referencia/11-excepciones-explicadas.md) |
+| Manejo de errores (`exception/`) | **Probado** con controllers: 400, 401, 403, 404, 405, 409, 415 y (3 nov) 413 y los 400 de `sort` inválido, falta de `archivo` y archivo no válido. Faltan 500 y 409 por el `UNIQUE` de la base. Ver [11](docs/referencia/11-excepciones-explicadas.md) y [10](docs/guias/10-errores-de-la-api.md) |
 | Entidades | **4 de 12** (`TipoUsuario`, `Region`, `Comuna`, `Usuario`); **validan** contra MySQL 8.4. Ver [13](docs/referencia/13-entidades-explicadas.md) |
 | Repositories | **4** (uno por entidad); errores de nombres corregidos. Arranque completo **confirmado** (log del 18 oct). Ver [14](docs/referencia/14-repositories-explicados.md) |
 | `SecurityConfig` y `PasswordEncoder` (BCrypt) | **Reescrito el 20 oct**: ya **no** hay `permitAll` general. Públicas: Swagger, `health`, login y registro; `/api/usuarios/me` con sesión; el resto de `/api/usuarios/**` solo administrador; todo lo demás exige token. Ver [21](docs/referencia/21-seguridad-jwt-y-roles-explicada.md) (la [15](docs/referencia/15-seguridad-codigo-explicado.md) explica la primera versión) |
@@ -114,6 +114,8 @@ El lanzador levanta MySQL en el puerto **3307** (deja libre el 3306 para otro My
 | DTOs y mapper de `Usuario` | `UsuarioResponse`, `UsuarioRequest` y `UsuarioMapper` **confirmados** (10 tests de `UsuarioRequestTest`), con validación del dígito verificador (módulo 11, `RunUtilTest`). Ver [18](docs/referencia/18-dto-mapper-y-validaciones-explicados.md) y [19](docs/referencia/19-validacion-run-service-y-controller-explicados.md) |
 | Controllers | `UsuarioController` (`POST /api/usuarios`, `GET /api/usuarios/me`, `GET /api/usuarios/{id}`) y `AuthController` (`POST /api/auth/login`). El registro se probó en Swagger contra MySQL (201, 20 oct); el login, pendiente de confirmar |
 | Configuración base | `open-in-view: false`, handlers 415 y 400, `PageResponse`, zona horaria, `OpenApiConfig` y CORS: **29 tests** y arranque confirmados (20 oct). Ver [20](docs/referencia/20-configuracion-base-explicada.md) |
+| Blogs e imágenes (`BlogController`, `ImagenController`, `AlmacenamientoService`) | **Revisados el 3 nov**: `@ParameterObject` en los listados (Swagger ya muestra `page`, `size` y `sort`), subida con comprobación del contenido real del archivo (JPG, PNG, WEBP; máx. 5 MB), `POST /api/imagenes` para subir imágenes sin dueño y asignarlas por id, y `POST /api/imagenes/productos` ya registra la fila en `imagen_url` y blogs ocultos visibles para su autor. **Cambios sin compilar ni ejecutar** (el ZIP no traía `pom.xml`): falta `./mvnw test`. Ver [cambios recientes](docs/estado/cambios-recientes.md) y [guía 18](docs/guias/18-subida-de-imagenes.md) |
+| `jwt.secret` | **Sin valor por defecto** (3 nov): si falta `JWT_SECRET`, la app no arranca. Ver [26](docs/referencia/26-configuracion-yaml-explicada.md) |
 | `Dockerfile` y servicio `backend` del compose | Vacío / comentado |
 
 ## Reglas de oro
@@ -131,3 +133,5 @@ El lanzador levanta MySQL en el puerto **3307** (deja libre el 3306 para otro My
 11. **El controller no tiene lógica de negocio.** Valida (`@Valid`), delega en el service y responde; el service es `@Transactional` y devuelve DTOs. Los errores se lanzan como `RecursoNoEncontradoException` o `ReglaNegocioException` y los formatea el handler. Ver [19](docs/referencia/19-validacion-run-service-y-controller-explicados.md#13-la-receta-para-la-próxima-entidad).
 12. **El token se firma con `JWT_SECRET` (mínimo 32 caracteres) y no se comparte.** Los fallos de login (correo inexistente, clave incorrecta, usuario desactivado) devuelven **el mismo** 401. El rol que decide es el de la base de datos; el del token es solo informativo para el frontend. Ver [21](docs/referencia/21-seguridad-jwt-y-roles-explicada.md#17-decisiones-y-límites).
 13. **Ocultar un botón en el frontend no protege nada**: la regla real está en `SecurityConfig`.
+14. **Todo `Pageable` que recibe un controller lleva `@ParameterObject`**; si no, Swagger lo manda como un solo parámetro JSON y la paginación no funciona. Un `?sort=` con un campo que no existe devuelve 400, no 500. Ver [23](docs/referencia/23-catalogo-de-endpoints.md#paginación).
+15. **Una imagen subida se valida por su contenido, no por el `Content-Type`** que declara el cliente. Un tipo de archivo nuevo exige agregar su firma en `AlmacenamientoService`. Ver [guía 18](docs/guias/18-subida-de-imagenes.md).

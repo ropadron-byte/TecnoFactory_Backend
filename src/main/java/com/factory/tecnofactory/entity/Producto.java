@@ -46,4 +46,13 @@ public class Producto {
     @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size = 50)
     private Set<ProductoCategoria> categorias = new HashSet<>();
+
+    // Imágenes compartidas. La relación vive en producto_imagen y la maneja Producto.
+    @ManyToMany
+    @JoinTable(
+            name = "producto_imagen",
+            joinColumns = @JoinColumn(name = "producto_id_producto"),
+            inverseJoinColumns = @JoinColumn(name = "imagen_id_url"))
+    @BatchSize(size = 50)
+    private Set<ImagenUrl> imagenesProducto = new HashSet<>();
 }

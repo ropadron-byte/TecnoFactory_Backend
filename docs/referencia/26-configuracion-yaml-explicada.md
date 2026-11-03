@@ -23,7 +23,7 @@ Spring lee `application.yaml` (base) y encima el del perfil activo (`local` o `p
 | `spring.mail.*` | `localhost:1025` | Servidor de correo; apunta a un SMTP de pruebas (Mailpit) que aún no existe |
 | `spring.cache.type` | `redis` | Caché en Redis (**lo sobrescriben `local` y `prod` con `none`**) |
 | `spring.cache.redis.time-to-live` | `10m` | Cuánto vive un dato en caché |
-| `jwt.secret` | `${JWT_SECRET:cambia-esta-clave...}` | Clave que firma los tokens. **Mínimo 32 caracteres** |
+| `jwt.secret` | `${JWT_SECRET}` | Clave que firma los tokens. **Mínimo 32 caracteres. Sin valor por defecto desde el 3 nov**: antes traía una clave escrita en el código y, si se arrancaba sin la variable ni perfil, cualquiera podía firmar un token de administrador |
 | `jwt.expiration-ms` | `3600000` | Vida del token: 1 hora |
 | `cors.allowed-origins` | `${CORS_ORIGINS:http://localhost:5173}` | Orígenes del frontend permitidos (lista separada por comas) |
 | `management.endpoints.web.exposure.include` | `health` | Único endpoint de Actuator publicado |

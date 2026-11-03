@@ -63,6 +63,8 @@ Guía completa: [21-seguridad-jwt-y-roles-explicada.md](../referencia/21-segurid
 - [ ] **Usuarios con roles:** `GET /api/usuarios` paginado (administrador y vendedor, solo lectura), `PUT /api/usuarios/me` (editar el propio perfil) y una ruta de administrador para **crear vendedores** (el rol nunca viene del cliente).
 - [ ] **Reglas por rol de cada entidad nueva** (`Categoria`: administrador; `Producto` y órdenes: vendedor y administrador). Se agregan **antes** de `.anyRequest().authenticated()`.
 - [ ] **Límite de intentos de login** y **HTTPS** antes de un despliegue real.
+- [ ] **Confirmar la revisión del 3 nov** (ver la entrada del Historial): `./mvnw test` (los tests nuevos y los 56 anteriores), arranque con `./scripts/dev.sh` y la prueba de paginación en Swagger. **No se pudo compilar** en el entorno de revisión.
+- [x] **`POST /api/imagenes/productos` no registraba la imagen en `imagen_url`**: resuelto el 3 nov (ver la entrada de las 03:10). Falta poder asignar imágenes a productos y categorías por id (sus controllers).
 - [ ] **Mover `JwtServiceTest` y `UserDetailsServiceImplTest`** a `src/test/.../security/` (hoy están en `service/`; `JwtServiceTest` declara el paquete `security` y compila igual, pero la carpeta no coincide).
 
 ### Verificaciones pendientes
@@ -81,6 +83,7 @@ Guía completa: [21-seguridad-jwt-y-roles-explicada.md](../referencia/21-segurid
 - [x] **Quién ve `GET /api/usuarios/{id}`** (20 oct): solo el administrador; el perfil propio es `/api/usuarios/me`.
 - [ ] **Cómo se aplica el descuento** (0 a 100) sobre el `precio` y su copia en `detalle_boleta`.
 - [ ] **Detalle por parámetro** en `HandlerMethodValidationException` (hoy solo dice "Parámetros inválidos").
+- [ ] **Blogs ocultos en `GET /api/imagenes`**: el listado público muestra también imágenes y dueños de blogs ocultos. Decidir si se filtra ([24, decisiones abiertas](../referencia/24-decisiones-de-diseno.md#decisiones-aún-abiertas)).
 
 ### Limpieza pendiente
 
@@ -99,7 +102,59 @@ Guía completa: [21-seguridad-jwt-y-roles-explicada.md](../referencia/21-segurid
 
 ## Historial
 
+### 3 nov 2026 (03:10): subida de imágenes sin dueño
 
+Pedido tuyo: `POST /api/imagenes/productos` solo guardaba el archivo (no creaba fila en `imagen_url`, así que no había `id` para asignarla), y faltaba un endpoint general.
+
+- **Nuevo `POST /api/imagenes`** (`multipart/form-data`, campo `archivo`; ADMINISTRADOR o VENDEDOR): guarda el archivo en `uploads/general/`, crea la fila en `imagen_url` **sin dueño** y responde **201** con `{ id, url, duenos: [] }` y el encabezado `Location`.
+- **Arreglado `POST /api/imagenes/productos`**: ahora hace lo mismo (carpeta `productos`) y también responde 201 con el `id`. Antes respondía 200 con solo `{ url }`; la `url` sigue ahí.
+- **`ImagenService.subir(archivo, subcarpeta)`** (nuevo): si falla el INSERT, borra el archivo para no dejar huérfanos. `ImagenController` ya no usa `AlmacenamientoService` directamente.
+- **Carpeta `general`** agregada a las permitidas en `AlmacenamientoService`.
+- **Asignar por id** (ya existía): `POST /api/blogs/{id}/imagenes/{idImagen}` y `PUT /api/blogs/{id}/imagen-principal/{idImagen}`. Productos y categorías no tienen controller todavía, así que aún no se pueden asignar por API.
+- **Tests:** `ImagenServiceTest` (+2), `ImagenControllerTest` (+4 y 2 reescritos al nuevo contrato). **No se compilaron ni ejecutaron.**
+- **Se cierra** el pendiente «`POST /api/imagenes/productos` no registra la imagen».
+
+Flujo para probar: `POST /api/imagenes` → copiar el `id` → `POST /api/blogs/{id}/imagenes/{idImagen}`; y `SELECT id_url, url FROM imagen_url;` debe mostrar la fila.
+
+### 3 nov 2026: revisión del código (imágenes, errores, subida de archivos y secreto JWT)
+
+Se revisó el ZIP `src` completo a petición tuya (disparador: Swagger enviaba mal el `Pageable` de `GET /api/imagenes`). Hallazgos aplicados:
+
+| # | Qué | Archivos | Antes → ahora |
+| --- | --- | --- | --- |
+| 1 | **Paginación en Swagger**: `@ParameterObject` en el `Pageable` | `ImagenController`, `BlogController` | Un cuadro JSON que Swagger enviaba como `?pageable={...}` → tres campos `page`, `size` y `sort` |
+| 2 | **`?sort=campoInexistente`** | `GlobalExceptionHandler` (`PropertyReferenceException` y la misma envuelta en `InvalidDataAccessApiUsageException`) | 500 → **400** «No se puede ordenar por 'x'» |
+| 3 | **Subir sin el campo `archivo`** | `GlobalExceptionHandler` (`MissingServletRequestPartException`) | 500 → **400** |
+| 4 | **Archivo de más de 5 MB** | `GlobalExceptionHandler` (`MaxUploadSizeExceededException`) | 500 → **413** |
+| 5 | **Archivo sin `Content-Type`** | `AlmacenamientoService` | `NullPointerException` (`Map.of(...).get(null)`) → 400 |
+| 6 | **Archivos que no son imagen** | `AlmacenamientoService` + nueva `ArchivoNoValidoException` | Se confiaba en el `Content-Type` del cliente y el error era 409 → se comprueban los primeros bytes (JPEG, PNG, WEBP) y responde **400** |
+| 7 | **El autor veía 404 en su propio blog oculto** | `BlogAutorizacion.puedeVerBlogOculto`, usado por `BlogService.buscarPorId` e `ImagenService.buscarBlogVisible` | Solo el administrador lo veía → administrador **y su autor** |
+| 8 | **Clave JWT pública por defecto** | `application.yaml` | `${JWT_SECRET:cambia-esta-clave...}` → `${JWT_SECRET}`: si falta, no arranca. `TecnoFactoryApplicationTests` define su propia clave |
+
+**Tests agregados** (no se pudieron ejecutar, ver más abajo):
+
+- `AlmacenamientoServiceTest` (nuevo, 10): PNG, JPEG y WEBP válidos; tipo no permitido; sin `Content-Type`; archivo vacío; contenido que no coincide (HTML como PNG, JPEG como PNG); que no se guarde nada si es inválido; subcarpeta no permitida; eliminar.
+- `ImagenControllerTest` (+4): `sort` inválido → 400, sin `archivo` → 400, archivo inválido → 400, archivo grande → 413.
+- `BlogServiceTest` (+2): el autor ve su blog oculto; otro vendedor no.
+
+**Decisiones tomadas:**
+
+- `ArchivoNoValidoException` **extiende** `ReglaNegocioException`, así el código y los tests que ya atrapan la clase madre siguen igual; solo el handler nuevo la distingue (400 en vez de 409).
+- Solo se quitó el valor por defecto de `jwt.secret`. Los de la base (`root`/`root`, `localhost:3307`) siguen en `application.yaml`; `prod` ya no tiene ninguno y `local` pide `DB_PASSWORD`.
+- **No se aplicó** (queda en Pendiente): límite de intentos de login, el filtrado de blogs ocultos en `GET /api/imagenes` (es una decisión tuya, ver [24](../referencia/24-decisiones-de-diseno.md#decisiones-aún-abiertas)) y el archivo huérfano de `POST /api/imagenes/productos`.
+
+**Documentación tocada:** `guias/10`, `guias/18`, `guias/03`, `referencia/08`, `referencia/23`, `referencia/24`, `referencia/26`, `personal/03`, `personal/05`, este archivo y el `README.md` (estado y regla 14).
+
+**Cómo comprobarlo:**
+
+```bash
+./mvnw test                       # los 16 tests nuevos y los anteriores
+./scripts/dev.sh                  # la app debe arrancar con JWT_SECRET del .env
+```
+
+En Swagger: `GET /api/imagenes` debe mostrar `page`, `size` y `sort`; con `sort=string` responde 400. Subir un `.txt` renombrado a `.png` a `POST /api/imagenes/productos` responde 400.
+
+**Qué no se pudo verificar:** el ZIP no traía `pom.xml` y Maven Central estaba bloqueado, así que **no se compiló ni se ejecutó ningún test**. Solo se probó la lógica de `AlmacenamientoService` con un programa aparte (PNG, JPEG y WEBP válidos, y seis rechazos, incluido el `Content-Type` nulo). Lo demás se revisó leyéndolo. Dos puntos a mirar si algo no compila: el import `org.springdoc.core.annotations.ParameterObject` (en springdoc 1.x es `org.springdoc.api.annotations.ParameterObject`) y el constructor de `PropertyReferenceException` en `ImagenControllerTest`. **Corrección (3 nov, 02:55):** al compilar, `PropertyReferenceException` no estaba en `org.springframework.data.mapping`; en Spring Data 4 (Spring Boot 4) vive en `org.springframework.data.core` (igual que `TypeInformation`). Ya corregido en `GlobalExceptionHandler` y `ImagenControllerTest`.
 
 ### 3 nov 2026: MySQL en el 3307, lanzador local y rotación del `.env`
 
