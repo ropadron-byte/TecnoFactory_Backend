@@ -16,7 +16,7 @@ services:
       APP_DB_PASSWORD: ${APP_DB_PASSWORD}
       TZ: America/Santiago
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./docker/mysql-init:/docker-entrypoint-initdb.d:ro
@@ -39,7 +39,7 @@ services:
 | `MYSQL_USER` / `MYSQL_PASSWORD` | Crea `tecnofactory_migrator` con `ALL` sobre esa base |
 | `APP_DB_PASSWORD` | No es una variable de MySQL: se pasa al contenedor para que la lea el script de inicio |
 | `TZ` | Zona horaria del servidor |
-| `ports: "3306:3306"` | Publica MySQL en tu máquina. **Se quita en producción** |
+| `ports: "3307:3306"` | Publica MySQL en el puerto **3307** de tu máquina (deja libre el 3306 para otro MySQL). **Se quita en producción** |
 | `mysql_data:/var/lib/mysql` | Volumen con los datos: sobreviven a `down` y a recrear el contenedor |
 | `docker-entrypoint-initdb.d` | Carpeta de scripts que MySQL ejecuta **solo al crear el volumen** |
 | `utf8mb4` | Codificación completa (tildes, ñ, emojis) |

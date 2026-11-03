@@ -47,7 +47,7 @@ docker compose down -v      # quitar contenedor Y datos (solo desarrollo)
 2. **`down -v` borra los datos.** Nunca en producción.
 3. **El volumen no es un respaldo.** Los respaldos se hacen con `mysqldump` y se guardan fuera del servidor.
 4. **Sin `$`, `'` ni `"` en las claves**: Compose y el script SQL los interpretan.
-5. En producción se **quita** `ports: "3306:3306"`.
+5. En producción se **quita** el mapeo `ports: "3307:3306"`.
 
 ## Si algo falla
 

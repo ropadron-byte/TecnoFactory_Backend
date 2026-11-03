@@ -90,7 +90,12 @@ Fíjate en que `DB_PASSWORD` significa **cosas distintas** según el perfil: en 
 
 ## Archivo .env
 
-Crea un `.env` junto a `docker-compose.yml`:
+Copia el ejemplo y completa las claves junto a `docker-compose.yml`:
+
+```bash
+cp .env.example .env
+chmod 600 .env
+```
 
 ```env
 DB_PASSWORD=clave_de_root
@@ -101,11 +106,12 @@ JWT_SECRET=una_clave_larga_de_al_menos_32_caracteres
 
 Reglas:
 
-- El `.env` **no se sube a Git**. Comprueba que `.gitignore` lo incluya.
+- El `.env` **no se sube a Git**. Está en `.gitignore`; el archivo versionado es `.env.example`.
 - **Evita `$`, `'` y `"` en las contraseñas.** Compose interpreta `$` como variable, y el script de `mysql-init` mete la clave dentro de una comilla simple de SQL.
-- Genera claves con `openssl rand -base64 24` (las de prod, distintas a las de desarrollo).
+- Genera claves con `openssl rand -hex 32` (las de prod, distintas a las de desarrollo).
 - Sin espacios alrededor del `=`.
 - Las claves de `.env` de desarrollo **no se reutilizan** en producción.
+- Si el `.env` ya se filtró, rota las claves: ver [03](03-variables-y-claves.md#rotar-claves-que-ya-se-filtraron).
 
 ---
 
@@ -116,13 +122,23 @@ Para el trabajo diario. La app usa `root`; Flyway usa la misma conexión.
 ### 1. Levantar MySQL
 
 ```bash
-docker compose up -d
-docker compose ps        # debe decir "healthy"
+docker compose up -d --wait db
+docker compose ps        # debe decir "healthy" y 0.0.0.0:3307->3306/tcp
 ```
+
+> MySQL se publica en el **3307** del host para no chocar con el 3306 de otro MySQL instalado en el computador. Dentro del contenedor sigue en el 3306.
 
 ### 2. Arrancar la aplicación
 
-**Opción A: cargando el `.env` en la terminal (recomendada)**
+**Opción A: lanzador (recomendada)**
+
+```bash
+./scripts/dev.sh
+```
+
+En Windows: `.\scripts\dev.ps1`. El script carga el `.env`, espera a que MySQL esté `healthy` y arranca con el perfil `local` apuntando al 3307.
+
+**Opción B: a mano en la terminal**
 
 ```bash
 set -a
@@ -130,13 +146,13 @@ source .env
 set +a
 
 SPRING_PROFILES_ACTIVE=local \
-DB_URL=jdbc:mysql://localhost:3306/tecnofactory \
+DB_URL=jdbc:mysql://localhost:3307/tecnofactory \
 DB_USER=root \
 ./mvnw spring-boot:run
 ```
 ```bash
 $env:SPRING_PROFILES_ACTIVE="local"
-$env:DB_URL="jdbc:mysql://localhost:3306/tecnofactory"
+$env:DB_URL="jdbc:mysql://localhost:3307/tecnofactory"
 $env:DB_USER="root"
 .\mvnw.cmd spring-boot:run
 ```
@@ -144,12 +160,12 @@ $env:DB_USER="root"
 
 `source .env` exporta `DB_PASSWORD` (clave de root) y `JWT_SECRET`, que es justo lo que pide el perfil `local`.
 
-**Opción B: IntelliJ**
+**Opción C: IntelliJ**
 
 *Run, Edit Configurations*, en **Environment variables**:
 
 ```
-SPRING_PROFILES_ACTIVE=local;DB_URL=jdbc:mysql://localhost:3306/tecnofactory;DB_USER=root;DB_PASSWORD=clave_de_root;JWT_SECRET=una_clave_larga_de_al_menos_32_caracteres
+SPRING_PROFILES_ACTIVE=local;DB_URL=jdbc:mysql://localhost:3307/tecnofactory;DB_USER=root;DB_PASSWORD=clave_de_root;JWT_SECRET=una_clave_larga_de_al_menos_32_caracteres
 ```
 
 ### 3. Comprobar
@@ -241,7 +257,7 @@ source .env
 set +a
 
 SPRING_PROFILES_ACTIVE=prod \
-DB_URL=jdbc:mysql://localhost:3306/tecnofactory \
+DB_URL=jdbc:mysql://localhost:3307/tecnofactory \
 DB_USER=tecnofactory_app \
 DB_PASSWORD="$APP_DB_PASSWORD" \
 FLYWAY_USER=tecnofactory_migrator \
@@ -351,7 +367,7 @@ Aquí todo corre en Docker en el servidor: MySQL y backend en la misma red inter
 - [ ] Permisos del `.env`: `chmod 600 .env`.
 - [ ] `Dockerfile` escrito (hoy está vacío).
 - [ ] Servicio `backend` activado en el compose (hoy está comentado).
-- [ ] Puerto `3306` de MySQL **sin publicar**.
+- [ ] MySQL **sin publicar** en el host (o publicado solo en el 3307 para administrarlo).
 
 ### 1. `Dockerfile` (en la raíz)
 
@@ -381,7 +397,7 @@ target
 
 ### 2. `docker-compose.yml` para producción
 
-Dos cambios respecto al actual: se activa `backend` (con los dos usuarios correctos) y se quita el puerto `3306` de `db`.
+Dos cambios respecto al actual: se activa `backend` (con los dos usuarios correctos) y se quita el mapeo de puertos de `db`.
 
 ```yaml
 services:
@@ -434,7 +450,7 @@ volumes:
 Puntos importantes:
 
 - `DB_URL` usa `db` (el nombre del servicio), no `localhost`: dentro de Docker `localhost` sería el propio contenedor del backend.
-- Para seguir administrando MySQL desde tu máquina en desarrollo, usa un `docker-compose.override.yml` con el `ports: "3306:3306"` solo en tu equipo (Compose lo combina solo).
+- Para seguir administrando MySQL desde tu máquina en desarrollo, usa un `docker-compose.override.yml` con el `ports: "3307:3306"` solo en tu equipo (Compose lo combina solo).
 - En el servidor, el `.env` lo lee Compose y rellena `${...}`; el contenedor recibe solo lo que aparece en `environment:`.
 
 ### 3. Primer despliegue

@@ -37,7 +37,7 @@ Tabla única de síntomas, causas y soluciones. Los primeros nueve ya ocurrieron
 | `Communications link failure` / `Connection refused` | MySQL no corre o aún no está `healthy` | `docker compose up -d` y esperar |
 | `Unknown database 'tecnofactory'` | `MYSQL_DATABASE` distinto o el volumen es de otro proyecto | Verifica el nombre; recrea el volumen si es desarrollo |
 | `Port 8080 was already in use` | Otra instancia (IntelliJ o contenedor) usa el puerto | Detén la otra |
-| `Bind for 0.0.0.0:3306 failed: port is already allocated` | Otro MySQL usa el 3306 | Detén el otro MySQL o cambia el puerto publicado |
+| `Bind for 0.0.0.0:3307 failed: port is already allocated` | Otro proceso usa el 3307 | Detén ese proceso o cambia el puerto publicado y `DB_URL` |
 | `The "Dockerfile" is empty` | Servicio `backend` activo con el `Dockerfile` vacío | Escribirlo (ver 07) o dejar el bloque comentado |
 
 ## Flyway y esquema

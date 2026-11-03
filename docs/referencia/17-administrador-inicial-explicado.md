@@ -466,7 +466,7 @@ source .env
 set +a
 
 SPRING_PROFILES_ACTIVE=local \
-DB_URL=jdbc:mysql://localhost:3306/tecnofactory \
+DB_URL=jdbc:mysql://localhost:3307/tecnofactory \
 DB_USER=root \
 ./mvnw spring-boot:run
 ```

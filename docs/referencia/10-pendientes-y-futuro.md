@@ -182,7 +182,7 @@ Ver el [Escenario 3 de 07](07-ejecucion-local-y-prod.md#escenario-3-prod-real-pr
 
 - [ ] `Dockerfile` del backend y `.dockerignore`.
 - [ ] Servicio `backend` activo en el compose, con los dos usuarios.
-- [ ] Puerto `3306` sin publicar (usa un `docker-compose.override.yml` solo en tu máquina).
+- [ ] MySQL sin publicar en el host (usa un `docker-compose.override.yml` solo en tu máquina).
 - [ ] Nginx o Caddy con HTTPS (certificados con Let's Encrypt).
 - [ ] Servicios `redis` y `mailpit`/SMTP si se implementaron.
 - [ ] Respaldos programados (`cron` + `mysqldump`), copiados fuera del servidor, con **restauración probada**.

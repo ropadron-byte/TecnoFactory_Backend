@@ -101,6 +101,14 @@ Guía completa: [21-seguridad-jwt-y-roles-explicada.md](../referencia/21-segurid
 
 
 
+### 3 nov 2026: MySQL en el 3307, lanzador local y rotación del `.env`
+
+- **Causa del fallo de arranque:** el contenedor se había creado con el mapeo viejo `3306:3306`; Docker no cambia los puertos publicados al reiniciar, solo al recrear. La app buscaba `localhost:3307` y recibía `Connection refused`. Se recreó con `docker compose up -d --force-recreate --wait db` y quedó en `0.0.0.0:3307->3306/tcp`.
+- **Lanzador:** `scripts/dev.sh` y `scripts/dev.ps1` cargan el `.env`, esperan a que MySQL esté `healthy` y arrancan el backend con el perfil `local` apuntando al 3307.
+- **Documentación:** todas las referencias locales pasaron de `localhost:3306` a `localhost:3307`; el 3306 se conserva solo para el puerto interno del contenedor (`db:3306`) y las advertencias de conflicto.
+- **Seguridad:** `.env` salió de Git (`.gitignore` + `git rm --cached`) y se agregó `.env.example`. Se rotaron `DB_PASSWORD`, `MIGRATOR_PASSWORD`, `APP_DB_PASSWORD`, `JWT_SECRET` y `ADMIN_PASSWORD` (con `ALTER USER` y actualización del hash BCrypt del administrador), porque las claves viejas quedaron en el historial.
+- **Comprobado:** `./scripts/dev.sh` arranca con `The following 1 profile is active: "local"`, `HikariPool-1 - Start completed` y `/actuator/health` con `"db":{"status":"UP"}`.
+
 ### 21 oct 2026: documentación ampliada
 
 - **Nuevos en `referencia/`:** [22 diccionario de datos](../referencia/22-diccionario-de-datos.md), [23 catálogo de endpoints](../referencia/23-catalogo-de-endpoints.md), [24 decisiones de diseño](../referencia/24-decisiones-de-diseno.md), [25 glosario](../referencia/25-glosario.md) y [26 configuración YAML explicada](../referencia/26-configuracion-yaml-explicada.md).

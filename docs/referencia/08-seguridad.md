@@ -158,7 +158,7 @@ Debe mostrar tu correo, el rol `ADMINISTRADOR`, un prefijo `$2y$10$` o `$2b$10$`
 
 - No subir el `.env` a Git ni compartir sus valores por chat.
 - No usar `root` en la app en producción.
-- No dejar `ports: "3306:3306"` en un servidor.
+- No dejar el mapeo `ports: "3307:3306"` en un servidor.
 - No guardar números de tarjeta en el pago simulado.
 - No devolver entidades JPA por la API (filtrarían el hash de la contraseña).
 - No poner secretos en los yaml: van dentro del JAR y a Git.
@@ -171,7 +171,7 @@ Debe mostrar tu correo, el rol `ADMINISTRADOR`, un prefijo `$2y$10$` o `$2b$10$`
 - [ ] **`.anyRequest().permitAll()` reemplazado por `.anyRequest().authenticated()`** (hoy está abierto a propósito, solo para desarrollo).
 - [ ] Contraseñas hasheadas con BCrypt (incluido el administrador inicial).
 - [ ] CORS limitado al dominio real del frontend.
-- [ ] Puerto 3306 sin publicar.
+- [ ] MySQL sin publicar en el host (o solo en el 3307 para administrarlo).
 - [ ] HTTPS con Nginx o Caddy.
 - [ ] Swagger apagado y errores sin detalle (probado como en el Escenario 2).
 - [ ] Respaldos automáticos guardados fuera del servidor y **restauración probada**.

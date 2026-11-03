@@ -11,6 +11,16 @@ La documentación tiene **tres lugares**, según lo que necesites:
 
 **Primera vez:** empieza por [Empieza aquí](docs/personal/00-empieza-aqui.md).
 
+## Arranque rápido
+
+```bash
+cp .env.example .env      # solo la primera vez; completa las claves
+./scripts/dev.sh          # Linux/macOS
+.\scripts\dev.ps1         # Windows
+```
+
+El lanzador levanta MySQL en el puerto **3307** (deja libre el 3306 para otro MySQL instalado en el computador), espera a que esté `healthy` y arranca el backend con el perfil `local`.
+
 ## Manual personal (por tareas)
 
 | # | Página |
@@ -108,7 +118,7 @@ La documentación tiene **tres lugares**, según lo que necesites:
 
 ## Reglas de oro
 
-1. **Spring no lee el `.env`.** Lo lee Docker Compose; a Spring hay que pasarle las variables al arrancar.
+1. **Spring no lee el `.env`.** Lo lee Docker Compose; a Spring hay que pasarle las variables al arrancar. Para eso está `scripts/dev.sh` (o `scripts/dev.ps1` en Windows).
 2. **Una migración aplicada no se edita.** Los cambios son archivos nuevos (`V4__...` en adelante). Mientras `V1` y `V2` solo existan en tu máquina, puedes recrearlas con `docker compose down -v`.
 3. **Los scripts de `docker/mysql-init` y las claves `MYSQL_*` solo se aplican al crear el volumen.**
 4. **`docker compose down -v` borra los datos.** Nunca en producción.

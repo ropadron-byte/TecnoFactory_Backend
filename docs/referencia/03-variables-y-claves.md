@@ -18,6 +18,13 @@ Spring **no lee el `.env`**. Alguien tiene que pasarle las variables:
 
 ## Las cuatro claves del `.env`
 
+Copia `.env.example` a `.env` la primera vez:
+
+```bash
+cp .env.example .env
+chmod 600 .env
+```
+
 ```env
 DB_PASSWORD=...          # clave de root
 MIGRATOR_PASSWORD=...    # clave de tecnofactory_migrator
@@ -51,7 +58,7 @@ Entrega 64 caracteres aleatorios, solo letras y números. Se usa `-hex` porque `
 | Variable | Local | Prod | Notas |
 | --- | --- | --- | --- |
 | `SPRING_PROFILES_ACTIVE` | `local` | `prod` | Elige el perfil |
-| `DB_URL` | Por defecto `jdbc:mysql://localhost:3306/tecnofactory` | **Obligatoria** | En Docker: `jdbc:mysql://db:3306/tecnofactory` |
+| `DB_URL` | Por defecto `jdbc:mysql://localhost:3307/tecnofactory` | **Obligatoria** | En Docker: `jdbc:mysql://db:3306/tecnofactory` |
 | `DB_USER` | Por defecto `root` | **Obligatoria** (`tecnofactory_app`) | |
 | `DB_PASSWORD` | **Obligatoria** | **Obligatoria** | |
 | `FLYWAY_USER` / `FLYWAY_PASSWORD` | No se usan (Flyway usa la conexión de la app) | **Obligatorias** | Solo en `application-prod.yaml` |
@@ -82,7 +89,7 @@ Estado: las lee `AdministradorInicialRunner` (paso 7), explicado en [17](17-admi
 
 ## Sintaxis `${VARIABLE:valor}`
 
-`${DB_URL:jdbc:mysql://localhost:3306/tecnofactory}` significa "usa la variable si existe; si no, este valor".
+`${DB_URL:jdbc:mysql://localhost:3307/tecnofactory}` significa "usa la variable si existe; si no, este valor".
 
 En producción **no se ponen valores por defecto a propósito**: prefieres que la app falle con un error claro antes que conectarse por accidente a `localhost` o usar una clave de ejemplo.
 
@@ -96,3 +103,32 @@ En producción **no se ponen valores por defecto a propósito**: prefieres que l
 - **Las claves compartidas en chats, capturas o repositorios ya no son secretas.** Úsalas solo en desarrollo y genera otras para producción.
 - Guarda una copia del `.env` de producción en un gestor de contraseñas: si se pierde, no hay forma de recuperar las claves.
 - Los yaml van dentro del JAR y a Git: nunca contienen secretos reales.
+
+## Rotar claves que ya se filtraron
+
+Si el `.env` estuvo en Git, en un chat o en una captura, cambia las claves. El volumen de MySQL ya existe, así que `MYSQL_*` **no** se reaplica: hay que cambiarlas con `ALTER USER`.
+
+```bash
+# 1. Genera valores nuevos
+openssl rand -hex 32   # DB_PASSWORD, MIGRATOR_PASSWORD, APP_DB_PASSWORD, JWT_SECRET
+openssl rand -hex 16   # ADMIN_PASSWORD
+
+# 2. Cámbialas en MySQL (pide la clave actual de root)
+docker exec -i -e MYSQL_PWD="$DB_PASSWORD" tecnofactory-db mysql -uroot <<'SQL'
+ALTER USER 'root'@'%' IDENTIFIED BY 'NUEVA_ROOT';
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'NUEVA_ROOT';
+ALTER USER 'tecnofactory_migrator'@'%' IDENTIFIED BY 'NUEVA_MIGRATOR';
+ALTER USER 'tecnofactory_app'@'%' IDENTIFIED BY 'NUEVA_APP';
+FLUSH PRIVILEGES;
+SQL
+
+# 3. Escribe las claves nuevas en .env y recrea el contenedor
+docker compose up -d --force-recreate --wait db
+```
+
+Detalles importantes:
+
+- **`--force-recreate` es necesario**: el healthcheck del contenedor usa `DB_PASSWORD`; si no lo recreas, sigue probando con la clave vieja.
+- **`JWT_SECRET` nuevo invalida los tokens** ya emitidos: los usuarios deben volver a iniciar sesión.
+- **`ADMIN_PASSWORD` nuevo no cambia el hash guardado.** El administrador solo se crea si no existe. Para cambiarlo, actualiza `usuario.contrasenia` con un hash BCrypt nuevo (o borra ese usuario para que se recree al arrancar).
+- El orden importa: primero `ALTER USER`, después `.env` y por último recrear. Si lo haces al revés, la app no podrá autenticarse.

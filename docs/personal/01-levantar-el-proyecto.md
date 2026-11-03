@@ -2,15 +2,23 @@
 
 Para cuando abres el computador y quieres que todo funcione.
 
-## Lista de 5 pasos
+## Lista de 3 pasos
 
 | # | Paso | Comando | Esperado |
 | --- | --- | --- | --- |
 | 1 | Docker Desktop encendido | (abrir la aplicación) | Ballena estable |
-| 2 | Levantar MySQL | `docker compose up -d` | El contenedor aparece como `healthy` |
-| 3 | Cargar las variables | `set -a; source .env; set +a` | Sin salida |
-| 4 | Arrancar la app | `./mvnw spring-boot:run` | `Started TecnoFactoryApplication` |
-| 5 | Comprobar | Abrir `http://localhost:8080/actuator/health` | `{"status":"UP"}` |
+| 2 | Arrancar MySQL y la app | `./scripts/dev.sh` (Windows: `.\scripts\dev.ps1`) | MySQL `healthy` en el 3307 y `Started TecnoFactoryApplication` |
+| 3 | Comprobar | Abrir `http://localhost:8080/actuator/health` | `{"status":"UP"}` |
+
+El lanzador carga el `.env`, levanta MySQL en el puerto **3307** (deja libre el 3306 para otro MySQL instalado) y espera a que esté `healthy` antes de arrancar el backend.
+
+Si prefieres hacerlo a mano:
+
+```bash
+docker compose up -d --wait db
+set -a; source .env; set +a
+SPRING_PROFILES_ACTIVE=local DB_URL=jdbc:mysql://localhost:3307/tecnofactory DB_USER=root ./mvnw spring-boot:run
+```
 
 Swagger: `http://localhost:8080/swagger-ui/index.html`.
 
@@ -24,8 +32,8 @@ Swagger: `http://localhost:8080/swagger-ui/index.html`.
 
 1. Instala Docker y Java 21.
 2. Copia `.env.example` a `.env` y completa los valores.
-3. `docker compose up -d` (crea la base y los 3 usuarios).
-4. Arranca la app: Flyway crea las 13 tablas, y la app crea el administrador.
+3. `./scripts/dev.sh` (crea la base, los 3 usuarios y arranca la app).
+4. Flyway crea las 13 tablas, y la app crea el administrador.
 
 ## Empezar de cero (solo desarrollo)
 

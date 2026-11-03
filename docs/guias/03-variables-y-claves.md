@@ -25,7 +25,7 @@ Una **variable de entorno** es un valor que el sistema le entrega a un programa 
 
 ## Cómo se usa
 
-Cargar el `.env` en tu terminal y arrancar:
+Cargar el `.env` en tu terminal y arrancar. El lanzador `./scripts/dev.sh` hace esto por ti (y en Windows `.\scripts\dev.ps1`):
 
 ```bash
 set -a
@@ -33,10 +33,12 @@ source .env
 set +a
 
 SPRING_PROFILES_ACTIVE=local \
-DB_URL=jdbc:mysql://localhost:3306/tecnofactory \
+DB_URL=jdbc:mysql://localhost:3307/tecnofactory \
 DB_USER=root \
 ./mvnw spring-boot:run
 ```
+
+> MySQL se publica en el **3307** del host (dentro del contenedor sigue en el 3306), para no chocar con otro MySQL instalado en el computador.
 
 Comprobar que una variable está cargada **sin mostrarla**: `echo "${#JWT_SECRET}"` imprime su largo (no el valor).
 

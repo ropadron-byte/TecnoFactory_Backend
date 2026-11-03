@@ -19,24 +19,36 @@ JDK 21 completo (`javac -version`), Docker y Docker Compose (`docker compose ver
 
 ## Levantar en local (los 4 pasos)
 
+La forma recomendada es el lanzador: levanta MySQL en el puerto **3307**, espera a que esté `healthy` y arranca el backend con el perfil `local`.
+
 ```bash
-# 1. MySQL
-docker compose up -d
-docker compose ps                  # espera "healthy"
+./scripts/dev.sh
+```
+
+En Windows: `.\scripts\dev.ps1`.
+
+Si prefieres hacerlo a mano:
+
+```bash
+# 1. MySQL (publicado en el 3307)
+docker compose up -d --wait db
+docker compose ps                  # espera "healthy" y 0.0.0.0:3307->3306/tcp
 
 # 2. Cargar el .env y arrancar
 set -a; source .env; set +a
 SPRING_PROFILES_ACTIVE=local \
-DB_URL=jdbc:mysql://localhost:3306/tecnofactory \
+DB_URL=jdbc:mysql://localhost:3307/tecnofactory \
 DB_USER=root \
 ./mvnw spring-boot:run
 ```
+
+> El **3307** es el puerto del host: deja libre el 3306 para el MySQL que ya esté instalado en el computador. Dentro de Docker, MySQL sigue escuchando en el 3306.
 
 3. **Comprobar el log:** debe decir `The following 1 profile is active: "local"`, `Successfully applied N migrations` (solo la primera vez), `HikariPool-1 - Start completed` y `Tomcat started on port 8080`.
 4. **Abrir** Swagger en http://localhost:8080/swagger-ui/index.html y el estado en http://localhost:8080/actuator/health.
 
 **Con IntelliJ:** *Run → Edit Configurations → Environment variables*:
-`SPRING_PROFILES_ACTIVE=local;DB_URL=jdbc:mysql://localhost:3306/tecnofactory;DB_USER=root;DB_PASSWORD=...;JWT_SECRET=...`
+`SPRING_PROFILES_ACTIVE=local;DB_URL=jdbc:mysql://localhost:3307/tecnofactory;DB_USER=root;DB_PASSWORD=...;JWT_SECRET=...`
 
 Para apagar: `Ctrl + C` en la app y `docker compose stop` (conserva los datos).
 
