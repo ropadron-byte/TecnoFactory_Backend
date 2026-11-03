@@ -60,6 +60,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
 
+                        // Contacto: cualquier persona puede enviar; solo el administrador lee
+                        .requestMatchers(HttpMethod.POST, "/api/contactos").permitAll()
+                        .requestMatchers("/api/contactos/**").hasAnyRole(ROL_ADMINISTRADOR,ROL_VENDEDOR)
+
                         // Cualquier usuario con sesión: su propio perfil
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me").authenticated()
 
