@@ -12,6 +12,9 @@ Base: `http://localhost:8080` · Formato: JSON · Autenticación: cabecera `Auth
 | `POST` | `/api/usuarios` | Público (registro) | 201 |
 | `GET` | `/api/usuarios/me` | Cualquier sesión | 200 |
 | `GET` | `/api/usuarios/{id}` | `ADMINISTRADOR` | 200 |
+| `POST` | `/api/contactos` | **Público** (formulario de contacto) | 201 |
+| `GET` | `/api/contactos` | `ADMINISTRADOR` | 200 |
+| `GET` | `/api/contactos/{id}` | `ADMINISTRADOR` | 200 |
 | `GET` | `/actuator/health` | Público | 200 |
 | `GET` | `/swagger-ui/index.html`, `/v3/api-docs` | Público, **solo en local** | 200 |
 
@@ -135,6 +138,55 @@ Cualquier usuario por id. **Solo `ADMINISTRADOR`.**
 
 ---
 
+## `POST /api/contactos` (formulario de contacto)
+
+Guarda el mensaje de **cualquier persona**, sin iniciar sesión. Es una ruta pública a propósito: un visitante no tiene cuenta ni token.
+
+**Pide:**
+
+```json
+{ "nombre": "Ana", "correo": "ana@correo.cl", "comentario": "Hola, quiero más información" }
+```
+
+| Campo | Regla |
+| --- | --- |
+| `nombre` | Obligatorio, máx. 100 |
+| `correo` | Obligatorio, formato de correo, máx. 250 |
+| `comentario` | Obligatorio, máx. 500 |
+
+Los espacios al inicio y al final se quitan antes de guardar. El cuerpo no tiene `id`: lo genera la base.
+
+**Devuelve 201** con la cabecera `Location: /api/contactos/{id}` y:
+
+```json
+{ "id": 1, "nombre": "Ana", "correo": "ana@correo.cl", "comentario": "Hola, quiero más información" }
+```
+
+| Código | Cuándo |
+| --- | --- |
+| 400 | Falta un campo, el correo no tiene formato o se pasa del máximo (`detalles` indica cuál); JSON ilegible |
+| 415 | El cuerpo no es JSON |
+
+---
+
+## `GET /api/contactos` y `GET /api/contactos/{id}`
+
+Leer lo que llegó. **Solo `ADMINISTRADOR`**: cada mensaje trae el correo y el comentario de una persona.
+
+`GET /api/contactos` es **paginado** (`?page=`, `?size=`, `?sort=`; ver [Paginación](#paginación)) y devuelve un `PageResponse` de contactos. `GET /api/contactos/{id}` devuelve un contacto con la misma forma que el 201 de arriba.
+
+| Código | Cuándo |
+| --- | --- |
+| 200 | La página o el contacto |
+| 400 | El id no es un número, o `sort` nombra un campo que no existe |
+| 401 | Sin sesión |
+| 403 | Con sesión, pero no es administrador (incluye `VENDEDOR` y `CLIENTE`) |
+| 404 | No existe ese contacto (solo en `/{id}`) |
+
+Aún **no existen** `PUT` ni `DELETE` de contactos. Detalle en la [referencia 28](28-contacto-explicado.md) y la [guía 19](../guias/19-formulario-de-contacto.md).
+
+---
+
 ## Formato de todos los errores
 
 ```json
@@ -145,7 +197,7 @@ Cualquier usuario por id. **Solo `ADMINISTRADOR`.**
 
 ## Paginación
 
-Ya existen dos listados paginados: `GET /api/imagenes` y `GET /api/blogs`. La forma es la misma en ambos:
+Ya existen tres listados paginados: `GET /api/imagenes`, `GET /api/blogs` y `GET /api/contactos`. La forma es la misma en todos:
 
 | Parámetro | Efecto |
 | --- | --- |
@@ -174,4 +226,4 @@ Respuesta (`PageResponse`):
 
 ## Para saber más
 
-[Referencia 19: registro, service y controller](19-validacion-run-service-y-controller-explicados.md) · [Referencia 21: login y roles](21-seguridad-jwt-y-roles-explicada.md) · [Guía 17: usarlo desde React](../guias/17-integracion-con-react.md)
+[Referencia 19: registro, service y controller](19-validacion-run-service-y-controller-explicados.md) · [Referencia 21: login y roles](21-seguridad-jwt-y-roles-explicada.md) · [Referencia 28: contacto](28-contacto-explicado.md) · [Guía 17: usarlo desde React](../guias/17-integracion-con-react.md)

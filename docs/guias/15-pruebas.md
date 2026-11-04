@@ -29,6 +29,8 @@ Una prueba es como un **simulacro de incendio**: se hace en un entorno controlad
 | `AuthControllerTest` | 3 |
 | `UsuarioControllerTest` | 14 |
 
+**Contacto (4 nov):** `ContactoServiceTest` (4) y `ContactoControllerTest` (10), escritos pero **sin ejecutar** (el ZIP no traía `pom.xml`); no están contados en la cifra de arriba. Ver [referencia 28, sección 11](../referencia/28-contacto-explicado.md#11-las-pruebas).
+
 `TecnoFactoryApplicationTests` (`contextLoads`) arranca **toda** la app y necesita la base: por eso se ejecutan los demás con `-Dtest="*Test"`.
 
 ## Cómo se usa

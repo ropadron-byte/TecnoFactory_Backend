@@ -63,7 +63,8 @@ Una regla de oro: **lo que no está permitido explícitamente, queda protegido**
 | Ruta | Acceso |
 | --- | --- |
 | Swagger, `/v3/api-docs/**` (solo `local`), `/actuator/health` | Público |
-| `POST /api/auth/login` y `POST /api/usuarios` (registro) | Público |
+| `POST /api/auth/login`, `POST /api/usuarios` (registro) y `POST /api/contactos` (formulario de contacto) | Público |
+| `GET /api/contactos` y `GET /api/contactos/{id}` | Solo `ADMINISTRADOR` |
 | `GET /api/usuarios/me` | Cualquiera con sesión |
 | Resto de `/api/usuarios/**` | Solo `ADMINISTRADOR` |
 | Todo lo demás | Cualquiera con token válido |

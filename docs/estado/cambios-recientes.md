@@ -67,6 +67,15 @@ Guía completa: [21-seguridad-jwt-y-roles-explicada.md](../referencia/21-segurid
 - [x] **`POST /api/imagenes/productos` no registraba la imagen en `imagen_url`**: resuelto el 3 nov (ver la entrada de las 03:10). Falta poder asignar imágenes a productos y categorías por id (sus controllers).
 - [ ] **Mover `JwtServiceTest` y `UserDetailsServiceImplTest`** a `src/test/.../security/` (hoy están en `service/`; `JwtServiceTest` declara el paquete `security` y compila igual, pero la carpeta no coincide).
 
+### Formulario de contacto
+
+Guía: [19](../guias/19-formulario-de-contacto.md) · Referencia: [28](../referencia/28-contacto-explicado.md).
+
+- [ ] **Confirmar el contacto**: `./mvnw test -Dtest="ContactoServiceTest,ContactoControllerTest"` (4 + 10 tests) y arranque con `./scripts/dev.sh` (en el log: `Migrating schema ... to version "6 - contacto"`). **No se compiló ni se ejecutó** (el ZIP no traía `pom.xml`).
+- [ ] **Probarlo en Swagger** (grupo **Contacto**): `POST` sin sesión → 201; `GET` sin sesión → 401; `GET` con cliente → 403; `GET` con administrador → 200 ([manual 05](../personal/05-probar-la-api.md)).
+- [ ] **Límite de envíos por IP o captcha** antes de desplegar: `POST /api/contactos` es público y cualquiera puede llenar la tabla.
+- [ ] **Decidir si la tabla lleva fecha de envío** (`fecha_creacion`): en la `V6` si aún no se aplicó, en una `V7` si ya se aplicó.
+
 ### Verificaciones pendientes
 
 - [x] **Confirmar `V1` y `V2` en tu MySQL 8.4** (se probaron en MariaDB 10.11): **hecho**.
@@ -101,6 +110,17 @@ Guía completa: [21-seguridad-jwt-y-roles-explicada.md](../referencia/21-segurid
 ---
 
 ## Historial
+
+### 4 nov 2026: documentación del formulario de contacto
+
+El código del contacto se escribió el 3 nov (pedido tuyo: convertir la tabla `CONTACTO` a MySQL con Flyway y crear entidad, mapper, DTOs y endpoints, con envío abierto a cualquier persona). Hoy se documentó y se integró en el resto de los documentos.
+
+- **Qué se agregó al código:** `V6__contacto.sql`, `Contacto`, `ContactoRepository`, `ContactoRequest`, `ContactoResponse`, `ContactoMapper`, `ContactoService`, `ContactoController`, dos reglas en `SecurityConfig`, y `ContactoServiceTest` (4) y `ContactoControllerTest` (10).
+- **Rutas:** `POST /api/contactos` público (201); `GET /api/contactos` y `GET /api/contactos/{id}` solo `ADMINISTRADOR`. No hay `PUT` ni `DELETE`.
+- **Documentos nuevos:** [guía 19](../guias/19-formulario-de-contacto.md) y [referencia 28](../referencia/28-contacto-explicado.md).
+- **Documentos actualizados:** [README](../../README.md) (índices y estado), [catálogo de endpoints](../referencia/23-catalogo-de-endpoints.md), [diccionario de datos](../referencia/22-diccionario-de-datos.md) (tabla `contacto`), reglas de acceso en la [referencia 21](../referencia/21-seguridad-jwt-y-roles-explicada.md), la [referencia 08](../referencia/08-seguridad.md) y la [guía 11](../guias/11-seguridad-y-login.md), [manual 05](../personal/05-probar-la-api.md) y [07](../personal/07-roles-y-permisos.md), [guía 15](../guias/15-pruebas.md) y [guía 16](../guias/16-hoja-de-ruta.md).
+- **No se tocó** la [referencia 24](../referencia/24-decisiones-de-diseno.md): las decisiones del contacto están en la sección 1 de la referencia 28. Si quieres numerarlas (`D37` en adelante), se pasan de ahí.
+- **Sin ejecutar:** nada de esto se compiló. Los pendientes están en la sección «Formulario de contacto» de arriba.
 
 ### 3 nov 2026 (03:10): subida de imágenes sin dueño
 

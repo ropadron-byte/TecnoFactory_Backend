@@ -40,7 +40,8 @@ PETICIÓN: Authorization: Bearer <token> -> JwtAuthFilter (¿válido? ¿usuario 
 
 | Ruta | Quién entra |
 | --- | --- |
-| Swagger, `/actuator/health`, `POST /api/auth/login`, `POST /api/usuarios` (registro) | Todos |
+| Swagger, `/actuator/health`, `POST /api/auth/login`, `POST /api/usuarios` (registro), `POST /api/contactos` (formulario de contacto) | Todos |
+| `GET /api/contactos` y `GET /api/contactos/{id}` | Solo `ADMINISTRADOR` |
 | `GET /api/usuarios/me` | Cualquiera con sesión |
 | Resto de `/api/usuarios/**` | Solo `ADMINISTRADOR` |
 | Todo lo demás | Cualquiera con token válido |

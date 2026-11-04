@@ -27,6 +27,7 @@
 5. **`Producto`**, con permisos para vendedor y administrador.
 6. **Carrito y boleta**, con la copia congelada del precio.
 7. **Después:** imágenes, blog, correo y caché.
+8. **Contacto:** confirmar sus 14 tests y probarlo en Swagger, y agregar un límite de envíos (es una ruta pública). Ver [guía 19](19-formulario-de-contacto.md).
 
 ## Decisiones abiertas
 

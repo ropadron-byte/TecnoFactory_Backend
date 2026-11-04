@@ -22,6 +22,16 @@ Abre `http://localhost:8080/swagger-ui/index.html`.
 
 En `GET /api/imagenes` y `GET /api/blogs`, *Try it out* muestra tres campos: `page` (desde 0), `size` y `sort` (por ejemplo `id,desc`). **Borra el `"string"` que Swagger pone de ejemplo en `sort`**: no es un campo real y devuelve 400.
 
+### Formulario de contacto
+
+| # | Paso | Esperado |
+| --- | --- | --- |
+| 1 | Sin Authorize: `POST /api/contactos` con `{"nombre":"Ana","correo":"ana@correo.cl","comentario":"Hola"}` | **201** con `id` y `Location` |
+| 2 | Mismo `POST` con `"correo":"no-es-correo"` | 400 con `detalles.correo` |
+| 3 | `GET /api/contactos` sin Authorize | 401 |
+| 4 | `GET /api/contactos` con el token de un cliente | 403 |
+| 5 | `GET /api/contactos` con el token del administrador | 200 con la fila del paso 1 |
+
 ### Probar un rol sin permiso
 
 1. Registra un cliente: `POST /api/usuarios` (no pide token; clave de 8 a 72 caracteres, RUN con dígito verificador válido).
@@ -61,4 +71,4 @@ curl -i http://localhost:8080/api/usuarios/me
 
 ## Para saber más
 
-[Guía 11](../guias/11-seguridad-y-login.md) · [Referencia 21, sección 14](../referencia/21-seguridad-jwt-y-roles-explicada.md) · [Guía 10: errores](../guias/10-errores-de-la-api.md)
+[Guía 19: contacto](../guias/19-formulario-de-contacto.md) · [Guía 11](../guias/11-seguridad-y-login.md) · [Referencia 21, sección 14](../referencia/21-seguridad-jwt-y-roles-explicada.md) · [Guía 10: errores](../guias/10-errores-de-la-api.md)

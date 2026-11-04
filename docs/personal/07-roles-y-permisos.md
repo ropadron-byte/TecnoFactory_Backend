@@ -16,6 +16,8 @@
 | Login con JWT | Hecho |
 | `GET /api/usuarios/me` (cualquier sesión) | Hecho |
 | `GET /api/usuarios/{id}` (solo administrador) | Hecho |
+| `POST /api/contactos` (cualquier persona, sin sesión) | Hecho |
+| `GET /api/contactos` y `/{id}` (solo administrador) | Hecho |
 | `GET /api/usuarios` listado (administrador y vendedor, lectura) | **Pendiente** |
 | `PUT /api/usuarios/me` (editar el propio perfil) | **Pendiente** |
 | Crear vendedores (solo administrador) | **Pendiente** |
@@ -25,7 +27,7 @@
 
 En `SecurityConfig`, de arriba hacia abajo, **la primera que coincide gana**:
 
-1. Rutas públicas (Swagger, `/actuator/health`, login, registro).
+1. Rutas públicas (Swagger, `/actuator/health`, login, registro, `POST /api/contactos`).
 2. `GET /api/usuarios/me` → cualquiera con sesión.
 3. `/api/usuarios/**` → `hasRole("ADMINISTRADOR")`.
 4. `anyRequest().authenticated()` → todo lo demás pide sesión.

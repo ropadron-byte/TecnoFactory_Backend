@@ -5,8 +5,8 @@ La documentación tiene **tres lugares**, según lo que necesites:
 | Necesito... | Carpeta |
 | --- | --- |
 | **Hacer algo** (levantar, agregar una entidad, arreglar un fallo) | [`docs/personal/`](docs/personal/00-empieza-aqui.md): manual por tareas |
-| **Entender un tema rápido**, con analogías | [`docs/guias/`](docs/guias/01-el-proyecto-en-una-pagina.md): 17 guías cortas |
-| **Todo el detalle**, línea por línea | [`docs/referencia/`](docs/referencia/): 26 documentos técnicos |
+| **Entender un tema rápido**, con analogías | [`docs/guias/`](docs/guias/01-el-proyecto-en-una-pagina.md): 19 guías cortas |
+| **Todo el detalle**, línea por línea | [`docs/referencia/`](docs/referencia/): 28 documentos técnicos |
 | **Saber qué cambió y qué falta** | [`docs/estado/cambios-recientes.md`](docs/estado/cambios-recientes.md) |
 
 **Primera vez:** empieza por [Empieza aquí](docs/personal/00-empieza-aqui.md).
@@ -36,6 +36,7 @@ El lanzador levanta MySQL en el puerto **3307** (deja libre el 3306 para otro My
 | 08 | [Antes de desplegar](docs/personal/08-antes-de-desplegar.md) |
 | 09 | [Reglas y trampas](docs/personal/09-reglas-y-trampas.md) |
 | 10 | [Preguntas frecuentes](docs/personal/10-preguntas-frecuentes.md) |
+| 11 | [Subir y ver imágenes](docs/personal/11-subir-y-ver-imagenes.md) |
 
 ## Guías rápidas (un tema, una página)
 
@@ -58,6 +59,8 @@ El lanzador levanta MySQL en el puerto **3307** (deja libre el 3306 para otro My
 | 15 | [Pruebas](docs/guias/15-pruebas.md) |
 | 16 | [Hoja de ruta](docs/guias/16-hoja-de-ruta.md) |
 | 17 | [Usar la API desde React](docs/guias/17-integracion-con-react.md) |
+| 18 | [Subida de imágenes](docs/guias/18-subida-de-imagenes.md) |
+| 19 | [Formulario de contacto](docs/guias/19-formulario-de-contacto.md) |
 
 ## Referencia técnica
 
@@ -84,11 +87,13 @@ El lanzador levanta MySQL en el puerto **3307** (deja libre el 3306 para otro My
 | 19 | [Validación del RUN, service, controller y pruebas](docs/referencia/19-validacion-run-service-y-controller-explicados.md) | `RunUtil` y `@RunValido`, `UsuarioService` (registrar y buscar), `UsuarioController`, las tres pruebas y la **receta para la próxima entidad** |
 | 20 | [Configuración base explicada](docs/referencia/20-configuracion-base-explicada.md) | Handlers 415 y 400, paginación (`PageResponse`), zona horaria, `OpenApiConfig` y CORS, y por qué se hizo cada uno antes de la segunda entidad |
 | 21 | [Seguridad con JWT y roles explicada](docs/referencia/21-seguridad-jwt-y-roles-explicada.md) | Login, token JWT, filtro, reglas por ruta, 401 y 403 en JSON; explicado primero con una analogía y después línea por línea |
-| 22 | [Diccionario de datos](docs/referencia/22-diccionario-de-datos.md) | Las 13 tablas columna por columna, relaciones, qué pasa al borrar y convenciones |
+| 22 | [Diccionario de datos](docs/referencia/22-diccionario-de-datos.md) | Las tablas columna por columna (incluida `contacto`), relaciones, qué pasa al borrar y convenciones |
 | 23 | [Catálogo de endpoints](docs/referencia/23-catalogo-de-endpoints.md) | Cada ruta que existe: qué pide, qué devuelve, errores posibles y paginación |
 | 24 | [Decisiones de diseño](docs/referencia/24-decisiones-de-diseno.md) | 30 decisiones con su motivo, la alternativa descartada y su consecuencia |
 | 25 | [Glosario](docs/referencia/25-glosario.md) | Las palabras del proyecto, explicadas sin jerga |
 | 26 | [Configuración YAML explicada](docs/referencia/26-configuracion-yaml-explicada.md) | Cada propiedad de `application`, `local` y `prod`, y las observaciones para desplegar |
+| 27 | [Subida de imágenes explicada](docs/referencia/27-subida-de-imagenes-explicada.md) | La subida de imágenes línea por línea: validación del contenido, carpetas y registro en `imagen_url` |
+| 28 | [Contacto explicado](docs/referencia/28-contacto-explicado.md) | El formulario de contacto pieza por pieza: migración `V6`, entidad, DTOs, mapper, service, controller, regla de seguridad y pruebas |
 
 
 **Archivo vivo:** [Cambios recientes](docs/estado/cambios-recientes.md) reúne lo que falta y lo que ya se hizo, sesión por sesión.
@@ -115,6 +120,7 @@ El lanzador levanta MySQL en el puerto **3307** (deja libre el 3306 para otro My
 | Controllers | `UsuarioController` (`POST /api/usuarios`, `GET /api/usuarios/me`, `GET /api/usuarios/{id}`) y `AuthController` (`POST /api/auth/login`). El registro se probó en Swagger contra MySQL (201, 20 oct); el login, pendiente de confirmar |
 | Configuración base | `open-in-view: false`, handlers 415 y 400, `PageResponse`, zona horaria, `OpenApiConfig` y CORS: **29 tests** y arranque confirmados (20 oct). Ver [20](docs/referencia/20-configuracion-base-explicada.md) |
 | Blogs e imágenes (`BlogController`, `ImagenController`, `AlmacenamientoService`) | **Revisados el 3 nov**: `@ParameterObject` en los listados (Swagger ya muestra `page`, `size` y `sort`), subida con comprobación del contenido real del archivo (JPG, PNG, WEBP; máx. 5 MB), `POST /api/imagenes` para subir imágenes sin dueño y asignarlas por id, y `POST /api/imagenes/productos` ya registra la fila en `imagen_url` y blogs ocultos visibles para su autor. **Cambios sin compilar ni ejecutar** (el ZIP no traía `pom.xml`): falta `./mvnw test`. Ver [cambios recientes](docs/estado/cambios-recientes.md) y [guía 18](docs/guias/18-subida-de-imagenes.md) |
+| Formulario de contacto (`V6`, `Contacto`, `ContactoController`) | **Escrito el 3 nov**: `POST /api/contactos` **público** (cualquiera envía nombre, correo y comentario) y lectura (`GET /api/contactos` y `/{id}`) solo para `ADMINISTRADOR`. **Sin compilar ni ejecutar** (el ZIP no traía `pom.xml`): falta `./mvnw test` (14 tests nuevos) y probarlo en Swagger. Falta un límite de envíos contra spam. Ver [guía 19](docs/guias/19-formulario-de-contacto.md) y [referencia 28](docs/referencia/28-contacto-explicado.md) |
 | `jwt.secret` | **Sin valor por defecto** (3 nov): si falta `JWT_SECRET`, la app no arranca. Ver [26](docs/referencia/26-configuracion-yaml-explicada.md) |
 | `Dockerfile` y servicio `backend` del compose | Vacío / comentado |
 

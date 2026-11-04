@@ -448,6 +448,8 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwt
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/contactos").permitAll()
+                .requestMatchers("/api/contactos/**").hasRole(ROL_ADMINISTRADOR)
                 .requestMatchers(HttpMethod.GET, "/api/usuarios/me").authenticated()
                 .requestMatchers("/api/usuarios/**").hasRole(ROL_ADMINISTRADOR)
                 .anyRequest().authenticated())
@@ -468,6 +470,8 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwt
 | Swagger, `/v3/api-docs/**`, `/actuator/health` | Todos | Documentación y salud (Swagger está apagado en `prod`) |
 | `POST /api/auth/login` | Todos | Para poder iniciar sesión hay que entrar sin sesión |
 | `POST /api/usuarios` (registro) | Todos | Una persona nueva no tiene token |
+| `POST /api/contactos` (formulario de contacto) | Todos | Un visitante no tiene cuenta ni token |
+| `GET /api/contactos` y `GET /api/contactos/{id}` | Solo `ADMINISTRADOR` | Cada mensaje trae el correo y el comentario de una persona ([28](28-contacto-explicado.md#10-securityconfigjava-las-dos-reglas-nuevas)) |
 | `GET /api/usuarios/me` | Cualquiera **con sesión** | Su propio perfil |
 | Cualquier otra ruta de `/api/usuarios/**` (por ejemplo `GET /api/usuarios/7`) | Solo `ADMINISTRADOR` | Si fuera «cualquiera con sesión», un cliente leería los datos de otros cambiando el id |
 | **Todo lo demás** | Cualquiera con token válido | `anyRequest().authenticated()`: lo olvidado queda **protegido por defecto**, no abierto |
@@ -543,6 +547,8 @@ Los tres roles viven en la tabla `tipo_usuario` (`ADMINISTRADOR`, `VENDEDOR`, `C
 | Registrarse, iniciar sesión | Sí | Sí | Sí | **Hecho** |
 | Ver su propio perfil (`GET /api/usuarios/me`) | Sí | Sí | Sí | **Hecho** |
 | Ver un usuario por id | No | No | Sí | **Hecho** (solo administrador) |
+| Enviar un mensaje de contacto | Sí | Sí | Sí | **Hecho** (también sin sesión) |
+| Leer los mensajes de contacto | No | No | Sí | **Hecho** (`GET /api/contactos`) |
 | Ver la lista de usuarios | No | **Sí** (solo lectura) | Sí | Pendiente: `GET /api/usuarios` con `hasAnyRole` |
 | Editar su **propio** perfil | Sí | Sí | Sí | Pendiente: `PUT /api/usuarios/me` |
 | Editar o desactivar a **otros** | No | No | Sí | Pendiente |

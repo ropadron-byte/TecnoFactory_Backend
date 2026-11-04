@@ -1,6 +1,6 @@
 # 22. Diccionario de datos
 
-Las 13 tablas de `V1__esquema_inicial.sql`, columna por columna, con sus reglas. **La base manda**: si una entidad no coincide con esto, `ddl-auto: validate` impide que la app arranque.
+Las 13 tablas de `V1__esquema_inicial.sql` y la tabla `contacto` (`V6__contacto.sql`), columna por columna, con sus reglas. **La base manda**: si una entidad no coincide con esto, `ddl-auto: validate` impide que la app arranque.
 
 Estado de cada tabla en el código: ✅ tiene entidad y repository · ⏳ solo existe en la base.
 
@@ -15,6 +15,7 @@ region 1──N comuna 1──N usuario N──1 tipo_usuario
                           1 carrito 1──N detalle_carrito N──1 producto
 producto N──N categoria   (tabla puente: producto_categoria)
 imagen_url → pertenece a UN producto, UNA categoría o UN blog
+contacto      (sin relaciones: la escribe cualquier visitante, tenga cuenta o no)
 ```
 
 ## Tablas
@@ -124,6 +125,19 @@ Datos (`V3`): Notebooks, Computadores de escritorio, Componentes, Almacenamiento
 
 **Por qué se copian nombre y precio:** una boleta es un documento histórico. Si mañana el producto cambia de precio o de nombre, la boleta de ayer no debe cambiar.
 
+### `contacto` ✅ (`V6`)
+
+Mensajes del formulario de contacto. **No tiene claves foráneas**: quien escribe puede no tener cuenta, por eso `nombre` y `correo` van en la propia fila.
+
+| Columna | Tipo | Reglas |
+| --- | --- | --- |
+| `id_contacto` | `BIGINT` | PK, autoincremento |
+| `nombre` | `VARCHAR(100)` | Obligatorio |
+| `correo` | `VARCHAR(250)` | Obligatorio |
+| `comentario` | `VARCHAR(500)` | Obligatorio |
+
+No tiene fecha de envío (ver [referencia 28, sección 13](28-contacto-explicado.md#13-límites-y-mejoras-futuras)). Los máximos del DTO `ContactoRequest` coinciden con estas columnas: lo que pasa la validación siempre cabe.
+
 ## Qué pasa al borrar (`ON DELETE`)
 
 | Si borras... | Resultado |
@@ -133,6 +147,7 @@ Datos (`V3`): Notebooks, Computadores de escritorio, Componentes, Almacenamiento
 | Una `categoria` | Se borran sus imágenes. **Falla** si algún producto la usa |
 | Una `boleta` | **Falla** si tiene detalles |
 | Una `region` o `comuna` | **Falla** si hay comunas o usuarios que dependen |
+| Un `contacto` | Se borra sin problema: ninguna tabla depende de él (todavía no hay `DELETE` en la API) |
 
 **Consecuencia práctica:** casi nada se borra de verdad. Para «eliminar» un producto o un usuario se usa la **baja lógica** (`activo = false`).
 
