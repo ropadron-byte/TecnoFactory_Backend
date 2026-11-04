@@ -25,6 +25,7 @@ public class UsuarioService {
 
     private static final String ROL_ADMINISTRADOR = "ADMINISTRADOR";
     private static final String ROL_CLIENTE = "CLIENTE";                  // NUEVO
+    private static final String ROL_VENDEDOR = "VENDEDOR";
 
     private final UsuarioRepository usuarioRepository;
     private final TipoUsuarioRepository tipoUsuarioRepository;
@@ -63,8 +64,19 @@ public class UsuarioService {
         return true;
     }
 
-    @Transactional                                                        // NUEVO
+    /** Registro público: siempre crea un CLIENTE. */
+    @Transactional
     public UsuarioResponse registrar(UsuarioRequest request) {
+        return crearConRol(request, ROL_CLIENTE);
+    }
+
+    /** Solo lo invoca el administrador (lo garantiza SecurityConfig sobre /api/usuarios/**). */
+    @Transactional
+    public UsuarioResponse crearVendedor(UsuarioRequest request) {
+        return crearConRol(request, ROL_VENDEDOR);
+    }
+
+    private UsuarioResponse crearConRol(UsuarioRequest request, String nombreRol) {
         if (usuarioRepository.existsByCorreo(request.correo())) {
             throw new ReglaNegocioException("El correo ya está registrado");
         }
@@ -75,8 +87,8 @@ public class UsuarioService {
         Comuna comuna = comunaRepository.findById(request.idComuna())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Comuna", request.idComuna()));
 
-        TipoUsuario rol = tipoUsuarioRepository.findByNombre(ROL_CLIENTE)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Rol", ROL_CLIENTE));
+        TipoUsuario rol = tipoUsuarioRepository.findByNombre(nombreRol)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Rol", nombreRol));
 
         Usuario usuario = usuarioMapper.toEntity(request);
         usuario.setRunDv(request.runDv().toUpperCase());
@@ -85,7 +97,7 @@ public class UsuarioService {
         usuario.setComuna(comuna);
 
         Usuario guardado = usuarioRepository.save(usuario);
-        log.info("Usuario registrado con el correo {}", guardado.getCorreo());
+        log.info("Usuario {} registrado con el correo {}", nombreRol, guardado.getCorreo());
         return usuarioMapper.toResponse(guardado);
     }
 
@@ -104,4 +116,4 @@ public class UsuarioService {
     }
 
 
-}
+}

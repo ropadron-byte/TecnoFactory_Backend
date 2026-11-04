@@ -1,5 +1,6 @@
 package com.factory.tecnofactory.mapper;
 
+import com.factory.tecnofactory.dto.BlogGestionResponse;
 import com.factory.tecnofactory.dto.BlogRequest;
 import com.factory.tecnofactory.dto.BlogResponse;
 import com.factory.tecnofactory.dto.BlogResumenResponse;
@@ -23,6 +24,9 @@ public interface BlogMapper {
 
     @Mapping(source = "usuario.nombre", target = "autorNombre")
     BlogResumenResponse toResumen(Blog blog);
+
+    @Mapping(source = "usuario.nombre", target = "autorNombre")
+    BlogGestionResponse toGestion(Blog blog);
 
     ImagenResumen toImagenResumen(ImagenUrl imagen);
 

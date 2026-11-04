@@ -2,6 +2,7 @@ package com.factory.tecnofactory.controller;
 
 import com.factory.tecnofactory.dto.ImagenResponse;
 import com.factory.tecnofactory.dto.PageResponse;
+import com.factory.tecnofactory.dto.TipoDueno;
 import com.factory.tecnofactory.service.ImagenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -10,9 +11,12 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -54,6 +58,41 @@ public class ImagenController {
             description = "Igual que POST /api/imagenes, pero guarda el archivo en la carpeta productos.")
     public ResponseEntity<ImagenResponse> subirProducto(@RequestParam("archivo") MultipartFile archivo) {
         return creada(imagenService.subir(archivo, "productos"));
+    }
+
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Reemplazar el archivo de una imagen (ADMINISTRADOR o VENDEDOR)",
+            description = "Conserva el id y todas las relaciones; solo cambia la URL.")
+    public ImagenResponse reemplazar(@PathVariable Long id,
+                                     @RequestParam("archivo") MultipartFile archivo,
+                                     Authentication autenticacion) {
+        return imagenService.reemplazar(id, archivo, autenticacion);
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Borrar una imagen sin relaciones (ADMINISTRADOR o VENDEDOR)",
+            description = "Responde 409 si la imagen todavía está asociada a algún blog, producto o categoría: "
+                    + "primero hay que desacoplarla.")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        imagenService.eliminar(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}/duenos")
+    @Operation(summary = "Desacoplar la imagen de TODOS sus dueños (ADMINISTRADOR o VENDEDOR)",
+            description = "La imagen queda libre y sigue existiendo.")
+    public ImagenResponse desacoplarDeTodos(@PathVariable Long id, Authentication autenticacion) {
+        return imagenService.desacoplarDeTodos(id, autenticacion);
+    }
+
+    @DeleteMapping("/{id}/duenos/{tipo}/{idDueno}")
+    @Operation(summary = "Desacoplar la imagen de UN dueño (ADMINISTRADOR o VENDEDOR)",
+            description = "tipo = BLOG, PRODUCTO o CATEGORIA (los mismos valores que devuelve 'duenos').")
+    public ImagenResponse desacoplarDe(@PathVariable Long id,
+                                       @PathVariable TipoDueno tipo,
+                                       @PathVariable Long idDueno,
+                                       Authentication autenticacion) {
+        return imagenService.desacoplarDe(id, tipo, idDueno, autenticacion);
     }
 
     private static ResponseEntity<ImagenResponse> creada(ImagenResponse imagen) {

@@ -169,7 +169,7 @@ class BlogServiceTest {
     }
 
     @Test
-    void autorPuedeVerSuPropioBlogInvisible() {
+    void vendedorPuedeVerUnBlogInvisible() {
         Blog blog = blogVisible();
         blog.setVisible(false);
         when(blogRepository.findById(1L)).thenReturn(Optional.of(blog));
@@ -180,17 +180,17 @@ class BlogServiceTest {
     }
 
     @Test
-    void otroVendedorNoVeUnBlogInvisibleAjeno() {
+    void clienteNoVeUnBlogInvisible() {
         Blog blog = blogVisible();
         blog.setVisible(false);
         when(blogRepository.findById(1L)).thenReturn(Optional.of(blog));
 
         assertThrows(RecursoNoEncontradoException.class,
-                () -> service.buscarPorId(1L, sesion("otro@correo.cl", "VENDEDOR")));
+                () -> service.buscarPorId(1L, sesion("cliente@correo.cl", "CLIENTE")));
     }
 
     @Test
-    void autorPuedeCambiarLaPortada() {
+    void vendedorPuedeCambiarLaPortada() {
         Blog blog = blogVisible();
         ImagenUrl portada = imagen(7L, "/uploads/blog/a.jpg");
         when(blogRepository.findById(1L)).thenReturn(Optional.of(blog));
@@ -205,16 +205,16 @@ class BlogServiceTest {
     }
 
     @Test
-    void otroUsuarioNoPuedeCambiarLaPortada() {
+    void clienteNoPuedeCambiarLaPortada() {
         Blog blog = blogVisible();
         when(blogRepository.findById(1L)).thenReturn(Optional.of(blog));
 
         assertThrows(AccessDeniedException.class, () -> service.asignarImagenPrincipal(1L, 7L,
-                sesion("otro@correo.cl", "VENDEDOR")));
+                sesion("cliente@correo.cl", "CLIENTE")));
     }
 
     @Test
-    void administradorPuedeCambiarLaPortadaDeOtroAutor() {
+    void cualquierVendedorPuedeCambiarLaPortadaDeBlogsAjenos() {
         Blog blog = blogVisible();
         ImagenUrl portada = imagen(7L, "/uploads/blog/a.jpg");
         when(blogRepository.findById(1L)).thenReturn(Optional.of(blog));
@@ -222,7 +222,7 @@ class BlogServiceTest {
         when(blogRepository.save(any(Blog.class))).thenAnswer(inv -> inv.getArgument(0));
 
         BlogResponse respuesta = service.asignarImagenPrincipal(1L, 7L,
-                sesion("admin@correo.cl", "ADMINISTRADOR"));
+                sesion("otro@correo.cl", "VENDEDOR"));
 
         assertEquals(7L, respuesta.imagenPrincipal().id());
     }

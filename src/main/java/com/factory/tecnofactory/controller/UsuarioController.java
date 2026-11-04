@@ -35,6 +35,17 @@ public class UsuarioController {
         return ResponseEntity.created(ubicacion).body(creado);
     }
 
+    @PostMapping("/vendedores")
+    @Operation(summary = "Crear un usuario con rol VENDEDOR (solo administrador)")
+    public ResponseEntity<UsuarioResponse> crearVendedor(@Valid @RequestBody UsuarioRequest request) {
+        UsuarioResponse creado = usuarioService.crearVendedor(request);
+        URI ubicacion = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/usuarios/{id}")
+                .buildAndExpand(creado.id())
+                .toUri();
+        return ResponseEntity.created(ubicacion).body(creado);
+    }
+
     @GetMapping("/me")
     @Operation(summary = "Ver mi propio perfil (cualquier usuario con sesión)")
     public UsuarioResponse miPerfil(Authentication autenticacion) {

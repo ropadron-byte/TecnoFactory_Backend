@@ -1,5 +1,6 @@
 package com.factory.tecnofactory.service;
 
+import com.factory.tecnofactory.dto.BlogGestionResponse;
 import com.factory.tecnofactory.dto.BlogRequest;
 import com.factory.tecnofactory.dto.BlogResponse;
 import com.factory.tecnofactory.dto.BlogResumenResponse;
@@ -60,8 +61,8 @@ public class BlogService {
         Blog blog = blogRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Blog", id));
 
-        // Un blog invisible se comporta como inexistente, salvo para el administrador y su autor.
-        if (!Boolean.TRUE.equals(blog.getVisible()) && !BlogAutorizacion.puedeVerBlogOculto(blog, autenticacion)) {
+        // Un blog invisible se comporta como inexistente, salvo para el personal (administrador o vendedor).
+        if (!Boolean.TRUE.equals(blog.getVisible()) && !BlogAutorizacion.puedeVerBlogOculto(autenticacion)) {
             throw new RecursoNoEncontradoException("Blog", id);
         }
         return blogMapper.toResponse(blog);
@@ -73,22 +74,97 @@ public class BlogService {
         return PageResponse.de(pagina.map(blogMapper::toResumen));
     }
 
+    /** Listado de gestión: todos los blogs, también los desactivados. */
+    @Transactional(readOnly = true)
+    public PageResponse<BlogGestionResponse> listarGestion(Pageable pageable) {
+        return PageResponse.de(blogRepository.findAll(pageable).map(blogMapper::toGestion));
+    }
+
+    /**
+     * Actualiza título y contenido. 'visible' e 'idImagenPrincipal' son opcionales:
+     * si no vienen se conservan los valores actuales (para quitar una portada se usa
+     * DELETE /api/blogs/{id}/imagenes/{idImagen}).
+     */
+    @Transactional
+    public BlogResponse actualizar(Long id, BlogRequest request, Authentication autenticacion) {
+        Blog blog = buscarBlog(id);
+        BlogAutorizacion.verificarPersonal(autenticacion);
+
+        blog.setTitulo(request.titulo());
+        blog.setContenido(request.contenido());
+        if (request.visible() != null) {
+            blog.setVisible(request.visible());
+        }
+        if (request.idImagenPrincipal() != null) {
+            asignarPortada(blog, buscarImagen(request.idImagenPrincipal()));
+        }
+
+        Blog guardado = blogRepository.save(blog);
+        log.info("Blog {} actualizado", id);
+        return blogMapper.toResponse(guardado);
+    }
+
+    @Transactional
+    public BlogResponse desactivar(Long id, Authentication autenticacion) {
+        return cambiarVisibilidad(id, false, autenticacion);
+    }
+
+    @Transactional
+    public BlogResponse activar(Long id, Authentication autenticacion) {
+        return cambiarVisibilidad(id, true, autenticacion);
+    }
+
+    /**
+     * Borra el blog. Sus relaciones con imágenes (galería y portada) desaparecen con él;
+     * las imágenes quedan en el catálogo, sin ese dueño.
+     */
+    @Transactional
+    public void eliminar(Long id, Authentication autenticacion) {
+        Blog blog = buscarBlog(id);
+        BlogAutorizacion.verificarPersonal(autenticacion);
+
+        blog.getImagenes().forEach(imagen -> imagen.getBlogs().remove(blog));
+        blog.getImagenes().clear();
+        blogRepository.delete(blog);
+        log.info("Blog {} eliminado", id);
+    }
+
     @Transactional
     public BlogResponse asignarImagenPrincipal(Long idBlog, Long idImagen, Authentication autenticacion) {
-        Blog blog = blogRepository.findById(idBlog)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Blog", idBlog));
-        BlogAutorizacion.verificarPropietarioOAdmin(blog, autenticacion);
+        Blog blog = buscarBlog(idBlog);
+        BlogAutorizacion.verificarPersonal(autenticacion);
 
-        ImagenUrl imagen = imagenUrlRepository.findById(idImagen)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Imagen", idImagen));
-
-        blog.setImagenPrincipal(imagen);
-        // La portada siempre forma parte de la galería del blog.
-        blog.getImagenes().add(imagen);
-        imagen.getBlogs().add(blog);
+        asignarPortada(blog, buscarImagen(idImagen));
 
         Blog guardado = blogRepository.save(blog);
         log.info("Blog {} cambió su portada a la imagen {}", idBlog, idImagen);
         return blogMapper.toResponse(guardado);
+    }
+
+    private BlogResponse cambiarVisibilidad(Long id, boolean visible, Authentication autenticacion) {
+        Blog blog = buscarBlog(id);
+        BlogAutorizacion.verificarPersonal(autenticacion);
+
+        blog.setVisible(visible);
+        Blog guardado = blogRepository.save(blog);
+        log.info("Blog {} {}", id, visible ? "activado" : "desactivado");
+        return blogMapper.toResponse(guardado);
+    }
+
+    /** La portada siempre forma parte de la galería del blog. */
+    private void asignarPortada(Blog blog, ImagenUrl imagen) {
+        blog.setImagenPrincipal(imagen);
+        blog.getImagenes().add(imagen);
+        imagen.getBlogs().add(blog);
+    }
+
+    private Blog buscarBlog(Long id) {
+        return blogRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Blog", id));
+    }
+
+    private ImagenUrl buscarImagen(Long id) {
+        return imagenUrlRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Imagen", id));
     }
 }

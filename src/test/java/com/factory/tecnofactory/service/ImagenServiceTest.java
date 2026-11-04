@@ -282,11 +282,11 @@ class ImagenServiceTest {
     }
 
     @Test
-    void otroUsuarioNoPuedeAgregarImagenes() {
+    void clienteNoPuedeAgregarImagenes() {
         when(blogRepository.findById(1L)).thenReturn(Optional.of(blog(1L)));
 
         assertThrows(AccessDeniedException.class, () -> service.agregarExistenteABlog(1L, 7L,
-                sesion("otro@correo.cl", "VENDEDOR")));
+                sesion("cliente@correo.cl", "CLIENTE")));
     }
 
     @Test

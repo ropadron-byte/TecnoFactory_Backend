@@ -1,5 +1,6 @@
 package com.factory.tecnofactory.controller;
 
+import com.factory.tecnofactory.dto.BlogGestionResponse;
 import com.factory.tecnofactory.dto.BlogRequest;
 import com.factory.tecnofactory.dto.BlogResponse;
 import com.factory.tecnofactory.dto.BlogResumenResponse;
@@ -101,5 +102,50 @@ public class BlogController {
                                        @PathVariable Long idImagen,
                                        Authentication autenticacion) {
         return blogService.asignarImagenPrincipal(id, idImagen, autenticacion);
+    }
+
+    @GetMapping("/gestion")
+    @Operation(summary = "Listar todos los blogs para gestionarlos, también los desactivados (ADMINISTRADOR o VENDEDOR)")
+    public PageResponse<BlogGestionResponse> listarGestion(@ParameterObject Pageable pageable) {
+        return blogService.listarGestion(pageable);
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Actualizar un blog (ADMINISTRADOR o VENDEDOR)",
+            description = "Reemplaza título y contenido. 'visible' e 'idImagenPrincipal' son opcionales: "
+                    + "si no vienen se conservan los actuales.")
+    public BlogResponse actualizar(@PathVariable Long id,
+                                   @Valid @RequestBody BlogRequest request,
+                                   Authentication autenticacion) {
+        return blogService.actualizar(id, request, autenticacion);
+    }
+
+    @PatchMapping("/{id}/desactivar")
+    @Operation(summary = "Desactivar un blog: deja de ser público, pero no se pierde nada (ADMINISTRADOR o VENDEDOR)")
+    public BlogResponse desactivar(@PathVariable Long id, Authentication autenticacion) {
+        return blogService.desactivar(id, autenticacion);
+    }
+
+    @PatchMapping("/{id}/activar")
+    @Operation(summary = "Volver a publicar un blog desactivado (ADMINISTRADOR o VENDEDOR)")
+    public BlogResponse activar(@PathVariable Long id, Authentication autenticacion) {
+        return blogService.activar(id, autenticacion);
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Borrar un blog (ADMINISTRADOR o VENDEDOR)",
+            description = "Se borran también sus relaciones con las imágenes. Las imágenes NO se borran: quedan en el catálogo.")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id, Authentication autenticacion) {
+        blogService.eliminar(id, autenticacion);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}/imagenes/{idImagen}")
+    @Operation(summary = "Quitar una imagen de la galería del blog (ADMINISTRADOR o VENDEDOR)",
+            description = "La imagen sigue existiendo. Si era la portada, el blog queda sin portada.")
+    public ImagenResponse quitarImagen(@PathVariable Long id,
+                                       @PathVariable Long idImagen,
+                                       Authentication autenticacion) {
+        return imagenService.desacoplarDeBlog(id, idImagen, autenticacion);
     }
 }

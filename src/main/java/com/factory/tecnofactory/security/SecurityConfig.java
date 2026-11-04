@@ -70,18 +70,25 @@ public class SecurityConfig {
                         // El resto de /api/usuarios: solo administrador
                         .requestMatchers("/api/usuarios/**").hasRole(ROL_ADMINISTRADOR)
 
+                        // Listado de gestión de blogs (incluye desactivados): debe ir ANTES de la lectura pública
+                        .requestMatchers(HttpMethod.GET, "/api/blogs/gestion").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+
                         // Blogs e imágenes: lectura pública (un <img> no envía JWT)
                         .requestMatchers(HttpMethod.GET, "/api/blogs/**", "/api/imagenes/**").permitAll()
 
                         // Crear blogs, subir imágenes y cambiar portadas: administrador o vendedor
                         .requestMatchers(HttpMethod.POST, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
                         .requestMatchers(HttpMethod.PUT, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                        // Activar/desactivar y borrar blogs, o quitarles imágenes (el servicio exige además ser el autor o admin)
+                        .requestMatchers(HttpMethod.PATCH, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                        .requestMatchers(HttpMethod.DELETE, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
 
                         // Públicos: imágenes subidas (un <img> del navegador no envía el JWT)
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 
-                        // Administrador y vendedor: subir y borrar imágenes
+                        // Administrador y vendedor: subir, reemplazar, desacoplar y borrar imágenes
                         .requestMatchers(HttpMethod.POST, "/api/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                        .requestMatchers(HttpMethod.PUT, "/api/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
                         .requestMatchers(HttpMethod.DELETE, "/api/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
 
                         // Todo lo demás exige token válido
