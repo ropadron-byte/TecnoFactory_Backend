@@ -1,6 +1,6 @@
 # 22. Diccionario de datos
 
-Las 13 tablas de `V1__esquema_inicial.sql` y la tabla `contacto` (`V6__contacto.sql`), columna por columna, con sus reglas. **La base manda**: si una entidad no coincide con esto, `ddl-auto: validate` impide que la app arranque.
+Las 13 tablas de `V1__esquema_inicial.sql`, las 3 tablas puente de `V5` (`blog_imagen`, `producto_imagen`, `categoria_imagen`) y `contacto` (`V6`), columna por columna, con sus reglas. **La base manda**: si una entidad no coincide con esto, `ddl-auto: validate` impide que la app arranque.
 
 Estado de cada tabla en el código: ✅ tiene entidad y repository · ⏳ solo existe en la base.
 

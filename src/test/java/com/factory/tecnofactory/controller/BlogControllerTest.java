@@ -1,5 +1,6 @@
 package com.factory.tecnofactory.controller;
 
+import com.factory.tecnofactory.dto.BlogPublicoResponse;
 import com.factory.tecnofactory.dto.BlogRequest;
 import com.factory.tecnofactory.dto.BlogResponse;
 import com.factory.tecnofactory.dto.BlogResumenResponse;
@@ -81,6 +82,11 @@ class BlogControllerTest {
                 imagenResumen(), List.of(imagenResumen()));
     }
 
+    private static BlogPublicoResponse respuestaBlogPublico() {
+        return new BlogPublicoResponse(1L, "Mi blog", "Contenido del blog",
+                LocalDateTime.of(2026, 11, 3, 12, 0), imagenResumen(), List.of(imagenResumen()));
+    }
+
     private static ImagenResponse respuestaImagen() {
         return new ImagenResponse(7L, "/uploads/blog/a.jpg",
                 List.of(new com.factory.tecnofactory.dto.DuenoResponse("BLOG", 1L)));
@@ -126,7 +132,7 @@ class BlogControllerTest {
     void listarEsPublico() throws Exception {
         when(blogService.listar(any()))
                 .thenReturn(new PageResponse<>(List.of(new BlogResumenResponse(1L, "Mi blog",
-                        LocalDateTime.of(2026, 11, 3, 12, 0), "Ana", imagenResumen())),
+                        LocalDateTime.of(2026, 11, 3, 12, 0), imagenResumen())),
                         0, 20, 1, 1));
 
         mockMvc.perform(get("/api/blogs"))
@@ -136,12 +142,31 @@ class BlogControllerTest {
     }
 
     @Test
-    void buscarEsPublico() throws Exception {
-        when(blogService.buscarPorId(eq(1L), any())).thenReturn(respuestaBlog());
+    void buscarEsPublicoSinDatosDelAutor() throws Exception {
+        when(blogService.buscarPorId(eq(1L), any())).thenReturn(respuestaBlogPublico());
 
         mockMvc.perform(get("/api/blogs/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1));
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.autorCorreo").doesNotExist())
+                .andExpect(jsonPath("$.autorNombre").doesNotExist())
+                .andExpect(jsonPath("$.autorId").doesNotExist());
+    }
+
+    @Test
+    void buscarGestionDevuelveDatosDelAutorParaPersonal() throws Exception {
+        when(blogService.buscarGestionPorId(eq(1L), any())).thenReturn(respuestaBlog());
+
+        mockMvc.perform(get("/api/blogs/gestion/1").with(vendedor()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.autorCorreo").value("ana@correo.cl"))
+                .andExpect(jsonPath("$.autorNombre").value("Ana"));
+    }
+
+    @Test
+    void buscarGestionSinTokenDevuelve401() throws Exception {
+        mockMvc.perform(get("/api/blogs/gestion/1"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -209,6 +234,7 @@ class BlogControllerTest {
 
         mockMvc.perform(post("/api/blogs/1/imagenes/7").with(vendedor()))
                 .andExpect(status().isCreated())
+                .andExpect(header().string("Location", "http://localhost/api/blogs/1/imagenes"))
                 .andExpect(jsonPath("$.id").value(7));
     }
 

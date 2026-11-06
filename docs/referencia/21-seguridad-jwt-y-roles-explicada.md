@@ -444,15 +444,42 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwt
         .cors(Customizer.withDefaults())
         .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
+                // Públicos imprescindibles
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
-                .requestMatchers("/actuator/health").permitAll()
+                .requestMatchers("/actuator/health", "/error").permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/contactos").permitAll()
                 .requestMatchers("/api/contactos/**").hasRole(ROL_ADMINISTRADOR)
                 .requestMatchers(HttpMethod.GET, "/api/usuarios/me").authenticated()
                 .requestMatchers("/api/usuarios/**").hasRole(ROL_ADMINISTRADOR)
-                .anyRequest().authenticated())
+
+                // Gestión de blogs (datos del autor, también desactivados)
+                .requestMatchers(HttpMethod.GET, "/api/blogs/gestion/**")
+                    .hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+
+                // Lectura pública solo de las rutas necesarias
+                .requestMatchers(HttpMethod.GET,
+                        "/api/blogs", "/api/blogs/*",
+                        "/api/blogs/*/imagen", "/api/blogs/*/imagenes").permitAll()
+
+                // Metadatos de imágenes: personal. Archivos servidos: públicos
+                .requestMatchers(HttpMethod.GET, "/api/imagenes/**")
+                    .hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
+
+                // Escritura de blogs e imágenes
+                .requestMatchers(HttpMethod.POST, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                .requestMatchers(HttpMethod.PUT, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                .requestMatchers(HttpMethod.PATCH, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                .requestMatchers(HttpMethod.DELETE, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                .requestMatchers(HttpMethod.POST, "/api/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                .requestMatchers(HttpMethod.PUT, "/api/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                .requestMatchers(HttpMethod.DELETE, "/api/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+
+                // Fail-closed
+                .anyRequest().denyAll())
         .exceptionHandling(e -> e
                 .authenticationEntryPoint(errores)
                 .accessDeniedHandler(errores))
@@ -474,7 +501,12 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwt
 | `GET /api/contactos` y `GET /api/contactos/{id}` | Solo `ADMINISTRADOR` | Cada mensaje trae el correo y el comentario de una persona ([28](28-contacto-explicado.md#10-securityconfigjava-las-dos-reglas-nuevas)) |
 | `GET /api/usuarios/me` | Cualquiera **con sesión** | Su propio perfil |
 | Cualquier otra ruta de `/api/usuarios/**` (por ejemplo `GET /api/usuarios/7`) | Solo `ADMINISTRADOR` | Si fuera «cualquiera con sesión», un cliente leería los datos de otros cambiando el id |
-| **Todo lo demás** | Cualquiera con token válido | `anyRequest().authenticated()`: lo olvidado queda **protegido por defecto**, no abierto |
+| `GET /api/blogs/gestion/**` | `ADMINISTRADOR` o `VENDEDOR` | Incluye blogs desactivados y el correo del autor |
+| `GET /api/blogs`, `/api/blogs/{id}`, `/imagen`, `/imagenes` | Todos | Un `<img>` y el blog público no envían token. El detalle **no** trae datos del autor |
+| `GET /api/imagenes/**` | `ADMINISTRADOR` o `VENDEDOR` | Revelaba ids de blogs ocultos y sus dueños |
+| `GET /uploads/**` | Todos | Los archivos deben cargar en un `<img>`; se sirven con `nosniff` y CSP restrictiva |
+| Escritura de `/api/blogs/**` y `/api/imagenes/**` | `ADMINISTRADOR` o `VENDEDOR` | El service además comprueba autoría donde corresponde |
+| **Cualquier otra ruta** | **Nadie** | `anyRequest().denyAll()`: lo olvidado queda cerrado |
 
 ### 10.2 Línea por línea
 
@@ -485,6 +517,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwt
 | `STATELESS` | Spring Security no crea sesión ni cookie; cada petición se valida sola con su token |
 | `.requestMatchers(HttpMethod.POST, "...")` | La regla vale solo para ese verbo. `GET /api/usuarios` y `POST /api/usuarios` son reglas distintas |
 | `.permitAll()` / `.authenticated()` / `.hasRole("X")` | Todos / con sesión / con sesión **y** ese rol (Spring agrega `ROLE_` solo) |
+| `.anyRequest().denyAll()` | Ninguna petición sin regla explícita pasa: es la red de seguridad contra olvidos |
 | `.exceptionHandling(...)` | Conecta `ManejadorErroresSeguridad` para el 401 y el 403 en JSON |
 | `.addFilterBefore(new JwtAuthFilter(...), UsernamePasswordAuthenticationFilter.class)` | Pone nuestro filtro **antes** del filtro de login por formulario, para que la persona ya esté identificada cuando se evalúan las reglas |
 | `@Qualifier("handlerExceptionResolver")` | Spring tiene varios `HandlerExceptionResolver`; este nombre elige el que usa los `@ExceptionHandler` |
@@ -495,6 +528,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwt
 Spring evalúa las reglas **de arriba hacia abajo y se detiene en la primera que coincide**:
 
 - `GET /api/usuarios/me` va **antes** de `/api/usuarios/**`. Si estuviera después, `/me` caería en «solo administrador» y un cliente no podría ver su perfil.
+- `GET /api/blogs/gestion/**` va **antes** de las reglas públicas de blogs: si no, el detalle de gestión caería en `permitAll`.
 - `anyRequest()` va **siempre al final**. Escribir una regla después lanza `Can't configure requestMatchers after anyRequest` al arrancar.
 
 **Un detalle del controller:** `/me` está declarado antes de `/{id}`. Spring prefiere la ruta literal, así que `/api/usuarios/me` nunca se interpreta como un id.
@@ -653,7 +687,7 @@ curl -i localhost:8080/api/usuarios/me -H "Authorization: Bearer EL_TOKEN"
 | Mismo error para correo inexistente, clave incorrecta y usuario desactivado | Evita que se descubran los correos registrados |
 | `GET /api/usuarios/{id}` solo para administrador | Un cliente no debe leer a otros; el perfil propio es `/me` |
 | El rol que decide es el de la **base de datos**, no el del token | Cambiar un rol o desactivar a alguien surte efecto de inmediato; cuesta una consulta por petición |
-| El token **no se puede revocar** antes de que expire | Cerrar sesión es solo borrar el token en el frontend. Vida corta (1 hora) para limitar el daño |
+| El token **no se puede revocar** antes de que expire | Cerrar sesión es solo borrar el token en el frontend. El filtro consulta la base en cada petición, así que desactivar o borrar al usuario surte efecto de inmediato; el token robado de una cuenta **activa** sirve hasta expirar (1 hora). Riesgo aceptado el 6 nov, ver [D34](24-decisiones-de-diseno.md#d34-la-revocación-inmediata-de-tokens-no-se-implementa) |
 | Sin *refresh token* | Al vencer, hay que iniciar sesión de nuevo. Se puede agregar más adelante |
 | Sin límite de intentos de login | Pendiente (fuerza bruta) |
 | Dónde guarda el frontend el token | `localStorage` es lo más simple pero legible por un script malicioso (XSS); se decide en la fase del frontend |

@@ -16,7 +16,8 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3307/tecnofactory}
     username: ${DB_USER:root}
-    password: ${DB_PASSWORD:root}
+    # Sin valor por defecto: si falta, la app no arranca con la clave root conocida.
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:

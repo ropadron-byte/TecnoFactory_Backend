@@ -75,7 +75,11 @@ TecnoFactory/
     │       └── db/migration/
     │           ├── V1__esquema_inicial.sql   # 13 tablas
     │           ├── V2__datos_iniciales.sql   # roles, regiones y comunas
-    │           └── V3__categorias_base.sql   # categorías base
+    │           ├── V3__categorias_base.sql   # categorías base
+    │           ├── V4__blog_fecha_creacion.sql
+    │           ├── V5__imagen_portada_y_galeria.sql
+    │           ├── V6__contacto.sql
+    │           └── V7__unicidad_region_comuna.sql
     └── test/
 ```
 

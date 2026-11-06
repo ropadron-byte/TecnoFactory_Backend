@@ -229,7 +229,7 @@ Sin lógica de negocio: valida, delega y responde.
 .requestMatchers("/api/contactos/**").hasRole(ROL_ADMINISTRADOR)
 ```
 
-Van **antes** de `anyRequest().authenticated()`, justo sobre la regla de `/api/usuarios/me`.
+Van **antes** de `anyRequest().denyAll()`, junto al resto de reglas de `/api`. Las dos cubren solo contacto: el resto de rutas conserva su propia regla.
 
 | Petición | Regla que coincide | Resultado |
 | --- | --- | --- |

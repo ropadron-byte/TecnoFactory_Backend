@@ -34,13 +34,13 @@ public class ImagenController {
     private final ImagenService imagenService;
 
     @GetMapping
-    @Operation(summary = "Listar todas las imágenes registradas (público)")
+    @Operation(summary = "Listar todas las imágenes registradas (ADMINISTRADOR o VENDEDOR)")
     public PageResponse<ImagenResponse> listar(@ParameterObject Pageable pageable) {
         return imagenService.listar(pageable);
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener una imagen por id con todos sus dueños (público)")
+    @Operation(summary = "Obtener una imagen por id con todos sus dueños (ADMINISTRADOR o VENDEDOR)")
     public ImagenResponse buscarPorId(@PathVariable Long id) {
         return imagenService.buscarPorId(id);
     }

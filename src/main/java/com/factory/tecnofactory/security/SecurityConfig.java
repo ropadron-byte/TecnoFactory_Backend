@@ -52,9 +52,11 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Públicos: documentación y salud
+                        // Públicos: documentación, salud y manejo de errores
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // Públicos: login y registro de clientes
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
@@ -62,7 +64,7 @@ public class SecurityConfig {
 
                         // Contacto: cualquier persona puede enviar; solo el administrador lee
                         .requestMatchers(HttpMethod.POST, "/api/contactos").permitAll()
-                        .requestMatchers("/api/contactos/**").hasAnyRole(ROL_ADMINISTRADOR,ROL_VENDEDOR)
+                        .requestMatchers("/api/contactos/**").hasRole(ROL_ADMINISTRADOR)
 
                         // Cualquier usuario con sesión: su propio perfil
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me").authenticated()
@@ -70,29 +72,36 @@ public class SecurityConfig {
                         // El resto de /api/usuarios: solo administrador
                         .requestMatchers("/api/usuarios/**").hasRole(ROL_ADMINISTRADOR)
 
-                        // Listado de gestión de blogs (incluye desactivados): debe ir ANTES de la lectura pública
-                        .requestMatchers(HttpMethod.GET, "/api/blogs/gestion").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                        // Gestión de blogs (incluye desactivados y datos del autor): ANTES de la lectura pública
+                        .requestMatchers(HttpMethod.GET, "/api/blogs/gestion/**")
+                        .hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
 
-                        // Blogs e imágenes: lectura pública (un <img> no envía JWT)
-                        .requestMatchers(HttpMethod.GET, "/api/blogs/**", "/api/imagenes/**").permitAll()
+                        // Lectura pública solo de las rutas necesarias (no todo /api/blogs/**)
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/blogs",
+                                "/api/blogs/*",
+                                "/api/blogs/*/imagen",
+                                "/api/blogs/*/imagenes").permitAll()
+
+                        // Los metadatos de imágenes ya no son públicos; /uploads/** sí, para los <img>
+                        .requestMatchers(HttpMethod.GET, "/api/imagenes/**")
+                        .hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 
                         // Crear blogs, subir imágenes y cambiar portadas: administrador o vendedor
                         .requestMatchers(HttpMethod.POST, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
                         .requestMatchers(HttpMethod.PUT, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
-                        // Activar/desactivar y borrar blogs, o quitarles imágenes (el servicio exige además ser el autor o admin)
+                        // Activar/desactivar y borrar blogs, o quitarles imágenes (el servicio exige además ser personal)
                         .requestMatchers(HttpMethod.PATCH, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
                         .requestMatchers(HttpMethod.DELETE, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
-
-                        // Públicos: imágenes subidas (un <img> del navegador no envía el JWT)
-                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 
                         // Administrador y vendedor: subir, reemplazar, desacoplar y borrar imágenes
                         .requestMatchers(HttpMethod.POST, "/api/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
                         .requestMatchers(HttpMethod.PUT, "/api/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
                         .requestMatchers(HttpMethod.DELETE, "/api/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
 
-                        // Todo lo demás exige token válido
-                        .anyRequest().authenticated()
+                        // Fail-closed: cualquier ruta nueva sin regla explícita queda denegada
+                        .anyRequest().denyAll()
                 )
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint(errores)

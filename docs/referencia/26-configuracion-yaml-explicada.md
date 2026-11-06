@@ -14,7 +14,7 @@ Spring lee `application.yaml` (base) y encima el del perfil activo (`local` o `p
 | `spring.data.web.pageable.default-page-size` | `20` | Tamaño de página si el cliente no pide `size` |
 | `spring.data.web.pageable.max-page-size` | `100` | Tope: `?size=5000` se recorta a 100 |
 | `spring.data.redis.host/port` | `${REDIS_HOST:localhost}` / `6379` | Dónde estará Redis (aún no se usa) |
-| `spring.datasource.url/username/password` | `${DB_URL:...}`, `${DB_USER:root}`, `${DB_PASSWORD:root}` | Conexión a MySQL; lo que va tras `:` es el **valor por defecto** |
+| `spring.datasource.url/username/password` | `${DB_URL:...}`, `${DB_USER:root}`, `${DB_PASSWORD}` | Conexión a MySQL. La **clave no tiene valor por defecto**: si falta, la app no arranca |
 | `spring.jpa.hibernate.ddl-auto` | `validate` | Hibernate solo comprueba, nunca modifica |
 | `spring.jpa.open-in-view` | `false` | La conexión se suelta al salir del service |
 | `spring.jpa.properties.hibernate.jdbc.time_zone` | `America/Santiago` | Zona horaria con que Hibernate lee y escribe fechas |
@@ -33,7 +33,7 @@ Spring lee `application.yaml` (base) y encima el del perfil activo (`local` o `p
 - `${DB_USER:root}` → usa la variable `DB_USER`; si no existe, `root`.
 - `${DB_PASSWORD}` (sin `:`) → **obligatoria**: si falta, la app no arranca (`Could not resolve placeholder`).
 
-> Observación: la base trae valores por defecto (`root`/`root`, y una `jwt.secret` conocida) pensados solo para desarrollo. El perfil `prod` los **quita** a propósito.
+> Observación: el perfil base ya **no** trae clave de base de datos (`root`) ni `jwt.secret`. El perfil `prod` además quita el resto de valores por defecto a propósito. `ConfiguracionValidator` rechaza los valores de ejemplo de `.env.example` al arrancar.
 
 ## `application-local.yaml` (desarrollo)
 

@@ -32,7 +32,11 @@ Una regla de oro: **lo que no está permitido explícitamente, queda protegido**
 | Secretos fuera del código, en `.env` | `.env` | Hecho (verificar `.gitignore`) |
 | Contraseñas guardadas con BCrypt (`PasswordEncoder`): al registrar y al crear al administrador | `security/SecurityConfig`, `UsuarioService` | **En uso** (20 oct); el login compara contra el hash |
 | CSRF desactivado y sin sesiones (`STATELESS`), como corresponde a una API con tokens | `security/SecurityConfig` | Escrito |
-| Rutas públicas explícitas (Swagger, `health`, login y registro) y **todo lo demás protegido** (`anyRequest().authenticated()`) | `security/SecurityConfig` | Escrito (20 oct); falta confirmar |
+| Rutas explícitas por método y rol; **cualquier ruta sin regla queda denegada** (`anyRequest().denyAll()`) | `security/SecurityConfig` | Escrito y probado (6 nov) |
+| Validación de claves al arrancar: `ADMIN_PASSWORD` de 8 a 72 caracteres / 72 bytes UTF-8; placeholders de `.env.example` rechazados | `ValidadorClaves`, `ConfiguracionValidator`, `AdministradorInicialRunner` | Escrito y probado (6 nov) |
+| El detalle público de un blog **no expone** datos del autor; el correo solo aparece en `/api/blogs/gestion/{id}` | `BlogPublicoResponse`, `BlogService` | Escrito y probado (6 nov) |
+| Los metadatos de imágenes (`GET /api/imagenes/**`) exigen personal; `/uploads/**` sigue público para los `<img>` | `security/SecurityConfig` | Escrito y probado (6 nov) |
+| `/uploads/**` responde con `X-Content-Type-Options: nosniff` y `Content-Security-Policy: default-src 'none'` | `CabecerasUploadsFilter` | Escrito y probado (6 nov) |
 | Login con JWT: correo y clave contra la base, token firmado de 1 hora | `AuthService`, `JwtService` | Escrito (20 oct); `JwtService` confirmado |
 | Filtro que lee `Authorization: Bearer ...` y consulta la base en cada petición (un usuario desactivado pierde el acceso al instante) | `security/JwtAuthFilter` | Escrito (20 oct) |
 | 401 y 403 con el mismo JSON que los demás errores | `ManejadorErroresSeguridad` + `GlobalExceptionHandler` | Escrito (20 oct) |
@@ -58,16 +62,22 @@ Una regla de oro: **lo que no está permitido explícitamente, queda protegido**
 
 ## Diseño previsto del control de acceso
 
-**Hoy en `SecurityConfig` (20 oct):**
+**Hoy en `SecurityConfig` (6 nov):**
 
 | Ruta | Acceso |
 | --- | --- |
-| Swagger, `/v3/api-docs/**` (solo `local`), `/actuator/health` | Público |
-| `POST /api/auth/login`, `POST /api/usuarios` (registro) y `POST /api/contactos` (formulario de contacto) | Público |
+| Swagger, `/v3/api-docs/**` (solo `local`), `/actuator/health`, `/error`, `OPTIONS /**` | Público |
+| `POST /api/auth/login`, `POST /api/usuarios` (registro) y `POST /api/contactos` | Público |
 | `GET /api/contactos` y `GET /api/contactos/{id}` | Solo `ADMINISTRADOR` |
 | `GET /api/usuarios/me` | Cualquiera con sesión |
 | Resto de `/api/usuarios/**` | Solo `ADMINISTRADOR` |
-| Todo lo demás | Cualquiera con token válido |
+| `GET /api/blogs/gestion/**` | `ADMINISTRADOR` o `VENDEDOR` |
+| `GET /api/blogs`, `/api/blogs/{id}`, `/api/blogs/{id}/imagen`, `/api/blogs/{id}/imagenes` | Público |
+| `POST/PUT/PATCH/DELETE /api/blogs/**` | `ADMINISTRADOR` o `VENDEDOR` |
+| `GET /api/imagenes/**` | `ADMINISTRADOR` o `VENDEDOR` |
+| `GET /uploads/**` | Público |
+| `POST/PUT/DELETE /api/imagenes/**` | `ADMINISTRADOR` o `VENDEDOR` |
+| Cualquier otra ruta | **Denegada** (`denyAll`) |
 
 **Previsto al llegar cada entidad:**
 
@@ -81,21 +91,21 @@ Una regla de oro: **lo que no está permitido explícitamente, queda protegido**
 | Editar o desactivar a otros usuarios, crear vendedores, reportes | `ADMINISTRADOR` |
 | Carrito y boletas propias | Usuario autenticado, solo lo suyo |
 
-Los roles vienen de la tabla `tipo_usuario` (`ADMINISTRADOR`, `VENDEDOR`, `CLIENTE`). `UserDetailsServiceImpl` agrega el prefijo `ROLE_` al convertirlos. Los tokens JWT se firman con `JWT_SECRET` (mínimo 32 caracteres) y duran 1 hora (`jwt.expiration-ms`).
+Los roles vienen de la tabla `tipo_usuario` (`ADMINISTRADOR`, `VENDEDOR`, `CLIENTE`). `UserDetailsServiceImpl` agrega el prefijo `ROLE_` al convertirlos. Los tokens JWT se firman con `JWT_SECRET` (mínimo 32 bytes) y duran 1 hora (`jwt.expiration-ms`).
 
 ## Administrador inicial
 
 > **Actualización 18 oct 2026:** se decidió seguir la **opción B** (crearlo por código al arrancar). Ya existen `Usuario`, `UsuarioRepository`, `TipoUsuarioRepository` y el `PasswordEncoder`; **ya están escritos** `UsuarioService` ("crear administrador si no existe") y `AdministradorInicialRunner`, y el primer arranque lo creó (log del 18 oct). Explicado línea por línea en [17](17-administrador-inicial-explicado.md). La plantilla `V4` y su procedimiento (opción A) quedan documentados abajo como alternativa, pero **no se va a aplicar**: ya no está en `docs/`.
 >
-> Cómo pasar las variables: Spring no lee el `.env` por sí solo. Con tu forma de arrancar (`set -a; source .env; set +a`) basta agregar `ADMIN_EMAIL` y `ADMIN_PASSWORD` al `.env`, y quedan disponibles para `./mvnw spring-boot:run`. Reglas: la clave **nunca** va a un `log` ni a un mensaje de error; el administrador se crea **una sola vez** (si ya existe uno, el código no hace nada, de modo que cambiar la variable después **no** cambia la clave); y la clave se guarda con `passwordEncoder.encode(...)`.
+> Cómo pasar las variables: Spring no lee el `.env` por sí solo. Con tu forma de arrancar (`set -a; source .env; set +a`) basta agregar `ADMIN_EMAIL`, `ADMIN_PASSWORD` y los `ADMIN_*` opcionales al `.env`, y quedan disponibles para `./mvnw spring-boot:run`. Reglas: la clave **nunca** va a un `log` ni a un mensaje de error; el administrador se crea **una sola vez** (si ya existe uno, el código no hace nada, de modo que cambiar las variables después **no** cambia los datos guardados); la clave se guarda con `passwordEncoder.encode(...)`; y se valida al arrancar (8 a 72 caracteres, máximo 72 bytes UTF-8, sin placeholders).
 >
-> Datos del administrador: además del correo y la clave (variables de entorno), el runner usa **valores de relleno fijos** para `run` (`11111111-1`), nombre, apellidos, fecha, dirección, teléfono y comuna (`13101`). Se eligió así por defecto y se puede cambiar después.
+> Datos del administrador: todos sus campos (`ADMIN_RUN`, `ADMIN_NOMBRE`, `ADMIN_APELLIDOS`, `ADMIN_FECHA_NACIMIENTO`, `ADMIN_DIRECCION`, `ADMIN_TELEFONO`, `ADMIN_COMUNA`) se leen del entorno. Si faltan, se usan valores de relleno (`11111111-1`, `Por definir`, comuna `13101`) y el log escribe un `WARN`. Un dato inválido impide el arranque.
 
 El usuario administrador **no está en `V2`** a propósito: necesita un hash BCrypt, y la clave real no debe pasar por chats ni escribirse en archivos del proyecto. Hay dos formas de crearlo:
 
 | | A. Migración `V4` con el hash | B. Creación al arrancar desde variables de entorno |
 | --- | --- | --- |
-| Cómo funciona | Un `INSERT` en `V4__administrador_inicial.sql` con el hash ya calculado | Código que, al iniciar, crea el administrador si no existe, leyendo `ADMIN_EMAIL` y `ADMIN_PASSWORD` del entorno |
+| Cómo funciona | Un `INSERT` en `V4__administrador_inicial.sql` con el hash ya calculado | Código que, al iniciar, crea el administrador si no existe, leyendo **todas** las variables `ADMIN_*` del entorno |
 | ¿Se puede hacer hoy? | Sí, pero **descartada** | **Hecho** (18 oct): `UsuarioService` y `AdministradorInicialRunner` |
 | ¿Qué queda en Git? | El **hash** (no la clave) | Nada |
 | Riesgo | Si la clave es débil, el hash se puede adivinar con fuerza bruta | Ninguno en el repositorio |
@@ -171,7 +181,7 @@ Debe mostrar tu correo, el rol `ADMINISTRADOR`, un prefijo `$2y$10$` o `$2b$10$`
 - [ ] `.env` de producción con claves **nuevas** (`openssl rand -hex 32`), `chmod 600`.
 - [ ] `git ls-files | grep -i env` no devuelve nada y `.gitignore` contiene `.env`.
 - [ ] `SecurityConfig` escrita: rutas públicas y protegidas probadas.
-- [ ] **`.anyRequest().permitAll()` reemplazado por `.anyRequest().authenticated()`** (hoy está abierto a propósito, solo para desarrollo).
+- [ ] **`SecurityConfig` con `anyRequest().denyAll()`** y una regla explícita por ruta nueva. *(Ya escrito y probado el 6 nov.)*
 - [ ] Contraseñas hasheadas con BCrypt (incluido el administrador inicial).
 - [ ] CORS limitado al dominio real del frontend.
 - [ ] MySQL sin publicar en el host (o solo en el 3307 para administrarlo).

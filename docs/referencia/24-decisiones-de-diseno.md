@@ -80,20 +80,43 @@ Formato: **Decisión · Motivo · Alternativa descartada · Consecuencia.**
 ### D19. Un solo 401 para todo fallo de login
 - **Motivo:** si «el correo no existe» y «la clave es incorrecta» dieran mensajes distintos, un atacante podría descubrir qué correos están registrados.
 
-### D20. Todo lo no listado exige sesión (`anyRequest().authenticated()`)
-- **Motivo:** si olvidas proteger una ruta nueva, queda cerrada y no abierta.
+### D20. Todo lo no listado queda denegado (`anyRequest().denyAll()`)
+- **Motivo:** si olvidas proteger una ruta nueva, queda cerrada y no abierta. Las rutas públicas se enumeran una por una (`/error`, `OPTIONS`, Swagger, health, login, registro, contacto, lectura de blogs y `/uploads/**`).
+- **Consecuencia:** agregar un endpoint exige agregar su regla en `SecurityConfig`; si no, responde 403 incluso con token. `GestionSeguridadTest` lo comprueba.
 
 ### D21. El 401 y el 403 pasan por el mismo manejador de errores
 - **Motivo:** las reglas por ruta fallan en los filtros, antes del controller; `ManejadorErroresSeguridad` los reenvía al `GlobalExceptionHandler` para que el JSON sea idéntico.
 
 ### D22. El administrador inicial se crea por código, no por migración
-- **Motivo:** una migración con una clave quedaría en Git para siempre. Se toma de `ADMIN_EMAIL` y `ADMIN_PASSWORD` y se guarda con BCrypt.
+- **Motivo:** una migración con una clave quedaría en Git para siempre. Todos los datos salen de variables `ADMIN_*`; la clave se guarda con BCrypt y se valida al arrancar (8 a 72 caracteres, máximo 72 bytes UTF-8). Los placeholders de `.env.example` se rechazan.
 
 ### D23. El registro público solo crea clientes
 - **Motivo:** nadie debe poder auto-asignarse un rol alto. Vendedores y administradores se crean desde una ruta de administrador (pendiente).
 
-### D24. La clave se limita a 72 caracteres
-- **Motivo:** BCrypt solo considera los primeros 72 bytes; permitir más daría una falsa sensación de seguridad.
+### D24. La clave se limita a 72 caracteres y 72 bytes UTF-8
+- **Motivo:** BCrypt solo considera los primeros 72 bytes; permitir más daría una falsa sensación de seguridad. Se valida el largo en caracteres **y** en bytes para que un acento no haga que la clave se corte en silencio.
+
+### D31. Dos contratos para blogs: público y gestión
+- **Motivo:** el detalle público (`GET /api/blogs/{id}`) no debe exponer el correo del autor. `BlogPublicoResponse` no incluye datos del autor; `BlogResponse` (gestión) sí los incluye y solo se sirve en `GET /api/blogs/gestion/{id}` a `ADMINISTRADOR` o `VENDEDOR`.
+- **Descartado:** devolver siempre el mismo DTO y ocultar campos según el rol (más fácil de filtrar por error).
+- **Consecuencia:** dos DTOs y dos rutas que mantener; el listado público (`BlogResumenResponse`) tampoco incluye `autorNombre`.
+
+### D32. Los metadatos de imágenes exigen personal; los archivos siguen públicos
+- **Motivo:** `GET /api/imagenes/**` revelaba ids de blogs ocultos y sus dueños. Los `<img>` no envían JWT, así que `/uploads/**` debe seguir abierto.
+- **Consecuencia:** el frontend público solo usa las URLs de `/uploads/**`; la gestión de imágenes requiere `ADMINISTRADOR` o `VENDEDOR`.
+
+### D33. Cabeceras de seguridad en `/uploads/**`
+- **Motivo:** un archivo subido podría contener HTML o script. `X-Content-Type-Options: nosniff` y `Content-Security-Policy: default-src 'none'` impiden que el navegador lo ejecute.
+- **Implementación:** `CabecerasUploadsFilter`, un `OncePerRequestFilter` que solo actúa en `/uploads/`.
+
+### D34. La revocación inmediata de tokens no se implementa
+- **Motivo:** hoy el token dura 1 hora y `JwtAuthFilter` consulta la base en cada petición, así que desactivar o borrar un usuario surte efecto de inmediato. Falta el caso de «cerrar sesión en un dispositivo» manteniendo la cuenta activa.
+- **Riesgo aceptado:** un token robado sirve hasta expirar. Mitigación actual: vida corta y HTTPS en producción. Alternativas futuras: lista de tokens anulados en Redis o *refresh tokens*.
+
+### D35. Imágenes huérfanas: documentadas, sin limpieza automática
+- **Motivo:** al borrar un blog o una imagen de la galería se quitan las relaciones, pero el archivo en disco puede quedar sin dueño. Un job de limpieza o una marca de fecha añaden complejidad y riesgo de borrar archivos en uso.
+- **Decisión (6 nov):** posponerlo. Se documenta en la [guía de subida de imágenes](../guias/18-subida-de-imagenes.md) y queda como tarea futura; no se crea migración ni job.
+- **Consecuencia:** el disco puede crecer con archivos sin referencia; se revisa a mano cuando haga falta.
 
 ## Configuración
 
@@ -124,8 +147,9 @@ Formato: **Decisión · Motivo · Alternativa descartada · Consecuencia.**
 | Cómo se aplica `descuento` al precio | Sobre el total de la línea o sobre el precio unitario antes de copiarlo a `detalle_boleta` |
 | Dónde guarda React el token | `localStorage` (simple, expuesto a XSS) o cookie `HttpOnly` (más segura, exige ajustes de CORS y CSRF) |
 | Cómo se crean los vendedores | Ruta de administrador (decidido), forma exacta pendiente |
-| Revocación de tokens | Lista de tokens anulados (Redis) o *refresh tokens* |
-| Blogs ocultos en `GET /api/imagenes` | Hoy el listado público devuelve también las imágenes de blogs ocultos y, en `duenos`, el id de esos blogs. Opciones: dejarlo (las URLs ya son públicas en `/uploads/**`) o filtrar los dueños ocultos para quien no sea administrador ni autor (exige pasar `Authentication` al service) |
+| Revocación de tokens | Lista de tokens anulados (Redis) o *refresh tokens*; ver D34 |
+| Limpieza de imágenes huérfanas | Job programado que compare disco y base, o dejarlo manual; ver D35 |
+| Unicidad de nombres de región y comuna | `V7` agrega los `UNIQUE`; si se cargan datos externos, decidir si el nombre o el código oficial es la clave |
 
 ## Para saber más
 

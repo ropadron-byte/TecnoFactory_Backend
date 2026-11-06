@@ -15,8 +15,9 @@ Una **variable de entorno** es un valor que el sistema le entrega a un programa 
 | `DB_PASSWORD` | Clave de la base para la app | Obligatoria (clave de root) | Obligatoria (la de `tecnofactory_app`) |
 | `MIGRATOR_PASSWORD` | Clave de Flyway | Solo Docker | Obligatoria (`FLYWAY_PASSWORD`) |
 | `APP_DB_PASSWORD` | Clave del usuario limitado | Solo Docker | Obligatoria |
-| `JWT_SECRET` | Firma los tokens | Obligatoria | Obligatoria |
+| `JWT_SECRET` | Firma los tokens | Obligatoria (mínimo 32 bytes) | Obligatoria |
 | `ADMIN_EMAIL` y `ADMIN_PASSWORD` | Crean al administrador inicial | Opcionales | Opcionales |
+| `ADMIN_RUN`, `ADMIN_RUN_DV`, `ADMIN_NOMBRE`, `ADMIN_APELLIDOS`, `ADMIN_FECHA_NACIMIENTO`, `ADMIN_DIRECCION`, `ADMIN_TELEFONO`, `ADMIN_COMUNA` | Datos del administrador inicial; si faltan se usan valores de relleno con `WARN` | Opcionales | Recomendadas |
 | `CORS_ORIGINS` | Orígenes del frontend permitidos | Por defecto `http://localhost:5173` | Recomendada |
 | `SPRING_PROFILES_ACTIVE` | Elige `local` o `prod` | `local` | `prod` |
 | `DB_URL`, `DB_USER` | Dónde y con quién conectarse | Por defecto | Obligatorias |

@@ -38,13 +38,13 @@ public class ContactoController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar contactos recibidos (ADMINISTRADOR o VENDEDOR)")
+    @Operation(summary = "Listar contactos recibidos (ADMINISTRADOR)")
     public PageResponse<ContactoResponse> listar(@ParameterObject Pageable pageable) {
         return contactoService.listar(pageable);
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Ver un contacto (ADMINISTRADOR o VENDEDOR)")
+    @Operation(summary = "Ver un contacto (ADMINISTRADOR)")
     public ContactoResponse buscarPorId(@PathVariable Long id) {
         return contactoService.buscarPorId(id);
     }

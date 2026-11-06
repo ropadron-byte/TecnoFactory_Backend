@@ -127,6 +127,32 @@ class GestionSeguridadTest {
         mockMvc.perform(get("/api/blogs/gestion")).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/api/blogs/gestion").with(user("c@correo.cl").roles("CLIENTE")))
                 .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/blogs/gestion/1")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/blogs/gestion/1").with(user("c@correo.cl").roles("CLIENTE")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void metadatosDeImagenesExigenPersonal() throws Exception {
+        mockMvc.perform(get("/api/imagenes")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/imagenes/7")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/imagenes").with(user("c@correo.cl").roles("CLIENTE")))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/imagenes/7").with(user("c@correo.cl").roles("CLIENTE")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void losArchivosSubidosSiguenSiendoPublicos() throws Exception {
+        // No hay recurso real en el contexto de prueba: lo relevante es que no exige sesión.
+        mockMvc.perform(get("/uploads/blog/a.jpg")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void unaRutaSinReglaExplicitaQuedaDenegada() throws Exception {
+        mockMvc.perform(get("/api/ruta-sin-regla")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/ruta-sin-regla").with(user("ana@correo.cl").roles("VENDEDOR")))
+                .andExpect(status().isForbidden());
     }
 
     @Test

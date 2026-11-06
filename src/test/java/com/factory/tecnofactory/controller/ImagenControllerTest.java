@@ -56,21 +56,33 @@ class ImagenControllerTest {
     }
 
     @Test
-    void listarEsPublico() throws Exception {
+    void listarExigePersonal() throws Exception {
+        mockMvc.perform(get("/api/imagenes"))
+                .andExpect(status().isUnauthorized());
+
         when(imagenService.listar(any()))
                 .thenReturn(new PageResponse<>(List.of(respuestaImagen()), 0, 20, 1, 1));
 
-        mockMvc.perform(get("/api/imagenes"))
+        mockMvc.perform(get("/api/imagenes").with(user("admin@correo.cl").roles("ADMINISTRADOR")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.contenido[0].id").value(7))
                 .andExpect(jsonPath("$.contenido[0].duenos[0].tipo").value("BLOG"));
     }
 
     @Test
-    void buscarPorIdEsPublico() throws Exception {
+    void listarComoClienteDevuelve403() throws Exception {
+        mockMvc.perform(get("/api/imagenes").with(user("cliente@correo.cl").roles("CLIENTE")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void buscarPorIdExigePersonal() throws Exception {
+        mockMvc.perform(get("/api/imagenes/7"))
+                .andExpect(status().isUnauthorized());
+
         when(imagenService.buscarPorId(7L)).thenReturn(respuestaImagen());
 
-        mockMvc.perform(get("/api/imagenes/7"))
+        mockMvc.perform(get("/api/imagenes/7").with(user("vendedor@correo.cl").roles("VENDEDOR")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.url").value("/uploads/blog/a.jpg"))
                 .andExpect(jsonPath("$.duenos[0].id").value(1));
@@ -81,7 +93,7 @@ class ImagenControllerTest {
         when(imagenService.buscarPorId(99L))
                 .thenThrow(new RecursoNoEncontradoException("Imagen", 99L));
 
-        mockMvc.perform(get("/api/imagenes/99"))
+        mockMvc.perform(get("/api/imagenes/99").with(user("admin@correo.cl").roles("ADMINISTRADOR")))
                 .andExpect(status().isNotFound());
     }
 
@@ -150,7 +162,8 @@ class ImagenControllerTest {
         when(imagenService.listar(any()))
                 .thenThrow(new PropertyReferenceException("string", TypeInformation.of(ImagenUrl.class), List.of()));
 
-        mockMvc.perform(get("/api/imagenes").param("sort", "string"))
+        mockMvc.perform(get("/api/imagenes").param("sort", "string")
+                        .with(user("admin@correo.cl").roles("ADMINISTRADOR")))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.mensaje").value("No se puede ordenar por 'string'"));
     }

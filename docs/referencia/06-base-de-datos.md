@@ -8,7 +8,7 @@ La **fuente de verdad del esquema es `V1__esquema_inicial.sql`** (más los datos
 
 ## Estado actual de `V1__esquema_inicial.sql`
 
-13 tablas, motor InnoDB, `utf8mb4`, 15 claves foráneas.
+13 tablas, motor InnoDB, `utf8mb4`, 15 claves foráneas. Esa es la base de `V1`; las migraciones posteriores agregan `blog_imagen`, `producto_imagen`, `categoria_imagen` (`V5`) y `contacto` (`V6`), así que hoy la base tiene **17 tablas de negocio**.
 
 ```
 REGION 1 ──< COMUNA 1 ──< USUARIO >── 1 TIPO_USUARIO

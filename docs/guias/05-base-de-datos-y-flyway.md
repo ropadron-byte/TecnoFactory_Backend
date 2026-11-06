@@ -13,17 +13,24 @@ Flyway es como el **historial de obras de un edificio**: cada migración es un p
 | `V1__esquema_inicial.sql` | Crea las 13 tablas, sus restricciones y 15 claves foráneas |
 | `V2__datos_iniciales.sql` | Inserta 3 roles (`ADMINISTRADOR`, `VENDEDOR`, `CLIENTE`), 16 regiones y 346 comunas |
 | `V3__categorias_base.sql` | Categorías base |
+| `V4__blog_fecha_creacion.sql` | Agrega `blog.fecha_creacion` |
+| `V5__imagen_portada_y_galeria.sql` | Una imagen puede tener varios dueños: crea `blog_imagen`, `producto_imagen`, `categoria_imagen` y la portada del blog |
+| `V6__contacto.sql` | Crea la tabla `contacto` |
+| `V7__unicidad_region_comuna.sql` | Agrega `UNIQUE` a `region.nombre_region` y `comuna.nombre_comuna` (las entidades ya lo declaraban) |
 
 El administrador **no** está en ninguna migración: se crea por código al arrancar ([guía 12](12-administrador-inicial.md)).
 
-## Las 13 tablas
+## Las tablas
 
 | Grupo | Tablas |
 | --- | --- |
 | Geografía y usuarios | `region`, `comuna`, `tipo_usuario`, `usuario` |
 | Catálogo | `producto`, `categoria`, `producto_categoria`, `imagen_url` |
 | Compras | `carrito`, `detalle_carrito`, `boleta`, `detalle_boleta` |
-| Contenido | `blog` |
+| Contenido | `blog`, `contacto` |
+| Relaciones de imágenes (V5) | `blog_imagen`, `producto_imagen`, `categoria_imagen` |
+
+Son **17 tablas de negocio** (13 de `V1` + 3 de `V5` + `contacto` de `V6`), más `flyway_schema_history`.
 
 Dos ideas de diseño importantes:
 
@@ -34,7 +41,7 @@ Dos ideas de diseño importantes:
 
 Crear una migración nueva son tres pasos, sin ningún comando:
 
-1. Crear `src/main/resources/db/migration/V4__descripcion.sql`.
+1. Crear `src/main/resources/db/migration/V8__descripcion.sql` (las versiones 1 a 7 ya existen).
 2. Escribir el SQL.
 3. Arrancar la app: Flyway aplica lo que falte.
 

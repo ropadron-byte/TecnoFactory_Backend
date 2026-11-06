@@ -1,5 +1,6 @@
 package com.factory.tecnofactory.service;
 
+import com.factory.tecnofactory.dto.BlogPublicoResponse;
 import com.factory.tecnofactory.dto.BlogRequest;
 import com.factory.tecnofactory.dto.BlogResponse;
 import com.factory.tecnofactory.dto.BlogResumenResponse;
@@ -163,7 +164,7 @@ class BlogServiceTest {
         blog.setVisible(false);
         when(blogRepository.findById(1L)).thenReturn(Optional.of(blog));
 
-        BlogResponse respuesta = service.buscarPorId(1L, sesion("admin@correo.cl", "ADMINISTRADOR"));
+        BlogPublicoResponse respuesta = service.buscarPorId(1L, sesion("admin@correo.cl", "ADMINISTRADOR"));
 
         assertEquals(1L, respuesta.id());
     }
@@ -174,7 +175,7 @@ class BlogServiceTest {
         blog.setVisible(false);
         when(blogRepository.findById(1L)).thenReturn(Optional.of(blog));
 
-        BlogResponse respuesta = service.buscarPorId(1L, sesion("ana@correo.cl", "VENDEDOR"));
+        BlogPublicoResponse respuesta = service.buscarPorId(1L, sesion("ana@correo.cl", "VENDEDOR"));
 
         assertEquals(1L, respuesta.id());
     }
@@ -206,9 +207,6 @@ class BlogServiceTest {
 
     @Test
     void clienteNoPuedeCambiarLaPortada() {
-        Blog blog = blogVisible();
-        when(blogRepository.findById(1L)).thenReturn(Optional.of(blog));
-
         assertThrows(AccessDeniedException.class, () -> service.asignarImagenPrincipal(1L, 7L,
                 sesion("cliente@correo.cl", "CLIENTE")));
     }
@@ -236,6 +234,22 @@ class BlogServiceTest {
 
         assertEquals(1, respuesta.contenido().size());
         assertEquals("Mi blog", respuesta.contenido().get(0).titulo());
-        assertEquals("Ana", respuesta.contenido().get(0).autorNombre());
+    }
+
+    @Test
+    void buscarGestionDevuelveDatosDelAutor() {
+        when(blogRepository.findById(1L)).thenReturn(Optional.of(blogVisible()));
+
+        BlogResponse respuesta = service.buscarGestionPorId(1L, sesion("admin@correo.cl", "ADMINISTRADOR"));
+
+        assertEquals(3L, respuesta.autorId());
+        assertEquals("Ana", respuesta.autorNombre());
+        assertEquals("ana@correo.cl", respuesta.autorCorreo());
+    }
+
+    @Test
+    void clienteNoPuedeUsarElDetalleDeGestion() {
+        assertThrows(AccessDeniedException.class, () -> service.buscarGestionPorId(1L,
+                sesion("cliente@correo.cl", "CLIENTE")));
     }
 }

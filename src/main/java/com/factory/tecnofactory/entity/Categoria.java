@@ -10,9 +10,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Tabla categoria. Se incluye porque ProductoCategoria la necesita.
- * Si tu compañero ya creó esta entidad, usa la suya y borra este archivo
- * (solo hace falta que tenga getId() y getNombre()).
+ * Tabla categoria. Cada producto se clasifica en una o más categorías.
+ * La imagen de la categoría vive en categoria_imagen y la administra esta entidad.
  */
 @Entity
 @Table(name = "categoria")

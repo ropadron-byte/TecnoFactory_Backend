@@ -297,8 +297,10 @@ Tablas creadas (entra como migrator; te pide la clave `MIGRATOR_PASSWORD`):
 docker exec -it tecnofactory-db mysql -utecnofactory_migrator -p tecnofactory -e "SHOW TABLES;"
 ```
 
-Debes ver las 13 tablas de tu modelo más `flyway_schema_history` (14 en total):
-`blog, boleta, carrito, categoria, comuna, detalle_boleta, detalle_carrito, imagen_url, producto, producto_categoria, region, tipo_usuario, usuario`.
+Debes ver las **17 tablas de negocio** más `flyway_schema_history` (18 en total):
+`blog, blog_imagen, boleta, carrito, categoria, categoria_imagen, comuna, contacto, detalle_boleta, detalle_carrito, imagen_url, producto, producto_categoria, producto_imagen, region, tipo_usuario, usuario`.
+
+Si vienes de una base creada solo con `V1` y `V2`, arranca la app para que Flyway aplique `V3` a `V7`.
 
 Historial de Flyway:
 
@@ -341,7 +343,7 @@ El primer comando funciona. El segundo **debe fallar** con `ERROR 1142 ... DROP 
 | Usuarios `tecnofactory_app` y `tecnofactory_migrator` creados | Correcto |
 | `./mvnw clean package -DskipTests` | `BUILD SUCCESS` |
 | Arranque con perfil `prod` | Correcto, sin errores |
-| `SHOW TABLES` | 13 tablas + `flyway_schema_history` |
+| `SHOW TABLES` | 17 tablas + `flyway_schema_history` |
 | `flyway_schema_history` | Versión 1, `success = 1` |
 | `SELECT` con `tecnofactory_app` | Correcto (0 filas) |
 | `DROP TABLE BLOG` con `tecnofactory_app` | Rechazado: `ERROR 1142` |

@@ -10,7 +10,7 @@ target/
 logs/
 *.log
 uploads/
-
+explorer-E/
 
 ### STS ###
 .apt_generated

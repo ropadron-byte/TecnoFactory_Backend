@@ -1,6 +1,7 @@
 package com.factory.tecnofactory.controller;
 
 import com.factory.tecnofactory.dto.BlogGestionResponse;
+import com.factory.tecnofactory.dto.BlogPublicoResponse;
 import com.factory.tecnofactory.dto.BlogRequest;
 import com.factory.tecnofactory.dto.BlogResponse;
 import com.factory.tecnofactory.dto.BlogResumenResponse;
@@ -53,8 +54,8 @@ public class BlogController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Ver un blog visible (público)")
-    public BlogResponse buscar(@PathVariable Long id, Authentication autenticacion) {
+    @Operation(summary = "Ver un blog visible sin datos del autor (público)")
+    public BlogPublicoResponse buscar(@PathVariable Long id, Authentication autenticacion) {
         return blogService.buscarPorId(id, autenticacion);
     }
 
@@ -90,8 +91,9 @@ public class BlogController {
                                                                  @PathVariable Long idImagen,
                                                                  Authentication autenticacion) {
         ImagenResponse imagen = imagenService.agregarExistenteABlog(id, idImagen, autenticacion);
-        URI ubicacion = ServletUriComponentsBuilder.fromCurrentRequest()
-                .buildAndExpand()
+        URI ubicacion = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/blogs/{id}/imagenes")
+                .buildAndExpand(id)
                 .toUri();
         return ResponseEntity.created(ubicacion).body(imagen);
     }
@@ -108,6 +110,12 @@ public class BlogController {
     @Operation(summary = "Listar todos los blogs para gestionarlos, también los desactivados (ADMINISTRADOR o VENDEDOR)")
     public PageResponse<BlogGestionResponse> listarGestion(@ParameterObject Pageable pageable) {
         return blogService.listarGestion(pageable);
+    }
+
+    @GetMapping("/gestion/{id}")
+    @Operation(summary = "Ver un blog con los datos de su autor (ADMINISTRADOR o VENDEDOR)")
+    public BlogResponse buscarGestion(@PathVariable Long id, Authentication autenticacion) {
+        return blogService.buscarGestionPorId(id, autenticacion);
     }
 
     @PutMapping("/{id}")

@@ -18,7 +18,7 @@ El plan completo por fases está en [10-pendientes-y-futuro.md](../referencia/10
 
 - [x] **Confirmar un arranque completo** (`Found 4 JPA repository interfaces`, `Started ...`, Swagger y `/actuator/health`).
 - [x] **`camelCase` en `Usuario`** (`runDv`, `fechaNacimiento`), **`unique = false` en `run_dv`** e **`Integer id`** en `Region` y `Comuna`: comprobado contra tu repositorio el 19 oct.
-- [ ] **Quitar `unique = true`** de `nombre_region` (`Region`) y `nombre_comuna` (`Comuna`): siguen puestos ([13, 7.2](../referencia/13-entidades-explicadas.md#72-unique--true-en-nombres-de-region-y-comuna)).
+- [x] **`unique = true` en `Region` y `Comuna`**: se mantiene y ahora es real. La migración `V7__unicidad_region_comuna.sql` agrega los `UNIQUE` a `nombre_region` y `nombre_comuna`; los datos de `V2` no tienen duplicados (6 nov).
 - [x] **Paso 6: `UsuarioService`** y **paso 7: `AdministradorInicialRunner`**: el primer arranque creó al administrador.
 - [x] **Administrador: clave fuera del log** (0 apariciones en los logs de archivo, 19 oct) y **rama sin variables** (`WARN` y la app arranca igual).
 - [x] **Administrador: la fila en la base**: vista en MySQL Workbench (19 oct), existe.
@@ -46,7 +46,7 @@ Lo que conviene dejar resuelto **una sola vez**, para que `Categoria`, `Producto
 - [x] **`CorsConfig`** hecha; **`WebConfig`** borrada por estar vacía (20 oct): CORS con el origen del frontend leído de una variable de entorno. Se necesita el día que el frontend llame a la API desde otro puerto.
 - [x] **Login con JWT (fase 4) antes de los controllers de `Producto`, `Carrito` y `Boleta`**: código aplicado el 20 oct (ver la sección siguiente); falta confirmar los tests y el flujo en Swagger. `Categoria` ya nace con reglas por rol.
 - [ ] **Un ejemplo de prueba de repository** con Testcontainers (ya está en el `pom.xml`), para consultas propias complejas (carrito, boleta). Una sola prueba sirve de plantilla.
-- [ ] **Limpieza de las entidades** que se copiarán como modelo: los `unique = true` de `Region` y `Comuna`, imports sobrantes y `Optional<List<...>>` (ver Limpieza pendiente).
+- [x] **Limpieza de las entidades y repositories** (6 nov): imports y bloque comentado de `Region`, `Comuna` y `RegionRepository`; `Optional<List<...>>` cambiado por `List<...>` en `RegionRepository` y `ComunaRepository`; Javadoc de `Categoria` actualizado.
 - [ ] **No hace falta ahora:** Redis y caché (`@Cacheable`), correo, subida de imágenes y el `Dockerfile` del backend. Los starters ya están en el `pom.xml`; se configuran el día que se usen.
 
 ### Seguridad: login con JWT y roles (fase 4)
@@ -61,7 +61,7 @@ Guía completa: [21-seguridad-jwt-y-roles-explicada.md](../referencia/21-segurid
 - [ ] **Confirmar los 56 tests** (`./mvnw test -Dtest="*Test"`), que la app arranca y que **desaparece** el aviso `Using generated security password` del log.
 - [ ] **Probar el flujo en Swagger** ([21, sección 14](../referencia/21-seguridad-jwt-y-roles-explicada.md#14-cómo-probarlo-a-mano)): login del administrador, Authorize, `/me`, `/api/usuarios/1`, 401 sin token, 403 con un cliente.
 - [ ] **Usuarios con roles:** `GET /api/usuarios` paginado (administrador y vendedor, solo lectura), `PUT /api/usuarios/me` (editar el propio perfil) y una ruta de administrador para **crear vendedores** (el rol nunca viene del cliente).
-- [ ] **Reglas por rol de cada entidad nueva** (`Categoria`: administrador; `Producto` y órdenes: vendedor y administrador). Se agregan **antes** de `.anyRequest().authenticated()`.
+- [ ] **Reglas por rol de cada entidad nueva** (`Categoria`: administrador; `Producto` y órdenes: vendedor y administrador). Se agregan **antes** de `.anyRequest().denyAll()`.
 - [ ] **Límite de intentos de login** y **HTTPS** antes de un despliegue real.
 - [ ] **Confirmar la revisión del 3 nov** (ver la entrada del Historial): `./mvnw test` (los tests nuevos y los 56 anteriores), arranque con `./scripts/dev.sh` y la prueba de paginación en Swagger. **No se pudo compilar** en el entorno de revisión.
 - [x] **`POST /api/imagenes/productos` no registraba la imagen en `imagen_url`**: resuelto el 3 nov (ver la entrada de las 03:10). Falta poder asignar imágenes a productos y categorías por id (sus controllers).
@@ -71,10 +71,10 @@ Guía completa: [21-seguridad-jwt-y-roles-explicada.md](../referencia/21-segurid
 
 Guía: [19](../guias/19-formulario-de-contacto.md) · Referencia: [28](../referencia/28-contacto-explicado.md).
 
-- [ ] **Confirmar el contacto**: `./mvnw test -Dtest="ContactoServiceTest,ContactoControllerTest"` (4 + 10 tests) y arranque con `./scripts/dev.sh` (en el log: `Migrating schema ... to version "6 - contacto"`). **No se compiló ni se ejecutó** (el ZIP no traía `pom.xml`).
-- [ ] **Probarlo en Swagger** (grupo **Contacto**): `POST` sin sesión → 201; `GET` sin sesión → 401; `GET` con cliente → 403; `GET` con administrador → 200 ([manual 05](../personal/05-probar-la-api.md)).
+- [x] **Confirmar el contacto** (6 nov): `ContactoServiceTest` (4) y `ContactoControllerTest` (10) pasan; el resto de la suite también. `GET /api/contactos/**` queda solo para `ADMINISTRADOR`.
+- [ ] **Probarlo en Swagger** (grupo **Contacto**): `POST` sin sesión → 201; `GET` sin sesión → 401; `GET` con cliente o vendedor → 403; `GET` con administrador → 200 ([manual 05](../personal/05-probar-la-api.md)).
 - [ ] **Límite de envíos por IP o captcha** antes de desplegar: `POST /api/contactos` es público y cualquiera puede llenar la tabla.
-- [ ] **Decidir si la tabla lleva fecha de envío** (`fecha_creacion`): en la `V6` si aún no se aplicó, en una `V7` si ya se aplicó.
+- [ ] **Decidir si la tabla lleva fecha de envío** (`fecha_creacion`): en una migración nueva (`V8` en adelante).
 
 ### Verificaciones pendientes
 
@@ -87,12 +87,14 @@ Guía: [19](../guias/19-formulario-de-contacto.md) · Referencia: [28](../refere
 ### Decisiones abiertas
 
 - [x] **Administrador inicial**: se decidió el **18 oct** crearlo por código al arrancar (opción B de [08](../referencia/08-seguridad.md#administrador-inicial)) y descartar la plantilla `V4`.
-- [x] **Datos del administrador**: correo y clave vienen de `ADMIN_EMAIL` y `ADMIN_PASSWORD`; el resto (RUN `11111111-1`, nombre, apellidos, fecha, dirección, teléfono, comuna `13101`) son **valores de relleno fijos** en el runner. Se eligió por defecto al no haber otra indicación; se puede cambiar.
+- [x] **Datos del administrador** (6 nov): **todos** vienen de variables `ADMIN_*` (`ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_RUN`, `ADMIN_RUN_DV`, `ADMIN_NOMBRE`, `ADMIN_APELLIDOS`, `ADMIN_FECHA_NACIMIENTO`, `ADMIN_DIRECCION`, `ADMIN_TELEFONO`, `ADMIN_COMUNA`). Si faltan los opcionales, se usan valores de relleno y se escribe un `WARN`. Un dato inválido o un placeholder impide arrancar.
 - [x] **401 frente a 403** (20 oct): resuelto. Sin token o con token inválido, **401** (`AuthenticationException`); con token pero sin el rol, **403** (`AccessDeniedException`). `ManejadorErroresSeguridad` los reenvía a `GlobalExceptionHandler`. Ver [21, sección 9](../referencia/21-seguridad-jwt-y-roles-explicada.md#9-manejadorerroresseguridadjava-y-los-dos-handlers-nuevos).
 - [x] **Quién ve `GET /api/usuarios/{id}`** (20 oct): solo el administrador; el perfil propio es `/api/usuarios/me`.
 - [ ] **Cómo se aplica el descuento** (0 a 100) sobre el `precio` y su copia en `detalle_boleta`.
 - [ ] **Detalle por parámetro** en `HandlerMethodValidationException` (hoy solo dice "Parámetros inválidos").
-- [ ] **Blogs ocultos en `GET /api/imagenes`**: el listado público muestra también imágenes y dueños de blogs ocultos. Decidir si se filtra ([24, decisiones abiertas](../referencia/24-decisiones-de-diseno.md#decisiones-aún-abiertas)).
+- [x] **Blogs ocultos en `GET /api/imagenes`** (6 nov): resuelto al exigir `ADMINISTRADOR` o `VENDEDOR` en `GET /api/imagenes/**`. Los archivos de `/uploads/**` siguen públicos para los `<img>`.
+- [x] **Imágenes huérfanas** (6 nov): documentadas y pospuestas; no se crea job ni migración ([D35](../referencia/24-decisiones-de-diseno.md#d35-imágenes-huérfanas-documentadas-sin-limpieza-automática)).
+- [ ] **Revocación inmediata de tokens**: riesgo aceptado el 6 nov; el filtro consulta la base en cada petición, pero un token de una cuenta activa sirve hasta expirar ([D34](../referencia/24-decisiones-de-diseno.md#d34-la-revocación-inmediata-de-tokens-no-se-implementa)).
 
 ### Limpieza pendiente
 
@@ -101,8 +103,8 @@ Guía: [19](../guias/19-formulario-de-contacto.md) · Referencia: [28](../refere
 - [ ] Si activas el log en archivo, agregar `logs/` y `*.log` a `.gitignore` (ver [12](../referencia/12-logs.md#8-guardar-el-log-en-un-archivo-opcional)).
 - [ ] Actualizar el diagrama de `Diagrama/`: **pospuesto** (es de Oracle Data Modeler y sus tipos de dato difieren de los de MySQL; la fuente de verdad es `V1`).
 - [x] No compartir el ZIP del proyecto con el `.env` ni `target/`: **tenido en cuenta**.
-- [ ] Limpiar las entidades (siguen así el 19 oct): `import jakarta.validation.constraints.Min` sin usar y bloques comentados al final de `Region.java` y `Comuna.java`, y tres líneas comentadas en `RegionRepository.java`; `Ctrl+Alt+O` en IntelliJ quita los `import` sobrantes de las entidades y los repositories.
-- [ ] Cambiar `Optional<List<...>>` por `List<...>` en `RegionRepository`, `ComunaRepository` y `UsuarioRepository` (funciona, pero sobra el `Optional`).
+- [x] Limpiar las entidades (6 nov): se quitaron el `import` sin usar y el bloque comentado de `Region.java` y `Comuna.java`, y las líneas comentadas de `RegionRepository.java`.
+- [x] Cambiar `Optional<List<...>>` por `List<...>` en `RegionRepository` y `ComunaRepository` (6 nov). `UsuarioRepository` se revisa cuando se toque.
 - [ ] Borrar `src/test/.../controller/UsuarioController.java` (copia sobrante del controller en la carpeta de tests).
 - [ ] Borrar `docs/11-cambios-recientes.md` (**sigue en tu repositorio el 19 oct**): es una copia antigua de este archivo y el README indica que no se crean copias numeradas.
 - [x] El `README.md` enlaza `02-docker-y-mysql.md` y `03-variables-y-claves.md`, que no venían en el ZIP revisado: **recuperados** y añadidos al paquete de documentación (18 oct).
@@ -110,6 +112,54 @@ Guía: [19](../guias/19-formulario-de-contacto.md) · Referencia: [28](../refere
 ---
 
 ## Historial
+
+### 6 nov 2026: seguridad, contratos de blogs, configuración y limpieza (fases 1–4)
+
+Sesión de correcciones acordada contigo: cerrar rutas por defecto, separar el contrato público del de gestión, validar la configuración al arrancar y limpiar piezas pendientes. El alcance fue fases 1–4; no se tocó `explorer-E/`.
+
+**Seguridad y rutas**
+
+- `SecurityConfig` ahora usa reglas explícitas por método y rol y termina en **`anyRequest().denyAll()`**. Se permiten `/error`, `OPTIONS /**`, Swagger, `health`, login, registro, contacto, lectura pública de blogs y `/uploads/**`.
+- `GET /api/imagenes/**` (metadatos y dueños) exige `ADMINISTRADOR` o `VENDEDOR`. `/uploads/**` sigue público porque un `<img>` no envía JWT.
+- `GET /api/contactos/**` queda **solo para `ADMINISTRADOR`**: lo exige `ContactoControllerTest` y la documentación. Se corrigió el resumen de Swagger, que decía «ADMINISTRADOR o VENDEDOR».
+- `CabecerasUploadsFilter` agrega `X-Content-Type-Options: nosniff` y `Content-Security-Policy: default-src 'none'` a `/uploads/**`.
+
+**Blogs**
+
+- `BlogResponse` es el DTO de **gestión** (incluye `autorId`, `autorNombre`, `autorCorreo`).
+- `BlogPublicoResponse` es el DTO **público**: no expone datos del autor. `GET /api/blogs/{id}` lo devuelve.
+- `GET /api/blogs/gestion/{id}` devuelve `BlogResponse` y exige personal.
+- `BlogResumenResponse` ya no incluye `autorNombre`.
+- Se corrigió el `Location` de `POST /api/blogs/{id}/imagenes/{idImagen}` a `/api/blogs/{id}/imagenes`.
+- El permiso se comprueba **antes** de buscar el blog en `actualizar`, `eliminar`, `asignarImagenPrincipal` y `cambiarVisibilidad`: un rol sin permiso recibe 403 sin filtrar si el id existe.
+
+**Configuración y arranque**
+
+- `ValidadorClaves`: claves de **8 a 72 caracteres** y máximo **72 bytes UTF-8**; detecta placeholders (`cambia_esta_clave`, `cambiar_esta_clave`, `CAMBIAR`, `<CAMBIAR>`).
+- `ConfiguracionValidator` rechaza los placeholders de `JWT_SECRET`, `DB_PASSWORD`, `MIGRATOR_PASSWORD`, `APP_DB_PASSWORD` y `ADMIN_PASSWORD`, y exige `JWT_SECRET` de al menos 32 bytes.
+- `AdministradorInicialRunner` lee **todos** los datos de `ADMIN_*`, con valores de relleno por defecto y `WARN` cuando los usa. Valida correo, RUN, comuna, fecha pasada y teléfono.
+- `application.yaml` ya **no** tiene `${DB_PASSWORD:root}`: si falta la variable, la app no arranca con una clave conocida.
+- `.env.example` documenta todas las variables y usa placeholders explícitos. `scripts/dev.ps1` y `scripts/dev.sh` hacen una comprobación previa de esas variables.
+- `GlobalExceptionHandler` arma el mensaje de tamaño máximo desde `spring.servlet.multipart.max-file-size`, sin un «5 MB» escrito a mano.
+
+**Base de datos y limpieza**
+
+- `V7__unicidad_region_comuna.sql`: `UNIQUE` en `region.nombre_region` y `comuna.nombre_comuna`. Los datos de `V2` se auditaron: **16 regiones y 346 comunas, sin nombres duplicados**.
+- Se eliminó `V6_contacto.sql` (un solo guion bajo): Flyway lo ignoraba y duplicaba a `V6__contacto.sql`.
+- `RegionRepository` y `ComunaRepository` devuelven `List<...>` (sin `Optional`), sin imports ni comentarios sobrantes. Javadoc de `Categoria` actualizado.
+- **Imágenes huérfanas:** documentadas y pospuestas. No se crea job ni migración (ver [D35](../referencia/24-decisiones-de-diseno.md#d35-imágenes-huérfanas-documentadas-sin-limpieza-automática)).
+- **Revocación de tokens:** no se implementa. Se documenta como riesgo aceptado, mitigado porque `JwtAuthFilter` consulta la base en cada petición (ver [D34](../referencia/24-decisiones-de-diseno.md#d34-la-revocación-inmediata-de-tokens-no-se-implementa)).
+
+**Tests y estado**
+
+- `.\mvnw.cmd test -Dtest="*Test"`: **204 tests, 0 fallos, 0 errores**.
+- Tests nuevos: `CabecerasUploadsFilterTest` (2), `ValidadorClavesTest` (4), `ConfiguracionValidatorTest` (5), `AdministradorInicialRunnerTest` (6) y `GlobalExceptionHandlerTest` (2).
+- Tests actualizados: `BlogControllerTest`, `BlogServiceTest`, `BlogServiceGestionTest`, `ImagenControllerTest`, `GestionSeguridadTest` y `ContactoControllerTest`.
+- **`contextLoads` no se ejecutó**: necesita MySQL en `localhost:3307` y Docker no está disponible en este entorno (`dockerDesktopLinuxEngine` no encontrado). El resto de la suite pasa.
+
+**Documentación actualizada**
+
+- [03 variables y claves](../referencia/03-variables-y-claves.md), [05 Flyway](../referencia/05-flyway-y-migraciones.md), [08 seguridad](../referencia/08-seguridad.md), [12 administrador](../guias/12-administrador-inicial.md), [17 administrador explicado](../referencia/17-administrador-inicial-explicado.md), [21 JWT y roles](../referencia/21-seguridad-jwt-y-roles-explicada.md), [23 catálogo de endpoints](../referencia/23-catalogo-de-endpoints.md), [24 decisiones](../referencia/24-decisiones-de-diseno.md), [26 configuración YAML](../referencia/26-configuracion-yaml-explicada.md) y [08 antes de desplegar](../personal/08-antes-de-desplegar.md).
 
 ### 4 nov 2026: documentación del formulario de contacto
 

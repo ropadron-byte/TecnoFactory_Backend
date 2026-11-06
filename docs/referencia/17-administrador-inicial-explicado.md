@@ -8,7 +8,7 @@ Guía para entender, línea por línea, las tres piezas que crean el usuario adm
 | `UsuarioService.java` | `service/` | Contiene la **regla**: "crear el administrador si no existe" | [5](#5-usuarioservicejava) |
 | `AdministradorInicialRunner.java` | `config/` | Se ejecuta **al arrancar**, reúne los datos y llama al service | [6](#6-administradorinicialrunnerjava) |
 
-> Estado (19 oct): el código de tu repositorio (`DatosAdministrador`, `UsuarioService` y `AdministradorInicialRunner`) **es idéntico al de esta guía** (comparado archivo por archivo). **Verificado** con tus logs: la creación del administrador en el primer arranque, la rama "sin variables" (`WARN` y la app arranca igual) y que tu `ADMIN_PASSWORD` **no aparece** en los logs de archivo. **Falta confirmar** dos cosas: el contenido de la fila en la base y que un segundo arranque no duplique nada (comandos en la [sección 8](#8-comandos-importantes)).
+> Estado (6 nov): el runner creció desde la primera versión: ahora **todos** los datos del administrador salen de variables `ADMIN_*`, con valores de relleno por defecto y validaciones que impiden arrancar con datos inválidos o con los placeholders de `.env.example`. La creación del administrador y la rama "sin variables" se verificaron con logs el 18 oct; las validaciones nuevas están cubiertas por tests automáticos ([sección 9](#9-qué-se-verificó-y-qué-no)).
 
 ---
 
@@ -18,11 +18,13 @@ Sin al menos un administrador, nadie puede crear ni editar productos y categorí
 
 | Decisión | Motivo |
 | --- | --- |
-| Correo y clave salen de **variables de entorno** (`ADMIN_EMAIL`, `ADMIN_PASSWORD`) | Nada secreto queda en Git |
+| Todos los datos salen de **variables de entorno** (`ADMIN_*`) | Nada secreto ni personal queda en Git |
 | Se crea **solo si no existe** un administrador | Reiniciar la app mil veces no duplica nada |
 | La clave se guarda como **hash BCrypt** | Si alguien lee la base, no obtiene la clave |
+| La clave se valida **antes** de usarla: 8 a 72 caracteres y máximo 72 bytes UTF-8 | BCrypt ignora lo que pase de 72 bytes; mejor fallar que recortar en silencio |
+| Se rechazan los **placeholders** de `.env.example` | Un despliegue con `CAMBIAR` no debe arrancar |
 | Rol buscado **por nombre** (`ADMINISTRADOR`), no por id | Los ids los asigna `AUTO_INCREMENT`; el nombre es estable |
-| El resto de los datos (RUN, nombre, dirección...) son **valores de relleno** fijos en el runner | Son datos de sistema, no de una persona real. Se pueden editar después |
+| Los datos opcionales tienen **valores de relleno** y avisan con `WARN` | La app arranca en desarrollo, pero deja constancia de lo que falta |
 
 Se descartó la alternativa de una migración `V4` con un hash pegado: dejaba el hash para siempre en el historial de Git ([08](08-seguridad.md#administrador-inicial)).
 
@@ -63,19 +65,22 @@ Spring busca todos los beans que implementan ApplicationRunner y llama a run()
    |
    v
 AdministradorInicialRunner.run()
-   |-- 1. Lee adminEmail y adminPassword (inyectados desde las variables de entorno)
-   |-- 2. ¿Alguna está vacía?  -> sí: log.warn y termina (la app sigue funcionando)
-   |-- 3. Arma un DatosAdministrador con los 10 datos
-   |-- 4. Llama a usuarioService.crearAdministradorSiNoExiste(datos)
+   |-- 1. Lee las variables ADMIN_* (correo, clave, RUN, nombre, fecha, dirección, teléfono, comuna)
+   |-- 2. ¿adminEmail o adminPassword vacías?  -> sí: log.warn y termina (la app sigue funcionando)
+   |-- 3. Valida la clave (8-72 caracteres / 72 bytes) y rechaza placeholders
+   |-- 4. Valida correo, nombre, dirección, teléfono, RUN, comuna y fecha
+   |-- 5. Arma un DatosAdministrador con los 10 datos
+   |-- 6. Si usó dirección o teléfono de relleno, log.warn
+   |-- 7. Llama a usuarioService.crearAdministradorSiNoExiste(datos)
    |
    v
 UsuarioService.crearAdministradorSiNoExiste()      (dentro de una TRANSACCIÓN)
-   |-- 5. ¿Ya existe un usuario con rol ADMINISTRADOR?  -> sí: log.info, devuelve false
-   |-- 6. Busca el rol "ADMINISTRADOR"        -> si no existe: lanza RecursoNoEncontradoException
-   |-- 7. Busca la comuna 13101               -> si no existe: lanza RecursoNoEncontradoException
-   |-- 8. Arma el Usuario y convierte la clave en hash BCrypt
-   |-- 9. save() -> INSERT en la tabla usuario
-   |-- 10. log.info("Administrador inicial creado ...") y devuelve true
+   |-- 8. ¿Ya existe un usuario con rol ADMINISTRADOR?  -> sí: log.info, devuelve false
+   |-- 9. Busca el rol "ADMINISTRADOR"        -> si no existe: lanza RecursoNoEncontradoException
+   |-- 10. Busca la comuna indicada            -> si no existe: lanza RecursoNoEncontradoException
+   |-- 11. Arma el Usuario y convierte la clave en hash BCrypt
+   |-- 12. save() -> INSERT en la tabla usuario
+   |-- 13. log.info("Administrador inicial creado ...") y devuelve true
    |
    v
 Fin de la transacción: COMMIT (los cambios quedan guardados)
@@ -96,9 +101,12 @@ No hay `insert`. Es la propiedad que hace seguro reiniciar la app.
 | Situación | Dónde se detiene | Resultado |
 | --- | --- | --- |
 | Faltan `ADMIN_EMAIL` o `ADMIN_PASSWORD` | Paso 2 | `WARN` y la app **sigue** funcionando |
-| Ya hay un administrador | Paso 5 | `INFO` y la app sigue |
-| El rol `ADMINISTRADOR` no existe en la base | Paso 6 | La excepción **sale del runner y la app no arranca** (`Application run failed`). Lo correcto: la base está mal |
-| La comuna 13101 no existe | Paso 7 | Igual que el anterior |
+| La clave es un placeholder o mide fuera de 8–72 | Paso 3 | `IllegalStateException`: **la app no arranca** |
+| Un `ADMIN_*` tiene formato inválido (correo, RUN, fecha, teléfono, comuna) | Paso 4 | `IllegalStateException` con el nombre de la variable: **la app no arranca** |
+| Faltan datos opcionales | Paso 6 | `WARN` de datos de relleno y la app sigue |
+| Ya hay un administrador | Paso 8 | `INFO` y la app sigue |
+| El rol `ADMINISTRADOR` no existe en la base | Paso 9 | La excepción **sale del runner y la app no arranca** (`Application run failed`). Lo correcto: la base está mal |
+| La comuna configurada no existe | Paso 10 | Igual que el anterior |
 
 Las excepciones del runner **no** pasan por el `GlobalExceptionHandler`: ese solo atiende peticiones HTTP, y aquí no hay ninguna.
 
@@ -341,6 +349,7 @@ package com.factory.tecnofactory.config;
 
 import com.factory.tecnofactory.service.DatosAdministrador;
 import com.factory.tecnofactory.service.UsuarioService;
+import com.factory.tecnofactory.util.ValidadorClaves;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -349,6 +358,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 
 @Component
 @RequiredArgsConstructor
@@ -363,6 +373,30 @@ public class AdministradorInicialRunner implements ApplicationRunner {
     @Value("${ADMIN_PASSWORD:}")
     private String adminPassword;
 
+    @Value("${ADMIN_RUN:11111111}")
+    private String adminRun;
+
+    @Value("${ADMIN_RUN_DV:1}")
+    private String adminRunDv;
+
+    @Value("${ADMIN_NOMBRE:Administrador}")
+    private String adminNombre;
+
+    @Value("${ADMIN_APELLIDOS:TecnoFactory}")
+    private String adminApellidos;
+
+    @Value("${ADMIN_FECHA_NACIMIENTO:2000-01-01}")
+    private String adminFechaNacimiento;
+
+    @Value("${ADMIN_DIRECCION:Por definir}")
+    private String adminDireccion;
+
+    @Value("${ADMIN_TELEFONO:+56900000000}")
+    private String adminTelefono;
+
+    @Value("${ADMIN_COMUNA:13101}")
+    private String adminComuna;
+
     @Override
     public void run(ApplicationArguments args) {
         if (adminEmail.isBlank() || adminPassword.isBlank()) {
@@ -370,17 +404,51 @@ public class AdministradorInicialRunner implements ApplicationRunner {
             return;
         }
 
+        validarDatos();
         DatosAdministrador datos = new DatosAdministrador(
-                11111111, "1",
-                "Administrador", "TecnoFactory",
-                adminEmail, adminPassword,
-                LocalDate.of(2000, 1, 1),
-                "Por definir", "+56900000000",
-                13101
+                parseEntero("ADMIN_RUN", adminRun, 1_000_000, 99_999_999),
+                adminRunDv.trim().toUpperCase(),
+                adminNombre.trim(),
+                adminApellidos.trim(),
+                adminEmail.trim(),
+                adminPassword,
+                parseFecha(),
+                adminDireccion.trim(),
+                adminTelefono.trim(),
+                parseEntero("ADMIN_COMUNA", adminComuna, 1, Integer.MAX_VALUE)
         );
+
+        if ("Por definir".equalsIgnoreCase(adminDireccion.trim())
+                || "+56900000000".equals(adminTelefono.trim())) {
+            log.warn("El administrador inicial usa datos de relleno; define ADMIN_DIRECCION y ADMIN_TELEFONO");
+        }
 
         usuarioService.crearAdministradorSiNoExiste(datos);
     }
+
+    private void validarDatos() {
+        if (ValidadorClaves.esPlaceholder(adminPassword)) {
+            throw new IllegalStateException(
+                    "ADMIN_PASSWORD conserva el valor de ejemplo de .env.example; genera una clave real");
+        }
+        ValidadorClaves.validar("ADMIN_PASSWORD", adminPassword);
+
+        if (!adminEmail.trim().matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+            throw new IllegalStateException("ADMIN_EMAIL no tiene un formato válido");
+        }
+        if (adminNombre.isBlank() || adminApellidos.isBlank()) {
+            throw new IllegalStateException("ADMIN_NOMBRE y ADMIN_APELLIDOS son obligatorios");
+        }
+        if (adminDireccion.isBlank()) {
+            throw new IllegalStateException("ADMIN_DIRECCION es obligatoria");
+        }
+        if (!adminTelefono.trim().matches("\\+?[0-9]{8,14}")) {
+            throw new IllegalStateException("ADMIN_TELEFONO debe tener entre 8 y 14 dígitos, con + opcional");
+        }
+    }
+
+    private int parseEntero(String nombreVariable, String valor, int minimo, int maximo) { ... }
+    private LocalDate parseFecha() { ... }
 }
 ```
 
@@ -389,6 +457,7 @@ public class AdministradorInicialRunner implements ApplicationRunner {
 | `import` | Qué es |
 | --- | --- |
 | `...service.DatosAdministrador`, `UsuarioService` | Las dos clases del paquete `service` |
+| `...util.ValidadorClaves` | Valida el largo de la clave y detecta placeholders |
 | `...annotation.Value` | La anotación `@Value`, que lee una propiedad o variable de entorno |
 | `org.springframework.boot.ApplicationRunner` | El contrato "ejecútame al arrancar" |
 | `org.springframework.boot.ApplicationArguments` | El tipo del parámetro de `run` (argumentos de línea de comandos) |
@@ -406,19 +475,22 @@ public class AdministradorInicialRunner implements ApplicationRunner {
 | `private final UsuarioService usuarioService;` | Spring lo inyecta por constructor, como en el service |
 | `@Value("${ADMIN_EMAIL:}")` | Inyecta el valor de la variable de entorno `ADMIN_EMAIL` en el campo |
 | `${ADMIN_EMAIL:}` | La parte tras `:` es el **valor por defecto**: aquí, vacío. Si la variable no existe, el campo vale `""` y la app **no** falla ([03](03-variables-y-claves.md#sintaxis-variablevalor)) |
+| `${ADMIN_RUN:11111111}`, `${ADMIN_COMUNA:13101}`... | Igual, pero con un valor de relleno por defecto. Si el `.env` no los define, se usan esos y luego se avisa con un `WARN` |
 | Campos `@Value` **sin** `final` | Spring los asigna **después** de crear el objeto, así que no pueden ser `final` ni entran en el constructor de Lombok |
 | `@Override` | Indica que implementa un método del contrato. Si te equivocas en el nombre, el compilador avisa |
 | `public void run(ApplicationArguments args)` | El método que Spring llama. `args` no se usa aquí |
 | `adminEmail.isBlank() \|\| adminPassword.isBlank()` | `isBlank()` es verdadero para `""` **y** para solo espacios. `\|\|` significa "o": basta con que falte una |
 | `log.warn("...")` | Nivel `WARN`: conviene saberlo, pero no impide funcionar. **No imprime ni el correo ni la clave** |
 | `return;` | Termina `run` sin hacer nada; la app sigue funcionando |
+| `validarDatos()` | Rechaza placeholders y datos con formato inválido **antes** de tocar la base |
+| `ValidadorClaves.esPlaceholder(...)` | Compara en minúsculas: detecta `cambia_esta_clave`, `cambiar_esta_clave`, `CAMBIAR` y `<CAMBIAR>` |
+| `ValidadorClaves.validar(...)` | Exige entre 8 y 72 caracteres y no más de 72 bytes UTF-8 (límite de BCrypt) |
+| `parseEntero("ADMIN_RUN", ..., 1_000_000, 99_999_999)` | Convierte el RUN a número y exige un rango razonable |
+| `parseEntero("ADMIN_COMUNA", ..., 1, Integer.MAX_VALUE)` | Convierte el id de comuna; que exista se comprueba en el service |
+| `parseFecha()` | Exige formato `AAAA-MM-DD` y una fecha **anterior a hoy** |
 | `new DatosAdministrador(...)` | Arma el record. Los argumentos van **en el mismo orden** que los campos del record |
-| `11111111, "1"` | RUN de relleno con **dígito verificador válido** |
-| `"Administrador", "TecnoFactory"` | Nombre y apellidos de relleno |
-| `adminEmail, adminPassword` | Los dos únicos datos que vienen del entorno |
-| `LocalDate.of(2000, 1, 1)` | Fecha fija: año, mes, día |
-| `"Por definir", "+56900000000"` | Dirección y teléfono (cabe en `VARCHAR(15)`) |
-| `13101` | Código de la comuna de Santiago; existe en `V2` |
+| `adminRunDv.trim().toUpperCase()` | El dígito verificador puede venir como `k`; se guarda como `K` |
+| `"Por definir".equalsIgnoreCase(...) \|\| "+56900000000".equals(...)` | Detecta si se usaron los valores de relleno y avisa |
 | `usuarioService.crearAdministradorSiNoExiste(datos);` | La única llamada importante. El resultado `true`/`false` no se usa aquí |
 
 ### 6.3 Decisiones de diseño
@@ -426,8 +498,9 @@ public class AdministradorInicialRunner implements ApplicationRunner {
 | Decisión | Por qué |
 | --- | --- |
 | El runner **no decide**; solo llama | La regla "crear si no existe" queda en un solo lugar y otras clases pueden usarla |
-| **No falla** si faltan las variables | Un compañero sin `ADMIN_EMAIL` en su `.env` puede arrancar y trabajar. Para **producción** conviene lo contrario: cambiar el `log.warn` por `throw new IllegalStateException(...)` para que falle de forma visible |
-| Datos de relleno **fijos** | Son datos de sistema. Se pueden pasar a variables de entorno más adelante sin tocar el service |
+| **No falla** si faltan las variables de correo o clave | Un compañero sin `ADMIN_EMAIL` en su `.env` puede arrancar y trabajar |
+| **Sí falla** si los datos están mal o son placeholders | Es preferible un error claro al arrancar que un administrador con datos inválidos o una clave de ejemplo |
+| Todos los datos vienen del entorno, con relleno por defecto | Se puede desplegar sin tocar código y, a la vez, arrancar en desarrollo sin configurar todo |
 
 ---
 
@@ -445,6 +518,7 @@ public class AdministradorInicialRunner implements ApplicationRunner {
 | **Lambda `() -> ...`** | Función sin nombre; se ejecuta solo si hace falta | `orElseThrow` |
 | **`static final`** | Constante de la clase | `ROL_ADMINISTRADOR` |
 | **`@Value("${X:}")`** | Lee una variable de entorno, con valor por defecto | Runner |
+| **Validación al arrancar** | Un `IllegalStateException` en un `ApplicationRunner` o en `@PostConstruct` impide que la app termine de arrancar | Runner y `ConfiguracionValidator` |
 | **`ApplicationRunner`** | Código que Spring ejecuta una vez, al terminar de arrancar | Runner |
 | **BCrypt** | Hash lento y con sal, pensado para claves ([15, sección 2](15-seguridad-codigo-explicado.md#2-qué-es-bcrypt-y-por-qué-no-se-compara-con-equals)) | `passwordEncoder.encode` |
 
@@ -572,7 +646,10 @@ tail -n 40 logs/tecnofactory.log                     # las últimas 40 líneas
 | El `insert` no muestra valores | **Verificado** |
 | `Administrador inicial creado con el correo ...` | **Verificado** |
 | Rama "sin variables": `WARN` y la app arranca igual | **Verificado**: dos arranques del 18 oct (23:30 y 23:31) sin variables cargadas mostraron `ADMIN_EMAIL o ADMIN_PASSWORD sin definir` y la app arrancó |
-| Tu código coincide con esta guía | **Verificado** (19 oct) |
+| Tu código coincide con esta guía | **Verificado** (6 nov, actualizado con las validaciones) |
+| Clave de 8 a 72 caracteres y detección de placeholders | **Probado** con `ValidadorClavesTest` y `AdministradorInicialRunnerTest` |
+| Correo, RUN, fecha y teléfono inválidos detienen el arranque | **Probado** en `AdministradorInicialRunnerTest` |
+| Placeholders de `JWT_SECRET`, `DB_PASSWORD`, etc. | **Probado** en `ConfiguracionValidatorTest` |
 | Contenido de la fila (`rol`, `prefijo $2a$10$`, `largo 60`, `activo 1`) | **Pendiente** (8.4) |
 | Segundo arranque sin duplicar | **Pendiente**: los logs no registran ningún arranque posterior a la creación (el proceso de las 23:33 siguió corriendo hasta las 11:58 del día siguiente) ([8.8](#88-probar-los-casos)) |
 | La clave no aparece en `logs/tecnofactory.log` | **Verificado** (19 oct): 0 apariciones de tu `ADMIN_PASSWORD` en el log actual ni en el rotado del 18 oct. Alcance: el log de **archivo**; en la consola el `insert` muestra `?` en vez de valores |
@@ -589,10 +666,16 @@ tail -n 40 logs/tecnofactory.log                     # las últimas 40 líneas
 | `Duplicate entry '...' for key 'usuario.correo'` | Ya hay un usuario con ese correo que **no** es administrador | Usar otro `ADMIN_EMAIL` |
 | `Data too long for column 'telefono'` | El teléfono de relleno excede 15 caracteres | Acortarlo |
 | El administrador existe pero con la clave "vieja" | Cambiaste `ADMIN_PASSWORD` **después** de la primera vez | Es lo esperado: solo se usa la primera vez. Cambia la clave con la API (fase 4) o recrea la base en desarrollo |
+| `ADMIN_PASSWORD conserva el valor de ejemplo de .env.example` | Quedó el placeholder de `.env.example` | Genera una clave real (`openssl rand -hex 16`) |
+| `ADMIN_PASSWORD debe tener entre 8 y 72 caracteres y no superar 72 bytes UTF-8` | Clave corta, larga o con muchos acentos | Usa una clave ASCII de 8 a 72 caracteres |
+| `ADMIN_EMAIL no tiene un formato válido` | Falta la arroba, el dominio o hay espacios | Corrige `ADMIN_EMAIL` |
+| `ADMIN_RUN no es un número válido` / `ADMIN_COMUNA no es un número válido` | Texto donde se espera un número, o fuera de rango | Revisa la variable indicada |
+| `ADMIN_FECHA_NACIMIENTO debe ser anterior a hoy` | Fecha futura o formato distinto de `AAAA-MM-DD` | Corrige la fecha |
+| `ADMIN_TELEFONO debe tener entre 8 y 14 dígitos, con + opcional` | Guiones, espacios o letras | Deja solo dígitos y un `+` inicial |
 
 ## 11. Mejoras para más adelante
 
-- **En producción, fallar si faltan las variables**: cambiar el `log.warn` + `return` por una excepción.
-- **Pasar los datos de relleno a variables de entorno**, o agruparlas con `@ConfigurationProperties`, si el equipo lo prefiere.
-- **Una prueba automática** del service con un repository falso (fase 8): "si ya existe un administrador, `save` no se llama".
+- ~~**En producción, fallar si faltan las variables**~~: hoy se mantiene el `WARN` y la app arranca sin administrador; los datos inválidos sí detienen el arranque.
+- ~~**Pasar los datos de relleno a variables de entorno**~~: hecho el 6 nov con `ADMIN_*`.
+- ~~**Una prueba automática** del service con un repository falso~~: hecho (`AdministradorInicialRunnerTest`, `UsuarioServiceTest`).
 - **Cambiar la clave inicial** apenas exista el endpoint de perfil.

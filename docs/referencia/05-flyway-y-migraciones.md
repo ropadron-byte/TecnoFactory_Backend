@@ -49,7 +49,7 @@ Al arrancar, Flyway:
 | --- | --- |
 | `V1` y `V2` solo existen en tu base de desarrollo | Puedes editarlas: `docker compose down -v`, `up -d` y arrancar de nuevo |
 | `V1` o `V2` ya se aplicaron en un servidor o las usa otra persona | **No se editan nunca más.** Cambio nuevo = `V3__...` |
-| Necesitas más datos de referencia | Una migración nueva (`V4__...` en adelante: `V1`, `V2` y `V3` ya existen; el administrador inicial **no** se hace con una migración, se crea por código al arrancar) |
+| Necesitas más datos de referencia | Una migración nueva (`V8__...` en adelante: `V1` a `V7` ya existen; el administrador inicial **no** se hace con una migración, se crea por código al arrancar) |
 | Un cambio de entidad | Una migración equivalente en SQL, y viceversa: con `validate` deben coincidir |
 
 ## Reglas al escribir migraciones
@@ -92,10 +92,24 @@ Resultado de la prueba del 16 oct 2026: versión `1`, descripción `esquema inic
 | --- | --- | --- |
 | 1 | `V1__esquema_inicial.sql` | Crea las 13 tablas, sus restricciones y claves foráneas |
 | 2 | `V2__datos_iniciales.sql` | Inserta 3 tipos de usuario, 16 regiones y 346 comunas |
+| 3 | `V3__categorias_base.sql` | Categorías base |
+| 4 | `V4__blog_fecha_creacion.sql` | Agrega `blog.fecha_creacion` |
+| 5 | `V5__imagen_portada_y_galeria.sql` | Portada del blog y tablas puente `blog_imagen`, `producto_imagen`, `categoria_imagen` |
+| 6 | `V6__contacto.sql` | Crea la tabla `contacto` |
+| 7 | `V7__unicidad_region_comuna.sql` | `UNIQUE` en `region.nombre_region` y `comuna.nombre_comuna` |
+
+> `V7` hace real la unicidad que las entidades ya declaraban con `unique = true`. Antes de aplicarla en una base con datos, comprueba que no haya duplicados:
+>
+> ```sql
+> SELECT nombre_region, COUNT(*) FROM region GROUP BY nombre_region HAVING COUNT(*) > 1;
+> SELECT nombre_comuna, COUNT(*) FROM comuna GROUP BY nombre_comuna HAVING COUNT(*) > 1;
+> ```
+>
+> Los datos de `V2` no tienen duplicados (16 regiones y 346 comunas, comprobado). `validate` **no** revisa índices ni `UNIQUE`: si la entidad lo declara, la migración debe crearlo.
 
 | Dato | Valor |
 | --- | --- |
-| Tablas tras migrar | 13 de negocio + `flyway_schema_history` |
+| Tablas tras migrar | 17 de negocio + `flyway_schema_history` |
 | Usuario que migra (prod) | `tecnofactory_migrator` |
 | Usuario que lee/escribe luego | `tecnofactory_app` |
 

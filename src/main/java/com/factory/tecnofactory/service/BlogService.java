@@ -1,6 +1,7 @@
 package com.factory.tecnofactory.service;
 
 import com.factory.tecnofactory.dto.BlogGestionResponse;
+import com.factory.tecnofactory.dto.BlogPublicoResponse;
 import com.factory.tecnofactory.dto.BlogRequest;
 import com.factory.tecnofactory.dto.BlogResponse;
 import com.factory.tecnofactory.dto.BlogResumenResponse;
@@ -56,8 +57,9 @@ public class BlogService {
         return blogMapper.toResponse(guardado);
     }
 
+    /** Lectura pública: nunca expone datos del autor. */
     @Transactional(readOnly = true)
-    public BlogResponse buscarPorId(Long id, Authentication autenticacion) {
+    public BlogPublicoResponse buscarPorId(Long id, Authentication autenticacion) {
         Blog blog = blogRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Blog", id));
 
@@ -65,7 +67,14 @@ public class BlogService {
         if (!Boolean.TRUE.equals(blog.getVisible()) && !BlogAutorizacion.puedeVerBlogOculto(autenticacion)) {
             throw new RecursoNoEncontradoException("Blog", id);
         }
-        return blogMapper.toResponse(blog);
+        return blogMapper.toPublico(blog);
+    }
+
+    /** Detalle de gestión: incluye los datos del autor. Solo lo invoca personal. */
+    @Transactional(readOnly = true)
+    public BlogResponse buscarGestionPorId(Long id, Authentication autenticacion) {
+        BlogAutorizacion.verificarPersonal(autenticacion);
+        return blogMapper.toResponse(buscarBlog(id));
     }
 
     @Transactional(readOnly = true)
@@ -87,8 +96,8 @@ public class BlogService {
      */
     @Transactional
     public BlogResponse actualizar(Long id, BlogRequest request, Authentication autenticacion) {
-        Blog blog = buscarBlog(id);
         BlogAutorizacion.verificarPersonal(autenticacion);
+        Blog blog = buscarBlog(id);
 
         blog.setTitulo(request.titulo());
         blog.setContenido(request.contenido());
@@ -120,8 +129,8 @@ public class BlogService {
      */
     @Transactional
     public void eliminar(Long id, Authentication autenticacion) {
-        Blog blog = buscarBlog(id);
         BlogAutorizacion.verificarPersonal(autenticacion);
+        Blog blog = buscarBlog(id);
 
         blog.getImagenes().forEach(imagen -> imagen.getBlogs().remove(blog));
         blog.getImagenes().clear();
@@ -131,8 +140,8 @@ public class BlogService {
 
     @Transactional
     public BlogResponse asignarImagenPrincipal(Long idBlog, Long idImagen, Authentication autenticacion) {
-        Blog blog = buscarBlog(idBlog);
         BlogAutorizacion.verificarPersonal(autenticacion);
+        Blog blog = buscarBlog(idBlog);
 
         asignarPortada(blog, buscarImagen(idImagen));
 
@@ -142,8 +151,8 @@ public class BlogService {
     }
 
     private BlogResponse cambiarVisibilidad(Long id, boolean visible, Authentication autenticacion) {
-        Blog blog = buscarBlog(id);
         BlogAutorizacion.verificarPersonal(autenticacion);
+        Blog blog = buscarBlog(id);
 
         blog.setVisible(visible);
         Blog guardado = blogRepository.save(blog);

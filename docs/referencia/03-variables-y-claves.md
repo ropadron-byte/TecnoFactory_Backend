@@ -16,7 +16,7 @@ Spring **no lee el `.env`**. Alguien tiene que pasarle las variables:
 | JAR a mano | Tú, en la línea de comando |
 | Contenedor `backend` | El bloque `environment:` del compose (que a su vez toma valores del `.env`) |
 
-## Las cuatro claves del `.env`
+## Las claves del `.env`
 
 Copia `.env.example` a `.env` la primera vez:
 
@@ -29,10 +29,14 @@ chmod 600 .env
 DB_PASSWORD=...          # clave de root
 MIGRATOR_PASSWORD=...    # clave de tecnofactory_migrator
 APP_DB_PASSWORD=...      # clave de tecnofactory_app
-JWT_SECRET=...           # firma los tokens (mínimo 32 caracteres)
+JWT_SECRET=...           # firma los tokens (mínimo 32 bytes)
+ADMIN_PASSWORD=...       # clave del administrador inicial (8 a 72 caracteres)
 ```
 
-Usa **claves distintas** para cada una.
+Usa **claves distintas** para cada una. El archivo `.env.example` trae valores
+de ejemplo (`CAMBIAR`); la app **se niega a arrancar** mientras no los cambies.
+`ConfiguracionValidator` detecta esos valores y falla con el nombre de la
+variable, sin imprimir la clave.
 
 ### Cómo generarlas
 
@@ -60,21 +64,31 @@ Entrega 64 caracteres aleatorios, solo letras y números. Se usa `-hex` porque `
 | `SPRING_PROFILES_ACTIVE` | `local` | `prod` | Elige el perfil |
 | `DB_URL` | Por defecto `jdbc:mysql://localhost:3307/tecnofactory` | **Obligatoria** | En Docker: `jdbc:mysql://db:3306/tecnofactory` |
 | `DB_USER` | Por defecto `root` | **Obligatoria** (`tecnofactory_app`) | |
-| `DB_PASSWORD` | **Obligatoria** | **Obligatoria** | |
+| `DB_PASSWORD` | **Obligatoria** | **Obligatoria** | Sin valor por defecto en ningún perfil. La app no arranca si falta |
 | `FLYWAY_USER` / `FLYWAY_PASSWORD` | No se usan (Flyway usa la conexión de la app) | **Obligatorias** | Solo en `application-prod.yaml` |
-| `JWT_SECRET` | **Obligatoria** | **Obligatoria** | Mínimo 32 caracteres. **Si mide menos, la app no arranca** (`WeakKeyException`). Con ella se firman los tokens: quien la conozca puede falsificar una sesión. Ver [21](21-seguridad-jwt-y-roles-explicada.md#3-qué-es-un-jwt) |
+| `JWT_SECRET` | **Obligatoria** | **Obligatoria** | Mínimo 32 bytes. Se rechazan los valores de ejemplo. **Si mide menos, la app no arranca** (`WeakKeyException`). Con ella se firman los tokens: quien la conozca puede falsificar una sesión. Ver [21](21-seguridad-jwt-y-roles-explicada.md#3-qué-es-un-jwt) |
 | `CORS_ORIGINS` | Por defecto `http://localhost:5173` | **Recomendada** | Orígenes del frontend permitidos por CORS, separados por comas. En prod, la URL real, **nunca `*`**. Ver [20](20-configuracion-base-explicada.md#6-cors) |
+| `UPLOADS_DIR` | Por defecto `./uploads` | **Recomendada** | Carpeta donde se guardan las imágenes subidas |
 | `REDIS_HOST` | Por defecto `localhost` | — | Sin uso mientras `cache.type: none` |
 | `MAIL_HOST` / `MAIL_PORT` / `MAIL_USER` / `MAIL_PASSWORD` | Por defecto `localhost` / `1025` | — | Sin uso hasta implementar correos |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Opcionales | Opcionales | Las lee `AdministradorInicialRunner`. Si faltan, la app arranca y avisa con un `WARN`. Ver [Administrador inicial](#variables-del-administrador-inicial) |
+| `ADMIN_RUN`, `ADMIN_RUN_DV`, `ADMIN_NOMBRE`, `ADMIN_APELLIDOS`, `ADMIN_FECHA_NACIMIENTO`, `ADMIN_DIRECCION`, `ADMIN_TELEFONO`, `ADMIN_COMUNA` | Opcionales | Opcionales | Datos del administrador inicial. Si faltan se usan valores de relleno y se escribe un `WARN`. Ver abajo |
 
 ## Variables del administrador inicial
 
-El administrador se crea por código al arrancar (decisión del 18 oct; ver [08](08-seguridad.md#administrador-inicial)). Su correo y su clave vienen de dos variables de entorno, para que **nunca** queden escritas en el repositorio:
+El administrador se crea por código al arrancar (decisión del 18 oct; ver [08](08-seguridad.md#administrador-inicial)). Todos sus datos vienen de variables de entorno, para que **nunca** queden escritos en el repositorio:
 
 ```env
-ADMIN_EMAIL=...          # correo con el que iniciará sesión
-ADMIN_PASSWORD=...       # su clave en texto plano; el código la convierte en hash BCrypt
+ADMIN_EMAIL=...                 # correo con el que iniciará sesión
+ADMIN_PASSWORD=...              # su clave en texto plano; el código la convierte en hash BCrypt
+ADMIN_RUN=11111111              # RUN sin dígito verificador
+ADMIN_RUN_DV=1                  # dígito verificador; debe corresponder al RUN
+ADMIN_NOMBRE=Administrador
+ADMIN_APELLIDOS=TecnoFactory
+ADMIN_FECHA_NACIMIENTO=2000-01-01
+ADMIN_DIRECCION=Por definir
+ADMIN_TELEFONO=+56900000000
+ADMIN_COMUNA=13101              # id de comuna existente
 ```
 
 | Detalle | Explicación |
@@ -82,10 +96,13 @@ ADMIN_PASSWORD=...       # su clave en texto plano; el código la convierte en h
 | Dónde van | En el mismo `.env`. Con `set -a; source .env; set +a` quedan disponibles para `./mvnw spring-boot:run`. En IntelliJ, en *Environment variables* |
 | Docker Compose | Ignora las variables del `.env` que el compose no usa: no molestan |
 | Cómo generar la clave | `openssl rand -hex 16`. Mismo criterio que arriba: evita `$`, `#`, `'`, `@` y `"` |
-| Cuándo se usan | **Solo la primera vez**: si ya existe un administrador, el código no hace nada. Cambiar la variable después **no** cambia la clave guardada |
+| Validación de la clave | Debe tener **entre 8 y 72 caracteres** y no superar **72 bytes UTF-8** (límite de BCrypt). Si no cumple, la app **no arranca** |
+| Validación de los datos | RUN con dígito verificador correcto, correo válido, fecha pasada, teléfono de 8 a 14 dígitos y comuna existente. Un dato inválido impide el arranque con un mensaje claro |
+| Datos de relleno | Si no defines `ADMIN_DIRECCION` o `ADMIN_TELEFONO`, se usan los valores de ejemplo y se escribe un `WARN` |
+| Cuándo se usan | **Solo la primera vez**: si ya existe un administrador, el código no hace nada. Cambiar las variables después **no** cambia los datos guardados |
 | Nunca | Escribirlas en un `log`, en un mensaje de error ni en los yaml |
 
-Estado: las lee `AdministradorInicialRunner` (paso 7), explicado en [17](17-administrador-inicial-explicado.md). Son **opcionales**: sin ellas la app arranca igual y escribe un `WARN` en el log, pero no se crea el administrador.
+Estado: las lee `AdministradorInicialRunner` (paso 7), explicado en [17](17-administrador-inicial-explicado.md). Son **opcionales**: sin `ADMIN_EMAIL` y `ADMIN_PASSWORD` la app arranca igual y escribe un `WARN` en el log, pero no se crea el administrador.
 
 ## Sintaxis `${VARIABLE:valor}`
 

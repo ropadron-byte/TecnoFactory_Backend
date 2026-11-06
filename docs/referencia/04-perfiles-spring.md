@@ -17,7 +17,7 @@ Si no defines ningún perfil, corre solo `application.yaml` (perfil `default`): 
 
 | Bloque | Valor | Comentario |
 | --- | --- | --- |
-| `datasource` | `${DB_URL:...localhost...}`, `${DB_USER:root}`, `${DB_PASSWORD:root}` | Valores por defecto de desarrollo |
+| `datasource` | `${DB_URL:...localhost...}`, `${DB_USER:root}`, `${DB_PASSWORD}` | Conexión a MySQL. La clave **no tiene valor por defecto**: si falta, la app no arranca |
 | `jpa.hibernate.ddl-auto` | `validate` | Hibernate solo comprueba; **nunca crea ni modifica tablas** |
 | `jpa.open-in-view` | `false` | Evita consultas perezosas fuera de la capa de servicio (buena práctica). **Corregido el 20 oct** (antes estaba en `true`) |
 | `jpa.properties.hibernate.jdbc.time_zone` | `America/Santiago` | Zona horaria con la que Hibernate guarda fechas y horas |
@@ -28,7 +28,7 @@ Si no defines ningún perfil, corre solo `application.yaml` (perfil `default`): 
 | `servlet.multipart` | `5MB` | Límite de subida de imágenes |
 | `mail` | `localhost:1025` | Para Mailpit en desarrollo (aún sin uso) |
 | `data.redis` / `cache` | Redis, TTL 10 min | **Por defecto el caché es Redis**, que hoy no existe; los perfiles lo apagan |
-| `jwt.secret` | Valor por defecto de ejemplo | Solo para que arranque sin configurar; prod lo reemplaza sin valor por defecto |
+| `jwt.secret` | `${JWT_SECRET}` | **Sin valor por defecto** desde el 3 nov; el perfil `prod` tampoco lo trae |
 | `jwt.expiration-ms` | `3600000` (1 hora) | Vida del token |
 | `management.endpoints` | Solo `health` | Actuator mínimo |
 

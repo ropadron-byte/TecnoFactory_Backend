@@ -34,6 +34,16 @@ if (-not $env:SPRING_PROFILES_ACTIVE) { $env:SPRING_PROFILES_ACTIVE = "local" }
 if (-not $env:DB_URL) { $env:DB_URL = "jdbc:mysql://localhost:3307/tecnofactory" }
 if (-not $env:DB_USER) { $env:DB_USER = "root" }
 
+# No arrancar con los valores de ejemplo de .env.example.
+$requeridas = @("DB_PASSWORD", "MIGRATOR_PASSWORD", "APP_DB_PASSWORD", "JWT_SECRET", "ADMIN_PASSWORD")
+foreach ($nombre in $requeridas) {
+    $valor = [Environment]::GetEnvironmentVariable($nombre, "Process")
+    if ([string]::IsNullOrWhiteSpace($valor) -or $valor -match "CAMBIAR|cambia_esta_clave") {
+        Write-Error "La variable $nombre falta o conserva un valor de ejemplo. Edita .env antes de continuar."
+        exit 1
+    }
+}
+
 # No arranca el backend hasta que MySQL esté healthy.
 docker compose up -d --wait db
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

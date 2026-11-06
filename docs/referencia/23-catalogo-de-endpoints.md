@@ -15,10 +15,19 @@ Base: `http://localhost:8080` · Formato: JSON · Autenticación: cabecera `Auth
 | `POST` | `/api/contactos` | **Público** (formulario de contacto) | 201 |
 | `GET` | `/api/contactos` | `ADMINISTRADOR` | 200 |
 | `GET` | `/api/contactos/{id}` | `ADMINISTRADOR` | 200 |
+| `GET` | `/api/blogs` | Público | 200 |
+| `GET` | `/api/blogs/{id}` | Público (solo blogs visibles) | 200 |
+| `GET` | `/api/blogs/{id}/imagen` · `/imagenes` | Público | 200 / 204 |
+| `GET` | `/api/blogs/gestion` · `/gestion/{id}` | `ADMINISTRADOR` o `VENDEDOR` | 200 |
+| `POST/PUT/PATCH/DELETE` | `/api/blogs/**` | `ADMINISTRADOR` o `VENDEDOR` | 200 / 201 / 204 |
+| `GET` | `/api/imagenes` · `/api/imagenes/{id}` | `ADMINISTRADOR` o `VENDEDOR` | 200 |
+| `POST/PUT/DELETE` | `/api/imagenes/**` | `ADMINISTRADOR` o `VENDEDOR` | 200 / 201 / 204 |
+| `GET` | `/uploads/**` | Público | 200 |
 | `GET` | `/actuator/health` | Público | 200 |
 | `GET` | `/swagger-ui/index.html`, `/v3/api-docs` | Público, **solo en local** | 200 |
 
-**Todo lo demás** responde 401 sin token y, con token, 404 (la ruta no existe todavía).
+**Todo lo demás** responde 401 sin token y **403 con token**: `SecurityConfig` termina en
+`anyRequest().denyAll()`, así que una ruta nueva sin regla explícita no queda accesible.
 
 ---
 
@@ -187,6 +196,97 @@ Aún **no existen** `PUT` ni `DELETE` de contactos. Detalle en la [referencia 28
 
 ---
 
+## Blogs
+
+### `GET /api/blogs` (público)
+
+Página de blogs **visibles** con la forma `BlogResumenResponse`:
+
+```json
+{ "id": 1, "titulo": "Mi blog", "fechaCreacion": "2026-11-03T12:00:00", "imagenPrincipal": { "id": 7, "url": "/uploads/blog/a.jpg" } }
+```
+
+**No incluye** contenido, galería ni datos del autor.
+
+### `GET /api/blogs/{id}` (público)
+
+Devuelve un `BlogPublicoResponse`:
+
+```json
+{
+  "id": 1, "titulo": "Mi blog", "contenido": "...", "fechaCreacion": "2026-11-03T12:00:00",
+  "imagenPrincipal": { "id": 7, "url": "/uploads/blog/a.jpg" },
+  "imagenes": [ { "id": 7, "url": "/uploads/blog/a.jpg" } ]
+}
+```
+
+**No incluye** `autorId`, `autorNombre` ni `autorCorreo`: el correo del autor nunca se publica.
+Un blog desactivado responde **404** salvo para `ADMINISTRADOR` o `VENDEDOR`.
+
+### `GET /api/blogs/{id}/imagen` y `/api/blogs/{id}/imagenes` (público)
+
+La portada y la galería. La portada responde **204** si el blog no tiene imagen principal.
+
+### `GET /api/blogs/gestion` y `/api/blogs/gestion/{id}` (personal)
+
+- `/gestion` pagina **todos** los blogs, también los desactivados: `BlogGestionResponse`
+  (`id`, `titulo`, `visible`, `fechaCreacion`, `autorNombre`, `imagenPrincipal`).
+- `/gestion/{id}` devuelve un `BlogResponse` **con** `autorId`, `autorNombre` y `autorCorreo`.
+  Es el único contrato que expone el correo del autor.
+
+### `POST /api/blogs`, `PUT /api/blogs/{id}` y cambios de estado (personal)
+
+`BlogRequest`:
+
+```json
+{ "titulo": "Mi blog", "contenido": "...", "visible": true, "idImagenPrincipal": 7 }
+```
+
+| Ruta | Efecto |
+| --- | --- |
+| `POST /api/blogs` | Crea; **201** con `Location: /api/blogs/{id}` |
+| `PUT /api/blogs/{id}` | Reemplaza título y contenido; `visible` e `idImagenPrincipal` son opcionales |
+| `PATCH /api/blogs/{id}/activar` · `/desactivar` | Cambia la visibilidad |
+| `DELETE /api/blogs/{id}` | **204**. No borra las imágenes, solo sus relaciones |
+| `POST /api/blogs/{id}/imagenes` (`multipart`, campo `archivo`) | Sube y agrega; **201** |
+| `POST /api/blogs/{id}/imagenes/{idImagen}` | Agrega una existente; **201** con `Location: /api/blogs/{id}/imagenes` |
+| `PUT /api/blogs/{id}/imagen-principal/{idImagen}` | Cambia la portada |
+| `DELETE /api/blogs/{id}/imagenes/{idImagen}` | Quita de la galería sin borrar la imagen |
+
+Todas las rutas de escritura exigen `ADMINISTRADOR` o `VENDEDOR`.
+
+---
+
+## Imágenes
+
+### `GET /api/imagenes` y `GET /api/imagenes/{id}` (personal)
+
+Listado paginado y detalle de `ImagenResponse`, con sus dueños (`BLOG`, `PRODUCTO`,
+`CATEGORIA`). **Ya no son públicas**: revelaban ids de blogs ocultos. Exigen
+`ADMINISTRADOR` o `VENDEDOR`; sin token responden 401 y con otro rol, 403.
+
+### Subida y gestión (personal)
+
+| Ruta | Efecto |
+| --- | --- |
+| `POST /api/imagenes` (`multipart`, campo `archivo`) | Sube sin dueño; **201** con `Location: /api/imagenes/{id}` |
+| `POST /api/imagenes/productos` | Igual, guardando en `uploads/productos` |
+| `PUT /api/imagenes/{id}` | Reemplaza el archivo conservando el id y sus relaciones |
+| `DELETE /api/imagenes/{id}` | **204**; **409** si todavía tiene dueños |
+| `DELETE /api/imagenes/{id}/duenos` | Desacopla de todos sus dueños |
+| `DELETE /api/imagenes/{id}/duenos/{tipo}/{idDueno}` | Desacopla de un dueño |
+
+Solo se aceptan **JPG, PNG y WEBP** de hasta **5 MB** (el mensaje de error lee el límite
+de `spring.servlet.multipart.max-file-size`).
+
+### `GET /uploads/**` (público)
+
+Los archivos se sirven sin sesión para que funcionen los `<img>`. La respuesta incluye
+`X-Content-Type-Options: nosniff` y `Content-Security-Policy: default-src 'none'` para que
+el navegador no interprete una subida como HTML o script.
+
+---
+
 ## Formato de todos los errores
 
 ```json
@@ -197,7 +297,7 @@ Aún **no existen** `PUT` ni `DELETE` de contactos. Detalle en la [referencia 28
 
 ## Paginación
 
-Ya existen tres listados paginados: `GET /api/imagenes`, `GET /api/blogs` y `GET /api/contactos`. La forma es la misma en todos:
+Ya existen varios listados paginados (`GET /api/blogs`, `/api/blogs/gestion`, `/api/imagenes` y `/api/contactos`). La forma es la misma en todos:
 
 | Parámetro | Efecto |
 | --- | --- |

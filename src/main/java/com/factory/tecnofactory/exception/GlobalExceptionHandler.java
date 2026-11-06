@@ -2,6 +2,7 @@ package com.factory.tecnofactory.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.core.PropertyReferenceException;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.util.unit.DataSize;
 
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -34,6 +36,13 @@ import java.util.Map;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private final DataSize tamanoMaximoArchivo;
+
+    public GlobalExceptionHandler(
+            @Value("${spring.servlet.multipart.max-file-size:5MB}") DataSize tamanoMaximoArchivo) {
+        this.tamanoMaximoArchivo = tamanoMaximoArchivo;
+    }
 
     @ExceptionHandler(RecursoNoEncontradoException.class)
     public ResponseEntity<ErrorResponse> noEncontrado(RecursoNoEncontradoException ex, HttpServletRequest req) {
@@ -85,7 +94,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ErrorResponse> archivoMuyGrande(MaxUploadSizeExceededException ex, HttpServletRequest req) {
-        return build(HttpStatus.PAYLOAD_TOO_LARGE, "El archivo supera el tamaño máximo permitido (5 MB)", req, null);
+        return build(HttpStatus.PAYLOAD_TOO_LARGE,
+                "El archivo supera el tamaño máximo permitido (" + formatear(tamanoMaximoArchivo) + ")",
+                req, null);
+    }
+
+    /** El límite se lee de la configuración para que el mensaje no quede desactualizado. */
+    private String formatear(DataSize tamano) {
+        long bytes = tamano.toBytes();
+        if (bytes > 0 && bytes % (1024 * 1024) == 0) {
+            return (bytes / (1024 * 1024)) + " MB";
+        }
+        if (bytes > 0 && bytes % 1024 == 0) {
+            return (bytes / 1024) + " KB";
+        }
+        return bytes + " bytes";
     }
 
     @ExceptionHandler(Exception.class)

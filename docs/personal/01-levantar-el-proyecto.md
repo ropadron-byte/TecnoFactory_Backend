@@ -33,7 +33,7 @@ Swagger: `http://localhost:8080/swagger-ui/index.html`.
 1. Instala Docker y Java 21.
 2. Copia `.env.example` a `.env` y completa los valores.
 3. `./scripts/dev.sh` (crea la base, los 3 usuarios y arranca la app).
-4. Flyway crea las 13 tablas, y la app crea el administrador.
+4. Flyway crea las tablas y la app crea el administrador.
 
 ## Empezar de cero (solo desarrollo)
 

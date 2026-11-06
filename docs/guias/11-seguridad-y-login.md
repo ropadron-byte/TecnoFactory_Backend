@@ -61,12 +61,12 @@ Tres partes separadas por puntos: cabecera, datos (`sub` = correo, `rol`, `iat`,
 
 ## Reglas que no hay que olvidar
 
-1. **Lo no permitido explícitamente queda protegido** (`anyRequest().authenticated()`).
+1. **Lo no permitido explícitamente queda cerrado** (`anyRequest().denyAll()`).
 2. **Ocultar un botón en el frontend no protege nada**: la regla real está aquí.
 3. **Correo inexistente, clave incorrecta y usuario desactivado dan el mismo 401**: nadie averigua qué correos existen.
 4. **El rol que decide es el de la base**, no el del token; cambiarlo o desactivar al usuario surte efecto de inmediato.
 5. **El token no se puede revocar** antes de expirar; vida corta (1 hora).
-6. **`JWT_SECRET` de 32 o más caracteres**, secreto y distinto en producción.
+6. **`JWT_SECRET` de 32 o más bytes**, secreto y distinto en producción.
 7. **`JwtAuthFilter` no lleva `@Component`**: `SecurityConfig` lo crea (si no, `@WebMvcTest` lo cargaría y fallaría).
 
 ## Si algo falla

@@ -27,10 +27,11 @@
 
 En `SecurityConfig`, de arriba hacia abajo, **la primera que coincide gana**:
 
-1. Rutas públicas (Swagger, `/actuator/health`, login, registro, `POST /api/contactos`).
+1. Rutas públicas (Swagger, `/actuator/health`, `/error`, `OPTIONS`, login, registro, `POST /api/contactos`, lectura de blogs y `/uploads/**`).
 2. `GET /api/usuarios/me` → cualquiera con sesión.
 3. `/api/usuarios/**` → `hasRole("ADMINISTRADOR")`.
-4. `anyRequest().authenticated()` → todo lo demás pide sesión.
+4. `GET /api/blogs/gestion/**` y `GET /api/imagenes/**` → `ADMINISTRADOR` o `VENDEDOR`.
+5. `anyRequest().denyAll()` → **todo lo demás queda cerrado**, incluso con token.
 
 Para sumar al vendedor a una ruta de **lectura**:
 
@@ -58,7 +59,7 @@ Cualquiera puede llamar a la API sin pasar por tu pantalla; por eso cada ruta se
 1. El rol sale de la **base de datos** en cada petición, no del token.
 2. Desactivar a un usuario (`activo = false`) le quita el acceso al instante.
 3. El registro público **nunca** acepta un rol del cliente (el `Request` no tiene ese campo).
-4. Al agregar una ruta nueva, decide su rol **en ese momento**; si lo olvidas, queda como «cualquier sesión».
+4. Al agregar una ruta nueva, decide su rol **en ese momento**; si lo olvidas, queda **denegada** (403) incluso con token.
 
 ## Para saber más
 

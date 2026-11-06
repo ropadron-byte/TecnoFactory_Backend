@@ -107,8 +107,6 @@ class BlogServiceGestionTest {
 
     @Test
     void clienteNoPuedeEliminar() {
-        when(blogRepository.findById(1L)).thenReturn(Optional.of(blog()));
-
         assertThrows(AccessDeniedException.class,
                 () -> service.eliminar(1L, sesion("cliente@correo.cl", "CLIENTE")));
         verify(blogRepository, never()).delete(any());
@@ -192,8 +190,6 @@ class BlogServiceGestionTest {
 
     @Test
     void clienteNoPuedeActualizar() {
-        when(blogRepository.findById(1L)).thenReturn(Optional.of(blog()));
-
         assertThrows(AccessDeniedException.class, () -> service.actualizar(1L,
                 new BlogRequest("x", "y", null, null), sesion("cliente@correo.cl", "CLIENTE")));
     }
