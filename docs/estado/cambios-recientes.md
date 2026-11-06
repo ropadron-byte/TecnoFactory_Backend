@@ -116,10 +116,10 @@ Guía: [19](../guias/19-formulario-de-contacto.md) · Referencia: [28](../refere
 
 ### 6 nov (tarde): baja de cuentas y `uploads/` fuera del contenedor
 
-- **Cliente:** `PATCH /api/usuarios/me/desactivar` y `DELETE /api/usuarios/me` (solo su propia cuenta; 204).
-- **Administrador:** `PATCH /api/usuarios/{id}/desactivar` y `DELETE /api/usuarios/{id}`, **solo sobre vendedores**. Un vendedor con blogs no se puede borrar (409): se desactiva. Un cliente con boletas o carrito tampoco (la FK lo impide, 409).
+- **Cliente:** solo `PATCH /api/usuarios/me/desactivar` (su propia cuenta; 204). **No puede borrarla**: sus compras (boletas) se resguardan; `DELETE /api/usuarios/me` da 403.
+- **Administrador:** `PATCH /api/usuarios/{id}/desactivar` y `DELETE /api/usuarios/{id}`, **solo sobre vendedores**. Un vendedor con blogs no se puede borrar (409): se desactiva.
 - `UsuarioService` recibe `BlogRepository` (nuevo `existsByUsuarioId`); `SecurityConfig` agrega las dos reglas de `/me` antes de `/api/usuarios/**`.
-- Tests nuevos: `UsuarioServiceBajaTest` (8) y `UsuarioControllerBajaTest` (9). **Escritos pero sin ejecutar** (el entorno no pudo compilar): correr `./mvnw test -Dtest="*Test"`; el total esperado es 221.
+- Tests nuevos: `UsuarioServiceBajaTest` (7) y `UsuarioControllerBajaTest` (9). **Escritos pero sin ejecutar** (el entorno no pudo compilar): correr `./mvnw test -Dtest="*Test"`; el total esperado es 220.
 - **`uploads/` fuera del contenedor:** en el bloque `backend` de `docker-compose.yml` (aún comentado, falta el `Dockerfile`) se monta `${UPLOADS_HOST_DIR:-./uploads}:/app/uploads` con `UPLOADS_DIR=/app/uploads`; `.dockerignore` excluye `uploads/` de la imagen. Variable nueva `UPLOADS_HOST_DIR` en `.env.example`.
 
 ### 6 nov 2026: seguridad, contratos de blogs, configuración y limpieza (fases 1–4)

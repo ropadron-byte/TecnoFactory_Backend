@@ -70,9 +70,9 @@ public class SecurityConfig {
                         // Cualquier usuario con sesión: su propio perfil
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me").authenticated()
 
-                        // Un cliente desactiva o borra su propia cuenta (ANTES de /api/usuarios/{id})
+                        // Un cliente solo puede desactivar su cuenta, no borrarla: sus compras se resguardan
+                        // (ANTES de /api/usuarios/{id}; DELETE /me cae en la regla de administrador)
                         .requestMatchers(HttpMethod.PATCH, "/api/usuarios/me/desactivar").hasRole(ROL_CLIENTE)
-                        .requestMatchers(HttpMethod.DELETE, "/api/usuarios/me").hasRole(ROL_CLIENTE)
 
                         // El resto de /api/usuarios (incluye desactivar y borrar vendedores): solo administrador
                         .requestMatchers("/api/usuarios/**").hasRole(ROL_ADMINISTRADOR)

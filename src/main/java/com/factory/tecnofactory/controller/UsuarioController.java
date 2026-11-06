@@ -60,13 +60,6 @@ public class UsuarioController {
         usuarioService.desactivarMiCuenta(autenticacion.getName());
     }
 
-    @DeleteMapping("/me")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Borrar mi propia cuenta de forma definitiva (solo cliente)")
-    public void eliminarMiCuenta(Authentication autenticacion) {
-        usuarioService.eliminarMiCuenta(autenticacion.getName());
-    }
-
     @PatchMapping("/{id}/desactivar")
     @Operation(summary = "Desactivar la cuenta de un vendedor (solo administrador)")
     public UsuarioResponse desactivarVendedor(@PathVariable Long id) {

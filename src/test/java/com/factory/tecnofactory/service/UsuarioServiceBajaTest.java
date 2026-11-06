@@ -92,24 +92,11 @@ class UsuarioServiceBajaTest {
     }
 
     @Test
-    void clienteBorraSuCuenta() {
-        Usuario cliente = usuario(1L, "ana@correo.cl", "CLIENTE");
-        when(usuarioRepository.findByCorreo("ana@correo.cl")).thenReturn(Optional.of(cliente));
-
-        service.eliminarMiCuenta("ana@correo.cl");
-
-        verify(usuarioRepository).delete(cliente);
-        verify(usuarioRepository).flush();
-    }
-
-    @Test
-    void unVendedorNoPuedeUsarLaBajaDeCliente() {
+    void unVendedorNoPuedeUsarLaDesactivacionDeCliente() {
         when(usuarioRepository.findByCorreo("luis@correo.cl"))
                 .thenReturn(Optional.of(usuario(2L, "luis@correo.cl", "VENDEDOR")));
 
-        assertThrows(ReglaNegocioException.class, () -> service.eliminarMiCuenta("luis@correo.cl"));
         assertThrows(ReglaNegocioException.class, () -> service.desactivarMiCuenta("luis@correo.cl"));
-        verify(usuarioRepository, never()).delete(any());
         verify(usuarioRepository, never()).save(any());
     }
 

@@ -119,21 +119,13 @@ public class UsuarioService {
 
     // ---- Baja de cuentas -------------------------------------------------------------------
 
-    /** Un CLIENTE desactiva su propia cuenta: pierde el acceso al instante y sus datos se conservan. */
+    /** Un CLIENTE desactiva su propia cuenta: pierde el acceso al instante y sus datos y compras se conservan (no puede borrarla). */
     @Transactional
     public void desactivarMiCuenta(String correo) {
         Usuario usuario = buscarClienteAutenticado(correo);
         usuario.setActivo(false);
         usuarioRepository.save(usuario);
         log.info("Cliente {} desactivó su cuenta", correo);
-    }
-
-    /** Un CLIENTE borra su propia cuenta de forma definitiva. */
-    @Transactional
-    public void eliminarMiCuenta(String correo) {
-        Usuario usuario = buscarClienteAutenticado(correo);
-        borrar(usuario);
-        log.info("Cliente {} borró su cuenta", correo);
     }
 
     /** El administrador desactiva la cuenta de un VENDEDOR (no la de clientes ni la de otros administradores). */
@@ -175,7 +167,7 @@ public class UsuarioService {
         return usuario;
     }
 
-    /** flush() hace que una FK (p. ej. boletas del cliente) falle aquí y salga como 409, no al cerrar la transacción. */
+    /** flush() hace que una FK falle aquí y salga como 409, no al cerrar la transacción. */
     private void borrar(Usuario usuario) {
         usuarioRepository.delete(usuario);
         usuarioRepository.flush();

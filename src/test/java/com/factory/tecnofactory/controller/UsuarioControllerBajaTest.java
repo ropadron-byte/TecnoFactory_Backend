@@ -61,23 +61,22 @@ class UsuarioControllerBajaTest {
     }
 
     @Test
-    void clienteBorraSuCuentaConElCorreoDeLaSesion() throws Exception {
-        mockMvc.perform(delete("/api/usuarios/me").with(cliente()))
-                .andExpect(status().isNoContent());
-        verify(usuarioService).eliminarMiCuenta("ana@correo.cl");
+    void clienteNoPuedeBorrarSuCuenta() throws Exception {
+        // DELETE /me cae en la regla de administrador: el cliente recibe 403 y nada se borra
+        mockMvc.perform(delete("/api/usuarios/me").with(cliente())).andExpect(status().isForbidden());
+        verify(usuarioService, never()).eliminarVendedor(any());
     }
 
     @Test
-    void vendedorYAdministradorNoUsanLaBajaDeCliente() throws Exception {
-        mockMvc.perform(delete("/api/usuarios/me").with(vendedor())).andExpect(status().isForbidden());
+    void vendedorYAdministradorNoUsanLaDesactivacionDeCliente() throws Exception {
+        mockMvc.perform(patch("/api/usuarios/me/desactivar").with(vendedor())).andExpect(status().isForbidden());
         mockMvc.perform(patch("/api/usuarios/me/desactivar").with(admin())).andExpect(status().isForbidden());
-        verify(usuarioService, never()).eliminarMiCuenta(any());
         verify(usuarioService, never()).desactivarMiCuenta(any());
     }
 
     @Test
     void sinTokenDevuelve401() throws Exception {
-        mockMvc.perform(delete("/api/usuarios/me")).andExpect(status().isUnauthorized());
+        mockMvc.perform(patch("/api/usuarios/me/desactivar")).andExpect(status().isUnauthorized());
         mockMvc.perform(patch("/api/usuarios/2/desactivar")).andExpect(status().isUnauthorized());
     }
 
