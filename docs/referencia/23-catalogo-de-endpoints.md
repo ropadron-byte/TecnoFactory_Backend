@@ -12,6 +12,10 @@ Base: `http://localhost:8080` · Formato: JSON · Autenticación: cabecera `Auth
 | `POST` | `/api/usuarios` | Público (registro) | 201 |
 | `GET` | `/api/usuarios/me` | Cualquier sesión | 200 |
 | `GET` | `/api/usuarios/{id}` | `ADMINISTRADOR` | 200 |
+| `PATCH` | `/api/usuarios/me/desactivar` | `CLIENTE` (su propia cuenta) | 204 |
+| `DELETE` | `/api/usuarios/me` | `CLIENTE` (su propia cuenta) | 204 |
+| `PATCH` | `/api/usuarios/{id}/desactivar` | `ADMINISTRADOR` (solo cuentas de vendedor) | 200 |
+| `DELETE` | `/api/usuarios/{id}` | `ADMINISTRADOR` (solo cuentas de vendedor) | 204 |
 | `POST` | `/api/contactos` | **Público** (formulario de contacto) | 201 |
 | `GET` | `/api/contactos` | `ADMINISTRADOR` | 200 |
 | `GET` | `/api/contactos/{id}` | `ADMINISTRADOR` | 200 |
@@ -144,6 +148,26 @@ Cualquier usuario por id. **Solo `ADMINISTRADOR`.**
 | 401 | Sin sesión |
 | 403 | Con sesión, pero no es administrador |
 | 404 | No existe ese usuario |
+
+---
+
+## Baja de cuentas
+
+| Ruta | Quién | Qué hace |
+| --- | --- | --- |
+| `PATCH /api/usuarios/me/desactivar` | `CLIENTE` | Pone `activo = false` en **su** cuenta. Pierde el acceso al instante (el rol y el estado salen de la base en cada petición); los datos se conservan. 204. |
+| `DELETE /api/usuarios/me` | `CLIENTE` | Borra **su** cuenta de forma definitiva. 204. |
+| `PATCH /api/usuarios/{id}/desactivar` | `ADMINISTRADOR` | Desactiva a un **vendedor**. Devuelve el `UsuarioResponse` con `activo: false`. |
+| `DELETE /api/usuarios/{id}` | `ADMINISTRADOR` | Borra a un **vendedor**. 204. |
+
+Reglas: el cliente solo actúa sobre su propia cuenta (el correo sale del token, no de la URL); el administrador solo puede gestionar **vendedores**, nunca clientes ni otros administradores.
+
+| Código | Cuándo |
+| --- | --- |
+| 401 | Sin sesión |
+| 403 | El rol no corresponde (por ejemplo, un vendedor llamando a `DELETE /api/usuarios/me`) |
+| 404 | No existe el usuario |
+| 409 | La cuenta de `{id}` no es de vendedor; el vendedor tiene **blogs** (hay que desactivarlo, no borrarlo); o el cliente tiene registros ligados (boletas, carrito) que impiden borrarlo: usa desactivar |
 
 ---
 

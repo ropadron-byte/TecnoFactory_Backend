@@ -58,12 +58,12 @@ Guía completa: [21-seguridad-jwt-y-roles-explicada.md](../referencia/21-segurid
 - [x] **Paso 3: `JwtAuthFilter`** y su test (6): entregado y aplicado; seguiste con el paso siguiente.
 - [ ] **Paso 4: `LoginRequest`, `AuthResponse`, `AuthService`, `AuthController`** (`POST /api/auth/login`), con `AuthServiceTest` (3) y `AuthControllerTest` (3): **aplicado en tu repo; falta confirmar** los tests.
 - [ ] **Paso 5: `SecurityConfig` nueva** (reglas por ruta, filtro conectado, 401 y 403 en JSON con `ManejadorErroresSeguridad`, sin `httpBasic`), `UsuarioController` con `/me`, `UsuarioService.buscarPorCorreo` y dos handlers (`BadCredentialsException`, `AuthenticationException`): **aplicado en tu repo; falta confirmar**.
-- [ ] **Confirmar los 56 tests** (`./mvnw test -Dtest="*Test"`), que la app arranca y que **desaparece** el aviso `Using generated security password` del log.
+- [x] **Confirmar los tests** (6 nov): `./mvnw test -Dtest="*Test"` da **204 tests, 0 fallos**. Falta comprobar que la app arranca con MySQL (`contextLoads`) y que no aparece el aviso `Using generated security password`.
 - [ ] **Probar el flujo en Swagger** ([21, sección 14](../referencia/21-seguridad-jwt-y-roles-explicada.md#14-cómo-probarlo-a-mano)): login del administrador, Authorize, `/me`, `/api/usuarios/1`, 401 sin token, 403 con un cliente.
 - [ ] **Usuarios con roles:** `GET /api/usuarios` paginado (administrador y vendedor, solo lectura), `PUT /api/usuarios/me` (editar el propio perfil) y una ruta de administrador para **crear vendedores** (el rol nunca viene del cliente).
 - [ ] **Reglas por rol de cada entidad nueva** (`Categoria`: administrador; `Producto` y órdenes: vendedor y administrador). Se agregan **antes** de `.anyRequest().denyAll()`.
 - [ ] **Límite de intentos de login** y **HTTPS** antes de un despliegue real.
-- [ ] **Confirmar la revisión del 3 nov** (ver la entrada del Historial): `./mvnw test` (los tests nuevos y los 56 anteriores), arranque con `./scripts/dev.sh` y la prueba de paginación en Swagger. **No se pudo compilar** en el entorno de revisión.
+- [ ] **Confirmar la revisión del 3 nov** (ver la entrada del Historial): `./mvnw test` (cubierto por los 204 tests del 6 nov), arranque con `./scripts/dev.sh` y la prueba de paginación en Swagger. **No se pudo compilar** en el entorno de revisión.
 - [x] **`POST /api/imagenes/productos` no registraba la imagen en `imagen_url`**: resuelto el 3 nov (ver la entrada de las 03:10). Falta poder asignar imágenes a productos y categorías por id (sus controllers).
 - [ ] **Mover `JwtServiceTest` y `UserDetailsServiceImplTest`** a `src/test/.../security/` (hoy están en `service/`; `JwtServiceTest` declara el paquete `security` y compila igual, pero la carpeta no coincide).
 
@@ -112,6 +112,15 @@ Guía: [19](../guias/19-formulario-de-contacto.md) · Referencia: [28](../refere
 ---
 
 ## Historial
+
+
+### 6 nov (tarde): baja de cuentas y `uploads/` fuera del contenedor
+
+- **Cliente:** `PATCH /api/usuarios/me/desactivar` y `DELETE /api/usuarios/me` (solo su propia cuenta; 204).
+- **Administrador:** `PATCH /api/usuarios/{id}/desactivar` y `DELETE /api/usuarios/{id}`, **solo sobre vendedores**. Un vendedor con blogs no se puede borrar (409): se desactiva. Un cliente con boletas o carrito tampoco (la FK lo impide, 409).
+- `UsuarioService` recibe `BlogRepository` (nuevo `existsByUsuarioId`); `SecurityConfig` agrega las dos reglas de `/me` antes de `/api/usuarios/**`.
+- Tests nuevos: `UsuarioServiceBajaTest` (8) y `UsuarioControllerBajaTest` (9). **Escritos pero sin ejecutar** (el entorno no pudo compilar): correr `./mvnw test -Dtest="*Test"`; el total esperado es 221.
+- **`uploads/` fuera del contenedor:** en el bloque `backend` de `docker-compose.yml` (aún comentado, falta el `Dockerfile`) se monta `${UPLOADS_HOST_DIR:-./uploads}:/app/uploads` con `UPLOADS_DIR=/app/uploads`; `.dockerignore` excluye `uploads/` de la imagen. Variable nueva `UPLOADS_HOST_DIR` en `.env.example`.
 
 ### 6 nov 2026: seguridad, contratos de blogs, configuración y limpieza (fases 1–4)
 

@@ -51,7 +51,7 @@ Una regla de oro: **lo que no está permitido explícitamente, queda protegido**
 
 | Pendiente | Riesgo mientras no exista |
 | --- | --- |
-| **Confirmar la seguridad nueva**: los 56 tests, el arranque y el flujo de login en Swagger ([21, sección 14](21-seguridad-jwt-y-roles-explicada.md#14-cómo-probarlo-a-mano)) | Reglas escritas pero sin comprobar |
+| **Confirmar la seguridad nueva**: el arranque con MySQL y el flujo de login en Swagger (los 204 tests ya pasan) ([21, sección 14](21-seguridad-jwt-y-roles-explicada.md#14-cómo-probarlo-a-mano)) | Reglas escritas pero sin comprobar |
 | **Reglas por rol del resto de la API**: lista de usuarios (administrador y vendedor), editar el propio perfil, crear vendedores, catálogo, órdenes | Hoy solo hay dos niveles: administrador y «cualquiera con sesión» |
 | **Límite de intentos de login** | Fuerza bruta contra cuentas |
 | **Token no revocable** (sin *refresh token* ni lista de bloqueo) | Un token robado sirve hasta que expira (1 hora); desactivar al usuario sí lo bloquea de inmediato |

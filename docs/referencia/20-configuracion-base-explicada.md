@@ -92,7 +92,7 @@ En producción se define `CORS_ORIGINS` con la URL real, **sin `*`**.
 ./mvnw test -Dtest="*Test"
 ```
 
-Esperado en ese momento: **29 tests, 0 fallos** (14 de RUN y request, 5 del service, 9 del controller y 1 de `PageResponse`). Con la seguridad del 20 oct (noche) son **56**: ver [21, sección 13](21-seguridad-jwt-y-roles-explicada.md#13-las-pruebas-56-en-total). Luego arrancar la app, abrir `/swagger-ui/index.html` y repetir `POST /api/usuarios` (debe dar 201 con comuna y región).
+Esperado en ese momento: **29 tests, 0 fallos** (14 de RUN y request, 5 del service, 9 del controller y 1 de `PageResponse`). Con la seguridad del 20 oct (noche) son **56**: ver [21, sección 13](21-seguridad-jwt-y-roles-explicada.md#13-las-pruebas-de-seguridad). Luego arrancar la app, abrir `/swagger-ui/index.html` y repetir `POST /api/usuarios` (debe dar 201 con comuna y región).
 
 ## 8. Errores que aparecieron
 

@@ -20,4 +20,7 @@ public interface BlogRepository extends JpaRepository<Blog, Long> {
 
     /** Blogs que usan la imagen como portada (la portada también debería estar en la galería). */
     List<Blog> findByImagenPrincipalId(Long idImagen);
+
+    /** ¿El usuario es autor de algún blog? Impide borrar su cuenta (la FK es NOT NULL). */
+    boolean existsByUsuarioId(Long idUsuario);
 }

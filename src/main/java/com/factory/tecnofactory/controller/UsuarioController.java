@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -50,6 +51,33 @@ public class UsuarioController {
     @Operation(summary = "Ver mi propio perfil (cualquier usuario con sesión)")
     public UsuarioResponse miPerfil(Authentication autenticacion) {
         return usuarioService.buscarPorCorreo(autenticacion.getName());
+    }
+
+    @PatchMapping("/me/desactivar")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Desactivar mi propia cuenta (solo cliente)")
+    public void desactivarMiCuenta(Authentication autenticacion) {
+        usuarioService.desactivarMiCuenta(autenticacion.getName());
+    }
+
+    @DeleteMapping("/me")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Borrar mi propia cuenta de forma definitiva (solo cliente)")
+    public void eliminarMiCuenta(Authentication autenticacion) {
+        usuarioService.eliminarMiCuenta(autenticacion.getName());
+    }
+
+    @PatchMapping("/{id}/desactivar")
+    @Operation(summary = "Desactivar la cuenta de un vendedor (solo administrador)")
+    public UsuarioResponse desactivarVendedor(@PathVariable Long id) {
+        return usuarioService.desactivarVendedor(id);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Borrar la cuenta de un vendedor (solo administrador)")
+    public void eliminarVendedor(@PathVariable Long id) {
+        usuarioService.eliminarVendedor(id);
     }
 
     @GetMapping("/{id}")

@@ -308,7 +308,7 @@ Historial de Flyway:
 docker exec -it tecnofactory-db mysql -utecnofactory_migrator -p tecnofactory -e "SELECT version, description, success FROM flyway_schema_history;"
 ```
 
-Debe mostrar las versiones `1` y `2`, ambas con `success = 1`.
+Debe mostrar las versiones `1` a `7`, todas con `success = 1`.
 
 Datos de referencia cargados por `V2` (deben dar 3, 16 y 346):
 

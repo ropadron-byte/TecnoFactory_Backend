@@ -28,4 +28,4 @@ Este manual es **tuyo**: está organizado por lo que quieres hacer, no por tema 
 
 ## Estado en una línea
 
-El esqueleto de la API está hecho (usuarios, errores, seguridad con JWT y roles, configuración). Falta confirmar los 56 tests y el login en Swagger, y empezar con `Categoria` como primera entidad completa.
+El esqueleto de la API está hecho (usuarios, errores, seguridad con JWT y roles, configuración). Los 204 tests pasan (6 nov); falta el login en Swagger y `contextLoads` con MySQL, y empezar con `Categoria` como primera entidad completa.

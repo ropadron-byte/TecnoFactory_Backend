@@ -8,6 +8,7 @@ import com.factory.tecnofactory.entity.Usuario;
 import com.factory.tecnofactory.exception.RecursoNoEncontradoException;
 import com.factory.tecnofactory.exception.ReglaNegocioException;          // NUEVO
 import com.factory.tecnofactory.mapper.UsuarioMapper;                     // NUEVO
+import com.factory.tecnofactory.repository.BlogRepository;
 import com.factory.tecnofactory.repository.ComunaRepository;
 import com.factory.tecnofactory.repository.TipoUsuarioRepository;
 import com.factory.tecnofactory.repository.UsuarioRepository;
@@ -32,6 +33,7 @@ public class UsuarioService {
     private final ComunaRepository comunaRepository;
     private final PasswordEncoder passwordEncoder;
     private final UsuarioMapper usuarioMapper;
+    private final BlogRepository blogRepository;
 
     @Transactional
     public boolean crearAdministradorSiNoExiste(DatosAdministrador datos) {
@@ -115,5 +117,67 @@ public class UsuarioService {
         return usuarioMapper.toResponse(usuario);
     }
 
+    // ---- Baja de cuentas -------------------------------------------------------------------
 
-}
+    /** Un CLIENTE desactiva su propia cuenta: pierde el acceso al instante y sus datos se conservan. */
+    @Transactional
+    public void desactivarMiCuenta(String correo) {
+        Usuario usuario = buscarClienteAutenticado(correo);
+        usuario.setActivo(false);
+        usuarioRepository.save(usuario);
+        log.info("Cliente {} desactivó su cuenta", correo);
+    }
+
+    /** Un CLIENTE borra su propia cuenta de forma definitiva. */
+    @Transactional
+    public void eliminarMiCuenta(String correo) {
+        Usuario usuario = buscarClienteAutenticado(correo);
+        borrar(usuario);
+        log.info("Cliente {} borró su cuenta", correo);
+    }
+
+    /** El administrador desactiva la cuenta de un VENDEDOR (no la de clientes ni la de otros administradores). */
+    @Transactional
+    public UsuarioResponse desactivarVendedor(Long id) {
+        Usuario vendedor = buscarVendedor(id);
+        vendedor.setActivo(false);
+        Usuario guardado = usuarioRepository.save(vendedor);
+        log.info("Vendedor {} desactivado por un administrador", guardado.getCorreo());
+        return usuarioMapper.toResponse(guardado);
+    }
+
+    /** El administrador borra la cuenta de un VENDEDOR. Si ya escribió blogs, se pide desactivarla. */
+    @Transactional
+    public void eliminarVendedor(Long id) {
+        Usuario vendedor = buscarVendedor(id);
+        if (blogRepository.existsByUsuarioId(id)) {
+            throw new ReglaNegocioException("El vendedor tiene blogs asociados; desactiva su cuenta en lugar de borrarla");
+        }
+        borrar(vendedor);
+        log.info("Vendedor {} borrado por un administrador", vendedor.getCorreo());
+    }
+
+    private Usuario buscarClienteAutenticado(String correo) {
+        Usuario usuario = usuarioRepository.findByCorreo(correo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario", correo));
+        if (!ROL_CLIENTE.equals(usuario.getTipoUsuario().getNombre())) {
+            throw new ReglaNegocioException("Esta acción es solo para cuentas de cliente");
+        }
+        return usuario;
+    }
+
+    private Usuario buscarVendedor(Long id) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario", id));
+        if (!ROL_VENDEDOR.equals(usuario.getTipoUsuario().getNombre())) {
+            throw new ReglaNegocioException("Solo se pueden gestionar cuentas de vendedores por esta vía");
+        }
+        return usuario;
+    }
+
+    /** flush() hace que una FK (p. ej. boletas del cliente) falle aquí y salga como 409, no al cerrar la transacción. */
+    private void borrar(Usuario usuario) {
+        usuarioRepository.delete(usuario);
+        usuarioRepository.flush();
+    }
+}

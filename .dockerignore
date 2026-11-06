@@ -1,0 +1,5 @@
+# Las imágenes subidas viven fuera del contenedor (volumen), nunca dentro de la imagen
+uploads/
+.env
+.git/
+target/

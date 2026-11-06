@@ -23,6 +23,7 @@ public class SecurityConfig {
 
     private static final String ROL_ADMINISTRADOR = "ADMINISTRADOR";
     private static final String ROL_VENDEDOR = "VENDEDOR";
+    private static final String ROL_CLIENTE = "CLIENTE";
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -69,7 +70,11 @@ public class SecurityConfig {
                         // Cualquier usuario con sesión: su propio perfil
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me").authenticated()
 
-                        // El resto de /api/usuarios: solo administrador
+                        // Un cliente desactiva o borra su propia cuenta (ANTES de /api/usuarios/{id})
+                        .requestMatchers(HttpMethod.PATCH, "/api/usuarios/me/desactivar").hasRole(ROL_CLIENTE)
+                        .requestMatchers(HttpMethod.DELETE, "/api/usuarios/me").hasRole(ROL_CLIENTE)
+
+                        // El resto de /api/usuarios (incluye desactivar y borrar vendedores): solo administrador
                         .requestMatchers("/api/usuarios/**").hasRole(ROL_ADMINISTRADOR)
 
                         // Gestión de blogs (incluye desactivados y datos del autor): ANTES de la lectura pública

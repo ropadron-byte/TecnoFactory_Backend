@@ -10,7 +10,7 @@
 | 1 | Esquema y datos iniciales (`V1`, `V2`, `V3`) | Hecha |
 | 2 | Entidades, repositories y errores | **En curso**: 4 de 12 entidades |
 | 3 | Catálogo: categorías y productos | Pendiente |
-| 4 | Seguridad: JWT, roles y usuarios | **En curso**: código escrito; falta confirmar 56 tests y el login en Swagger |
+| 4 | Seguridad: JWT, roles y usuarios | **Hecha en código** (204 tests, 0 fallos, 6 nov); falta recorrer el login en Swagger |
 | 5 | Carrito, boleta y pago simulado | Pendiente |
 | 6 | Imágenes y blog | Pendiente |
 | 7 | Correo y caché (Redis) | Pendiente |
@@ -20,8 +20,8 @@
 
 ## Lo que sigue, en orden
 
-1. **Confirmar** los 56 tests, el arranque y el login en Swagger.
-2. **Limpieza:** mover `JwtServiceTest` y `UserDetailsServiceImplTest` a `security/`; borrar los `// NUEVO` de `UsuarioService`; quitar `unique = true` de `Region` y `Comuna`.
+1. **Confirmar** el arranque con MySQL (`contextLoads`) y el login en Swagger; los 204 tests ya pasan.
+2. **Limpieza:** mover `JwtServiceTest` y `UserDetailsServiceImplTest` a `security/`; borrar los `// NUEVO` de `UsuarioService`. (`unique = true` de `Region` y `Comuna` se mantiene y ahora es real vía `V7`.)
 3. **Usuarios con roles:** `GET /api/usuarios` paginado (administrador y vendedor, solo lectura), `PUT /api/usuarios/me`, y una ruta de administrador para **crear vendedores**.
 4. **Primera rebanada completa:** `Categoria` (entidad, repository, DTOs, mapper, service, controller, tests, regla de rol). Es la plantilla del resto: sigue la [receta](../personal/02-agregar-una-entidad.md).
 5. **`Producto`**, con permisos para vendedor y administrador.

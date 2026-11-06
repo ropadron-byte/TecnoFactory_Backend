@@ -39,6 +39,7 @@ Sin permiso: sin token → **401**; con token de `CLIENTE` → **403**.
 | `SecurityConfig` | `security/` | Reglas: ver `/uploads/**` es público; subir y borrar es de `ADMINISTRADOR` y `VENDEDOR` |
 | `app.uploads.directorio` | `application.yaml` | Dónde está la carpeta (`${UPLOADS_DIR:./uploads}`) |
 | Carpeta `uploads/` | Raíz del proyecto | Los archivos: `productos/`, `categorias/`, `blog/` |
+| `UPLOADS_DIR` / `UPLOADS_HOST_DIR` | `.env`, `docker-compose.yml` | Con Docker, `uploads/` **siempre vive fuera del contenedor**: se monta `${UPLOADS_HOST_DIR:-./uploads}:/app/uploads` y `.dockerignore` impide que entre en la imagen. Reconstruir o borrar el contenedor no pierde las fotos |
 
 ## Las reglas de hoy
 

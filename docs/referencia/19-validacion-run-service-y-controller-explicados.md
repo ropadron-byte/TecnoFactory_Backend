@@ -404,7 +404,7 @@ Los cinco tests: registro correcto (hash, `K` en mayúscula, rol `CLIENTE`, comu
 
 ### 8.4 `UsuarioControllerTest` (8 tests, sin base de datos)
 
-> **Actualización 20 oct:** ahora tiene **14 tests** (el 415 y, con la seguridad, 401, 403, `/me` y el token Bearer) y tres `@MockitoBean`: `UsuarioService`, `JwtService` y `UserDetailsService`. Ver [21, sección 13](21-seguridad-jwt-y-roles-explicada.md#13-las-pruebas-56-en-total).
+> **Actualización 20 oct:** ahora tiene **14 tests** (el 415 y, con la seguridad, 401, 403, `/me` y el token Bearer) y tres `@MockitoBean`: `UsuarioService`, `JwtService` y `UserDetailsService`. Ver [21, sección 13](21-seguridad-jwt-y-roles-explicada.md#13-las-pruebas-de-seguridad).
 
 ```java
 @WebMvcTest(UsuarioController.class)

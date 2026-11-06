@@ -13,7 +13,7 @@ Guía para entender, de lo simple a lo técnico, **cómo inicia sesión un usuar
 | `SecurityConfig.java` | `security/` | Qué rutas son públicas, cuáles exigen sesión y cuáles un rol | [10](#10-securityconfigjava-las-reglas-de-acceso) |
 | `UsuarioController` y `UsuarioService` | `controller/`, `service/` | Se agregan `GET /api/usuarios/me` y `buscarPorCorreo` | [11](#11-lo-que-cambió-en-usuariocontroller-y-usuarioservice) |
 
-> Estado (20 oct): **el código de los pasos 1 a 5 está aplicado en tu repositorio** (comparado archivo por archivo). Confirmado por ti en la conversación: `JwtService` (paso 1). Hechos pero **sin confirmación todavía**: los 56 tests y el flujo de login en Swagger (secciones 13 y 14).
+> Estado (6 nov): el código de los pasos 1 a 5 está aplicado y **la suite completa pasa: 204 tests, 0 fallos** (`./mvnw test -Dtest="*Test"`). Desde entonces `SecurityConfig` terminó en `anyRequest().denyAll()` (ver [24, D31–D35](24-decisiones-de-diseno.md)). Sigue **pendiente** el recorrido manual del login en Swagger (sección 14) y `contextLoads`, que necesita MySQL.
 
 ---
 
@@ -598,7 +598,7 @@ Los tres roles viven en la tabla `tipo_usuario` (`ADMINISTRADOR`, `VENDEDOR`, `C
 
 ---
 
-## 13. Las pruebas (56 en total)
+## 13. Las pruebas de seguridad
 
 | Archivo | Tests | Qué comprueba |
 | --- | --- | --- |
@@ -612,7 +612,7 @@ Los tres roles viven en la tabla `tipo_usuario` (`ADMINISTRADOR`, `VENDEDOR`, `C
 | `UsuarioRequestTest`, `RunUtilTest`, `PageResponseTest` | 10 + 4 + 1 | Sin cambios |
 
 ```bash
-./mvnw test -Dtest="*Test"        # esperado: 56 tests, 0 fallos
+./mvnw test -Dtest="*Test"        # esperado: 204 tests en todo el proyecto (6 nov), 0 fallos
 ```
 
 `UsuarioControllerTest` ahora lleva tres `@MockitoBean` (`UsuarioService`, `JwtService` y `UserDetailsService`) porque `SecurityConfig` los necesita para armar la cadena.
@@ -654,7 +654,7 @@ curl -i localhost:8080/api/usuarios/me -H "Authorization: Bearer EL_TOKEN"
 | Código de los pasos 1 a 5 presente en tu repositorio | **Verificado** (20 oct, comparación de archivos) |
 | `JwtService` y su test (6) | **Confirmado por ti** (paso 1) |
 | `UserDetailsServiceImpl`, `JwtAuthFilter` y sus tests | Entregados; seguiste con el paso siguiente sin reportar fallos |
-| Los 56 tests sin fallos | **Pendiente**: no hay salida de `./mvnw test` posterior a los pasos 4 y 5 |
+| Los 204 tests sin fallos | **Confirmado** (6 nov, `./mvnw test -Dtest="*Test"`) |
 | La app arranca con `SecurityConfig` nueva (bean `handlerExceptionResolver`, constructor de `DaoAuthenticationProvider`) | **Pendiente** |
 | Flujo completo de la sección 14 en Swagger contra MySQL | **Pendiente** |
 | Que desaparezca el aviso `Using generated security password` del log | **Pendiente** |
@@ -699,7 +699,7 @@ curl -i localhost:8080/api/usuarios/me -H "Authorization: Bearer EL_TOKEN"
 
 | Paso | Qué |
 | --- | --- |
-| **Confirmar** | Los 56 tests, el arranque y el flujo de la sección 14 |
+| **Confirmar** | El flujo de la sección 14 en Swagger y `contextLoads` con MySQL (los 204 tests ya pasan) |
 | **Limpieza** | Mover `JwtServiceTest` y `UserDetailsServiceImplTest` a `src/test/.../security/` (están en `service/`); borrar los `// NUEVO` de `UsuarioService`; borrar `docs/11-cambios-recientes.md` |
 | **Usuarios** | `GET /api/usuarios` (lista paginada, administrador y vendedor), `PUT /api/usuarios/me`, y una ruta de administrador para crear vendedores |
 | **Primera rebanada** | `Categoria` siguiendo la [receta de la guía 19](19-validacion-run-service-y-controller-explicados.md#13-la-receta-para-la-próxima-entidad), con sus reglas por rol |

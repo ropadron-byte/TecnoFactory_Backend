@@ -68,7 +68,8 @@ Entrega 64 caracteres aleatorios, solo letras y números. Se usa `-hex` porque `
 | `FLYWAY_USER` / `FLYWAY_PASSWORD` | No se usan (Flyway usa la conexión de la app) | **Obligatorias** | Solo en `application-prod.yaml` |
 | `JWT_SECRET` | **Obligatoria** | **Obligatoria** | Mínimo 32 bytes. Se rechazan los valores de ejemplo. **Si mide menos, la app no arranca** (`WeakKeyException`). Con ella se firman los tokens: quien la conozca puede falsificar una sesión. Ver [21](21-seguridad-jwt-y-roles-explicada.md#3-qué-es-un-jwt) |
 | `CORS_ORIGINS` | Por defecto `http://localhost:5173` | **Recomendada** | Orígenes del frontend permitidos por CORS, separados por comas. En prod, la URL real, **nunca `*`**. Ver [20](20-configuracion-base-explicada.md#6-cors) |
-| `UPLOADS_DIR` | Por defecto `./uploads` | **Recomendada** | Carpeta donde se guardan las imágenes subidas |
+| `UPLOADS_DIR` | Por defecto `./uploads` | **Recomendada** | Carpeta donde se guardan las imágenes subidas. En Docker vale `/app/uploads` y es un volumen del servidor (ver `UPLOADS_HOST_DIR`): nunca queda dentro del contenedor |
+| `UPLOADS_HOST_DIR` | Por defecto `./uploads` | Solo Docker | Carpeta **del servidor** que se monta en `/app/uploads`; ahí quedan las imágenes aunque se destruya el contenedor |
 | `REDIS_HOST` | Por defecto `localhost` | — | Sin uso mientras `cache.type: none` |
 | `MAIL_HOST` / `MAIL_PORT` / `MAIL_USER` / `MAIL_PASSWORD` | Por defecto `localhost` / `1025` | — | Sin uso hasta implementar correos |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Opcionales | Opcionales | Las lee `AdministradorInicialRunner`. Si faltan, la app arranca y avisa con un `WARN`. Ver [Administrador inicial](#variables-del-administrador-inicial) |

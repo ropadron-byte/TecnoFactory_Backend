@@ -10,7 +10,7 @@ Lo que falta construir, en orden recomendado, y qué cambia en la configuración
 | 1 | Esquema definitivo y datos iniciales (`V1`, `V2`, `V3`) | 0 | **Ahora** | **Hecha** (el administrador pasó a crearse por código, ver fase 2) |
 | 2 | Entidades, repositorios y manejo de errores | 1 | Alta | **En curso**: 4 de 12 entidades, 4 repositories, `SecurityConfig` temporal y errores escritos; falta el primer controller |
 | 3 | Catálogo: categorías y productos | 2 | Alta | Pendiente |
-| 4 | Seguridad: JWT, roles y usuarios | 2 | Alta | **En curso**: login, filtro, `SecurityConfig` con reglas por rol y 401/403 en JSON **escritos** (20 oct); falta confirmar los 56 tests y el flujo en Swagger |
+| 4 | Seguridad: JWT, roles y usuarios | 2 | Alta | **En curso**: login, filtro, `SecurityConfig` con reglas por rol y 401/403 en JSON **escritos** (20 oct); la suite pasa (204 tests, 6 nov); falta el flujo en Swagger y `contextLoads` con MySQL |
 | 5 | Carrito, boleta y pago simulado | 3, 4 | Media | Pendiente |
 | 6 | Imágenes y blog | 3, 4 | Media | Pendiente |
 | 7 | Correo y caché (Redis) | 4 | Baja | Pendiente |
@@ -121,7 +121,7 @@ Guía: [21-seguridad-jwt-y-roles-explicada.md](21-seguridad-jwt-y-roles-explicad
 
 **Pendiente de la fase:**
 
-- **Confirmar** los 56 tests, el arranque y el flujo de login en Swagger.
+- **Confirmar** el arranque con MySQL (`contextLoads`) y el flujo de login en Swagger; los 204 tests ya pasan.
 - `GET /api/usuarios` paginado para administrador y vendedor (solo lectura), `PUT /api/usuarios/me` y una ruta de administrador para crear vendedores.
 - **Límite de intentos de login**.
 - Decidir el flujo de **recuperar contraseña** (necesita correo, fase 7).

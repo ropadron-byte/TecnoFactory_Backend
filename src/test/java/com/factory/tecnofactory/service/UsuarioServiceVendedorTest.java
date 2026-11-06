@@ -8,6 +8,7 @@ import com.factory.tecnofactory.entity.TipoUsuario;
 import com.factory.tecnofactory.entity.Usuario;
 import com.factory.tecnofactory.exception.ReglaNegocioException;
 import com.factory.tecnofactory.mapper.UsuarioMapperImpl;
+import com.factory.tecnofactory.repository.BlogRepository;
 import com.factory.tecnofactory.repository.ComunaRepository;
 import com.factory.tecnofactory.repository.TipoUsuarioRepository;
 import com.factory.tecnofactory.repository.UsuarioRepository;
@@ -40,13 +41,15 @@ class UsuarioServiceVendedorTest {
     private ComunaRepository comunaRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Mock
+    private BlogRepository blogRepository;
 
     private UsuarioService service;
 
     @BeforeEach
     void crearService() {
         service = new UsuarioService(usuarioRepository, tipoUsuarioRepository,
-                comunaRepository, passwordEncoder, new UsuarioMapperImpl());
+                comunaRepository, passwordEncoder, new UsuarioMapperImpl(), blogRepository);
     }
 
     private static UsuarioRequest request() {

@@ -41,6 +41,12 @@ services:
 #      FLYWAY_USER: tecnofactory_migrator
 #      FLYWAY_PASSWORD: ${MIGRATOR_PASSWORD}
 #      JWT_SECRET: ${JWT_SECRET}
+#      # Las imágenes subidas se guardan FUERA del contenedor: en la carpeta del servidor
+#      # indicada por UPLOADS_HOST_DIR (por defecto ./uploads junto a este archivo).
+#      # Así sobreviven a `docker compose down`, a reconstruir la imagen y a actualizar la app.
+#      UPLOADS_DIR: /app/uploads
+#    volumes:
+#      - ${UPLOADS_HOST_DIR:-./uploads}:/app/uploads
 
 volumes:
   mysql_data:
