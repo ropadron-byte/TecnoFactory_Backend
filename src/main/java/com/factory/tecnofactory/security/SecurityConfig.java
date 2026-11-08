@@ -105,6 +105,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
                         .requestMatchers(HttpMethod.DELETE, "/api/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
 
+                        // Catálogo: lectura pública; el personal ve más; solo el administrador modifica
+                        .requestMatchers(HttpMethod.GET, "/api/productos", "/api/productos/ofertas").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/productos/criticos", "/api/productos/admin")
+                        .hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                        .requestMatchers(HttpMethod.GET, "/api/productos/*").permitAll()
+                        .requestMatchers("/api/productos/**").hasRole(ROL_ADMINISTRADOR)
+
                         // Fail-closed: cualquier ruta nueva sin regla explícita queda denegada
                         .anyRequest().denyAll()
                 )

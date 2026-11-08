@@ -24,12 +24,14 @@ public interface ProductoMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "activo", ignore = true)
     @Mapping(target = "categorias", ignore = true)
+    @Mapping(target = "imagenesProducto", ignore = true)
     @Mapping(target = "descuento", source = "descuento", defaultValue = "0")
     Producto toEntity(ProductoRequest request);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "activo", ignore = true)
     @Mapping(target = "categorias", ignore = true)
+    @Mapping(target = "imagenesProducto", ignore = true)
     @Mapping(target = "descuento", source = "descuento", defaultValue = "0")
     void actualizar(ProductoRequest request, @MappingTarget Producto producto);
 }
