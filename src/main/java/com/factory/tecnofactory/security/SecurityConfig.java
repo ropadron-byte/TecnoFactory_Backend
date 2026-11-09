@@ -112,6 +112,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/productos/*").permitAll()
                         .requestMatchers("/api/productos/**").hasRole(ROL_ADMINISTRADOR)
 
+                        // Carrito: cualquier usuario con sesión usa el suyo
+                        .requestMatchers("/api/carrito/**").authenticated()
+
                         // Fail-closed: cualquier ruta nueva sin regla explícita queda denegada
                         .anyRequest().denyAll()
                 )
