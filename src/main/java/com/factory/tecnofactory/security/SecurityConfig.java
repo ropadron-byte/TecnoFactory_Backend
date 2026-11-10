@@ -115,6 +115,12 @@ public class SecurityConfig {
                         // Carrito: cualquier usuario con sesión usa el suyo
                         .requestMatchers("/api/carrito/**").authenticated()
 
+                        // Boletas: el listado completo es del personal; anular es del administrador;
+                        // comprar, ver las propias y el detalle, cualquier usuario con sesión
+                        .requestMatchers(HttpMethod.GET, "/api/boletas").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                        .requestMatchers(HttpMethod.PATCH, "/api/boletas/*/anular").hasRole(ROL_ADMINISTRADOR)
+                        .requestMatchers("/api/boletas/**").authenticated()
+
                         // Fail-closed: cualquier ruta nueva sin regla explícita queda denegada
                         .anyRequest().denyAll()
                 )
