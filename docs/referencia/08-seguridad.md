@@ -38,6 +38,8 @@ Una regla de oro: **lo que no está permitido explícitamente, queda protegido**
 | Los metadatos de imágenes (`GET /api/imagenes/**`) exigen personal; `/uploads/**` sigue público para los `<img>` | `security/SecurityConfig` | Escrito y probado (6 nov) |
 | `/uploads/**` responde con `X-Content-Type-Options: nosniff` y `Content-Security-Policy: default-src 'none'` | `CabecerasUploadsFilter` | Escrito y probado (6 nov) |
 | Login con JWT: correo y clave contra la base, token firmado de 1 hora | `AuthService`, `JwtService` | Escrito (20 oct); `JwtService` confirmado |
+| Login con Google: ID token verificado (firma JWKS, `iss`, `aud`, `exp`, `email_verified`); cuentas nuevas completan perfil; cuentas con contraseña se vinculan solo con sesión | `GoogleTokenVerifier`, `GoogleAuthService`, `AuthController` | Escrito (11 nov); 249 tests en verde |
+| `google_id` único y `contrasenia` opcional para cuentas solo-Google | `V8__google_auth.sql`, `Usuario` | Escrito (11 nov) |
 | Filtro que lee `Authorization: Bearer ...` y consulta la base en cada petición (un usuario desactivado pierde el acceso al instante) | `security/JwtAuthFilter` | Escrito (20 oct) |
 | 401 y 403 con el mismo JSON que los demás errores | `ManejadorErroresSeguridad` + `GlobalExceptionHandler` | Escrito (20 oct) |
 | Los fallos de login no revelan qué correos existen (mismo 401 para los tres casos) | `AuthService` | Escrito (20 oct) |
@@ -51,7 +53,7 @@ Una regla de oro: **lo que no está permitido explícitamente, queda protegido**
 
 | Pendiente | Riesgo mientras no exista |
 | --- | --- |
-| **Confirmar la seguridad nueva**: el arranque con MySQL y el flujo de login en Swagger (los 204 tests ya pasan) ([21, sección 14](21-seguridad-jwt-y-roles-explicada.md#14-cómo-probarlo-a-mano)) | Reglas escritas pero sin comprobar |
+| **Confirmar el flujo de login en Swagger**: el arranque con MySQL ya está probado y los 249 tests pasan (11 nov) ([21, sección 14](21-seguridad-jwt-y-roles-explicada.md#14-cómo-probarlo-a-mano)) | Reglas escritas pero sin comprobar a mano |
 | **Reglas por rol del resto de la API**: lista de usuarios (administrador y vendedor), editar el propio perfil, crear vendedores, catálogo, órdenes | Hoy solo hay dos niveles: administrador y «cualquiera con sesión» |
 | **Límite de intentos de login** | Fuerza bruta contra cuentas |
 | **Token no revocable** (sin *refresh token* ni lista de bloqueo) | Un token robado sirve hasta que expira (1 hora); desactivar al usuario sí lo bloquea de inmediato |
@@ -67,7 +69,8 @@ Una regla de oro: **lo que no está permitido explícitamente, queda protegido**
 | Ruta | Acceso |
 | --- | --- |
 | Swagger, `/v3/api-docs/**` (solo `local`), `/actuator/health`, `/error`, `OPTIONS /**` | Público |
-| `POST /api/auth/login`, `POST /api/usuarios` (registro) y `POST /api/contactos` | Público |
+| `POST /api/auth/login`, `POST /api/auth/google`, `POST /api/auth/google/completar`, `POST /api/usuarios` (registro) y `POST /api/contactos` | Público |
+| `POST /api/auth/google/vincular` | Cualquiera con sesión (iniciada con contraseña) |
 | `GET /api/contactos` y `GET /api/contactos/{id}` | Solo `ADMINISTRADOR` |
 | `GET /api/usuarios/me` | Cualquiera con sesión |
 | Resto de `/api/usuarios/**` | Solo `ADMINISTRADOR` |
@@ -91,7 +94,7 @@ Una regla de oro: **lo que no está permitido explícitamente, queda protegido**
 | Editar o desactivar a otros usuarios, crear vendedores, reportes | `ADMINISTRADOR` |
 | Carrito y boletas propias | Usuario autenticado, solo lo suyo |
 
-Los roles vienen de la tabla `tipo_usuario` (`ADMINISTRADOR`, `VENDEDOR`, `CLIENTE`). `UserDetailsServiceImpl` agrega el prefijo `ROLE_` al convertirlos. Los tokens JWT se firman con `JWT_SECRET` (mínimo 32 bytes) y duran 1 hora (`jwt.expiration-ms`).
+Los roles vienen de la tabla `tipo_usuario` (`ADMINISTRADOR`, `VENDEDOR`, `CLIENTE`). `UserDetailsServiceImpl` agrega el prefijo `ROLE_` al convertirlos. Los tokens JWT se firman con `JWT_SECRET` (mínimo 32 bytes) y duran 1 hora (`jwt.expiration-ms`). El login con Google añade una segunda forma de autenticarse, pero **emite el mismo JWT propio**: los roles y las reglas de `SecurityConfig` no cambian. Ver [29](29-login-con-google-explicado.md).
 
 ## Administrador inicial
 

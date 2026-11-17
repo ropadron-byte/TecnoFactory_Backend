@@ -24,7 +24,7 @@ class AdministradorInicialRunnerTest {
     void preparar() {
         usuarioService = mock(UsuarioService.class);
         runner = new AdministradorInicialRunner(usuarioService);
-        ReflectionTestUtils.setField(runner, "adminEmail", "admin@tecnofactory.cl");
+        ReflectionTestUtils.setField(runner, "adminEmail", "ro.padron@duocuc.cl");
         ReflectionTestUtils.setField(runner, "adminPassword", "ClaveSegura123");
         ReflectionTestUtils.setField(runner, "adminRun", "11111111");
         ReflectionTestUtils.setField(runner, "adminRunDv", "1");
@@ -47,7 +47,7 @@ class AdministradorInicialRunnerTest {
         assertEquals(11111111, datos.run());
         assertEquals("1", datos.runDv());
         assertEquals("Administrador", datos.nombre());
-        assertEquals("admin@tecnofactory.cl", datos.correo());
+        assertEquals("ro.padron@duocuc.cl", datos.correo());
         assertEquals(LocalDate.of(2000, 1, 1), datos.fechaNacimiento());
         assertEquals(13101, datos.idComuna());
     }

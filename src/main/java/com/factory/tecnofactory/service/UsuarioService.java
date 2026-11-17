@@ -1,5 +1,6 @@
 package com.factory.tecnofactory.service;
 
+import com.factory.tecnofactory.dto.PerfilRequest;                        // NUEVO
 import com.factory.tecnofactory.dto.UsuarioRequest;                       // NUEVO
 import com.factory.tecnofactory.dto.UsuarioResponse;                      // NUEVO
 import com.factory.tecnofactory.entity.Comuna;
@@ -115,6 +116,34 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findByCorreo(correo)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Usuario", correo));
         return usuarioMapper.toResponse(usuario);
+    }
+
+    /** Cualquier usuario autenticado actualiza sus propios datos personales. */
+    @Transactional
+    public UsuarioResponse actualizarPerfil(String correo, PerfilRequest request) {
+        Usuario usuario = usuarioRepository.findByCorreo(correo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario", correo));
+
+        // El RUN es único, pero el propio usuario puede conservar el suyo.
+        if (usuarioRepository.existsByRunAndIdNot(request.run(), usuario.getId())) {
+            throw new ReglaNegocioException("El RUN ya está registrado");
+        }
+
+        Comuna comuna = comunaRepository.findById(request.idComuna())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Comuna", request.idComuna()));
+
+        usuario.setRun(request.run());
+        usuario.setRunDv(request.runDv().toUpperCase());
+        usuario.setNombre(request.nombre());
+        usuario.setApellidos(request.apellidos());
+        usuario.setFechaNacimiento(request.fechaNacimiento());
+        usuario.setDireccion(request.direccion());
+        usuario.setTelefono(request.telefono());
+        usuario.setComuna(comuna);
+
+        Usuario guardado = usuarioRepository.save(usuario);
+        log.info("Usuario {} actualizó su perfil", guardado.getCorreo());
+        return usuarioMapper.toResponse(guardado);
     }
 
     // ---- Baja de cuentas -------------------------------------------------------------------

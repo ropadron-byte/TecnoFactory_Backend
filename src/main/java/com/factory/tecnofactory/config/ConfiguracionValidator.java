@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 public class ConfiguracionValidator {
 
     private static final int BYTES_MINIMOS_JWT = 32;
+    private static final String PLACEHOLDER_GOOGLE = "TU_CLIENT_ID";
 
     private final Environment environment;
 
@@ -40,6 +41,15 @@ public class ConfiguracionValidator {
         String adminPassword = environment.getProperty("ADMIN_PASSWORD");
         if (StringUtils.hasText(adminPassword)) {
             ValidadorClaves.validar("ADMIN_PASSWORD", adminPassword);
+        }
+
+        String googleClientId = environment.getProperty("GOOGLE_CLIENT_ID");
+        if (!StringUtils.hasText(googleClientId)
+                || googleClientId.contains(PLACEHOLDER_GOOGLE)
+                || googleClientId.contains("CAMBIAR")) {
+            throw new IllegalStateException(
+                    "GOOGLE_CLIENT_ID es obligatoria para el login con Google; "
+                            + "copia el Client ID de Google Cloud en .env");
         }
     }
 

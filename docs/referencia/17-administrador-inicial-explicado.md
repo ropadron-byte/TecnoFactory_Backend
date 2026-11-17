@@ -47,7 +47,7 @@ Spring arranca por etapas. El administrador se crea en la **última**, **despué
 | 7 | 23:33:32.252 | `Tomcat started on port 8080` | El servidor web ya acepta peticiones |
 | 8 | 23:33:32.273 | `Started TecnoFactoryApplication in 12.246 seconds` | **La app terminó de arrancar** |
 | 9 | justo después | cuatro bloques `Hibernate: select ... / insert ...` | **El runner llama al service**: aquí se crea el administrador |
-| 10 | 23:33:33.349 | `Administrador inicial creado con el correo admin@tecnofactory.cl` | El service terminó |
+| 10 | 23:33:33.349 | `Administrador inicial creado con el correo ro.padron@duocuc.cl` | El service terminó |
 
 Tres cosas que conviene notar:
 

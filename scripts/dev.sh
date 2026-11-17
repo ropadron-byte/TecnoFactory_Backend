@@ -23,7 +23,7 @@ export DB_URL="${DB_URL:-jdbc:mysql://localhost:3307/tecnofactory}"
 export DB_USER="${DB_USER:-root}"
 
 # No arrancar con los valores de ejemplo de .env.example.
-for variable in DB_PASSWORD MIGRATOR_PASSWORD APP_DB_PASSWORD JWT_SECRET ADMIN_PASSWORD; do
+for variable in DB_PASSWORD MIGRATOR_PASSWORD APP_DB_PASSWORD JWT_SECRET ADMIN_PASSWORD GOOGLE_CLIENT_ID; do
     valor="${!variable:-}"
     if [ -z "$valor" ] || [[ "$valor" == *CAMBIAR* ]] || [[ "$valor" == *cambia_esta_clave* ]]; then
         echo "ERROR: $variable falta o conserva un valor de ejemplo. Edita .env antes de continuar." >&2

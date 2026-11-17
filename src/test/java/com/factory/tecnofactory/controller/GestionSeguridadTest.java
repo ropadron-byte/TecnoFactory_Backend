@@ -59,6 +59,14 @@ class GestionSeguridadTest {
             }
             """;
 
+    private static final String JSON_PERFIL = """
+            {
+              "run": 12345678, "runDv": "5", "nombre": "Luis", "apellidos": "Soto",
+              "fechaNacimiento": "1990-05-20", "direccion": "Calle 1",
+              "telefono": "+56912345678", "idComuna": 13101
+            }
+            """;
+
     @Test
     void adminCreaVendedorYRecibe201() throws Exception {
         when(usuarioService.crearVendedor(any(UsuarioRequest.class))).thenReturn(new UsuarioResponse(
@@ -85,6 +93,19 @@ class GestionSeguridadTest {
         mockMvc.perform(post("/api/usuarios/vendedores")
                         .contentType(MediaType.APPLICATION_JSON).content(JSON_VENDEDOR))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void cualquierUsuarioConSesionPuedeEditarSuPerfil() throws Exception {
+        when(usuarioService.actualizarPerfil(any(), any())).thenReturn(new UsuarioResponse(
+                8L, 12345678, "5", "Luis", "Soto", "luis@correo.cl", LocalDate.of(1990, 5, 20),
+                "Calle 1", "+56912345678", true, "CLIENTE", "Santiago", "Metropolitana"));
+
+        for (String rol : new String[]{"CLIENTE", "VENDEDOR", "ADMINISTRADOR"}) {
+            mockMvc.perform(put("/api/usuarios/me").with(user("usuario@correo.cl").roles(rol))
+                            .contentType(MediaType.APPLICATION_JSON).content(JSON_PERFIL))
+                    .andExpect(status().isOk());
+        }
     }
 
     @Test

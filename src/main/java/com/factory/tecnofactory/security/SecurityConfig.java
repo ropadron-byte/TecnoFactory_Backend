@@ -59,16 +59,21 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Públicos: login y registro de clientes
+                        // Públicos: login, login con Google y registro de clientes
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/google").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/google/completar").permitAll()
+                        // Vincular Google exige haber iniciado sesión con contraseña
+                        .requestMatchers(HttpMethod.POST, "/api/auth/google/vincular").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
 
                         // Contacto: cualquier persona puede enviar; solo el administrador lee
                         .requestMatchers(HttpMethod.POST, "/api/contactos").permitAll()
                         .requestMatchers("/api/contactos/**").hasRole(ROL_ADMINISTRADOR)
 
-                        // Cualquier usuario con sesión: su propio perfil
+                        // Cualquier usuario con sesión: ver y editar su propio perfil
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/usuarios/me").authenticated()
 
                         // Un cliente solo puede desactivar su cuenta, no borrarla: sus compras se resguardan
                         // (ANTES de /api/usuarios/{id}; DELETE /me cae en la regla de administrador)

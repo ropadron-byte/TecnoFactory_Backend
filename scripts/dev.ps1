@@ -35,7 +35,7 @@ if (-not $env:DB_URL) { $env:DB_URL = "jdbc:mysql://localhost:3307/tecnofactory"
 if (-not $env:DB_USER) { $env:DB_USER = "root" }
 
 # No arrancar con los valores de ejemplo de .env.example.
-$requeridas = @("DB_PASSWORD", "MIGRATOR_PASSWORD", "APP_DB_PASSWORD", "JWT_SECRET", "ADMIN_PASSWORD")
+$requeridas = @("DB_PASSWORD", "MIGRATOR_PASSWORD", "APP_DB_PASSWORD", "JWT_SECRET", "ADMIN_PASSWORD", "GOOGLE_CLIENT_ID")
 foreach ($nombre in $requeridas) {
     $valor = [Environment]::GetEnvironmentVariable($nombre, "Process")
     if ([string]::IsNullOrWhiteSpace($valor) -or $valor -match "CAMBIAR|cambia_esta_clave") {

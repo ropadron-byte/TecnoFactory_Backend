@@ -9,13 +9,34 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class ConfiguracionValidatorTest {
 
     private static final String JWT_VALIDO = "clave-de-firma-de-al-menos-32-bytes";
+    private static final String GOOGLE_CLIENT_ID = "123.apps.googleusercontent.com";
 
     @Test
     void aceptaConfiguracionValida() {
         MockEnvironment entorno = new MockEnvironment()
-                .withProperty("JWT_SECRET", JWT_VALIDO);
+                .withProperty("JWT_SECRET", JWT_VALIDO)
+                .withProperty("GOOGLE_CLIENT_ID", GOOGLE_CLIENT_ID);
 
         assertDoesNotThrow(() -> new ConfiguracionValidator(entorno).validar());
+    }
+
+    @Test
+    void rechazaGoogleClientIdFaltante() {
+        MockEnvironment entorno = new MockEnvironment()
+                .withProperty("JWT_SECRET", JWT_VALIDO);
+
+        assertThrows(IllegalStateException.class,
+                () -> new ConfiguracionValidator(entorno).validar());
+    }
+
+    @Test
+    void rechazaElPlaceholderDeGoogle() {
+        MockEnvironment entorno = new MockEnvironment()
+                .withProperty("JWT_SECRET", JWT_VALIDO)
+                .withProperty("GOOGLE_CLIENT_ID", "CAMBIAR_CON_TU_CLIENT_ID.apps.googleusercontent.com");
+
+        assertThrows(IllegalStateException.class,
+                () -> new ConfiguracionValidator(entorno).validar());
     }
 
     @Test

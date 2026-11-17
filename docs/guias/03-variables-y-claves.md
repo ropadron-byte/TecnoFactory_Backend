@@ -16,6 +16,7 @@ Una **variable de entorno** es un valor que el sistema le entrega a un programa 
 | `MIGRATOR_PASSWORD` | Clave de Flyway | Solo Docker | Obligatoria (`FLYWAY_PASSWORD`) |
 | `APP_DB_PASSWORD` | Clave del usuario limitado | Solo Docker | Obligatoria |
 | `JWT_SECRET` | Firma los tokens | Obligatoria (mínimo 32 bytes) | Obligatoria |
+| `GOOGLE_CLIENT_ID` | Login con Google (Client ID público) | Obligatoria | Obligatoria |
 | `ADMIN_EMAIL` y `ADMIN_PASSWORD` | Crean al administrador inicial | Opcionales | Opcionales |
 | `ADMIN_RUN`, `ADMIN_RUN_DV`, `ADMIN_NOMBRE`, `ADMIN_APELLIDOS`, `ADMIN_FECHA_NACIMIENTO`, `ADMIN_DIRECCION`, `ADMIN_TELEFONO`, `ADMIN_COMUNA` | Datos del administrador inicial; si faltan se usan valores de relleno con `WARN` | Opcionales | Recomendadas |
 | `CORS_ORIGINS` | Orígenes del frontend permitidos | Por defecto `http://localhost:5173` | Recomendada |
@@ -46,6 +47,7 @@ Comprobar que una variable está cargada **sin mostrarla**: `echo "${#JWT_SECRET
 ## Reglas que no hay que olvidar
 
 1. **`JWT_SECRET` mide al menos 32 caracteres.** Si no, la app no arranca (`WeakKeyException`). **Tampoco tiene valor por defecto**: si falta, falla con `Could not resolve placeholder 'JWT_SECRET'` (así nadie puede olvidarla y quedar con una clave pública).
+2. **`GOOGLE_CLIENT_ID` no es un secreto**, pero es obligatoria: `ConfiguracionValidator` no deja arrancar si falta o si quedó el placeholder de `.env.example`. No se usa Client Secret en este flujo.
 2. **Las claves compartidas fuera de tu equipo ya no son secretas.** No las reutilices en producción.
 3. **No subas el `.env` ni `target/` al compartir un ZIP.**
 4. **Genera claves con** `openssl rand -hex 16` (solo letras y números, sin caracteres problemáticos).
@@ -57,6 +59,7 @@ Comprobar que una variable está cargada **sin mostrarla**: `echo "${#JWT_SECRET
 | --- | --- | --- |
 | `Could not resolve placeholder 'X'` | Falta la variable `X` | Cárgala; recuerda que Spring no lee el `.env` |
 | `WeakKeyException` al arrancar | `JWT_SECRET` muy corto | Alárgalo a 32 o más |
+| `GOOGLE_CLIENT_ID es obligatoria...` | Falta la variable o quedó el placeholder | Copia el Client ID de Google Cloud en `.env` |
 | La app arranca pero no hay administrador | Faltan `ADMIN_EMAIL` o `ADMIN_PASSWORD` | Aparece un `WARN`; cárgalas y reinicia |
 
 ## Para saber más

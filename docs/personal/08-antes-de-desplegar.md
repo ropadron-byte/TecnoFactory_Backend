@@ -48,8 +48,8 @@ Debe mostrar **solo** `SELECT, INSERT, UPDATE, DELETE` sobre `tecnofactory.*` (s
 ## Aplicación
 
 - [ ] `Dockerfile` del backend y compose de producción (fase 9).
-- [ ] `./mvnw test -Dtest="*Test"` en verde. *(6 nov: 204 tests, 0 fallos.)*
-- [ ] `contextLoads` en verde contra una base real.
+- [ ] `./mvnw test -Dtest="*Test"` en verde. *(11 nov: 249 tests, 0 fallos.)*
+- [x] `contextLoads` en verde contra una base real (11 nov, MySQL 8.4).
 - [ ] Arranque con una clave de ejemplo: debe **fallar** con un mensaje que nombre la variable, sin imprimir el valor.
 - [ ] Arranque con `ADMIN_PASSWORD` de 7 caracteres o con más de 72 bytes: debe **fallar**.
 - [ ] `/actuator/health` responde `UP`.

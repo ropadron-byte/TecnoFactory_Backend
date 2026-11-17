@@ -23,9 +23,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         Usuario usuario = usuarioRepository.findByCorreo(correo)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
+        // Las cuentas creadas solo con Google no tienen contraseña. Se usa "" para que
+        // el login con contraseña falle con 401 en vez de lanzar una excepción.
+        String clave = usuario.getContrasenia() == null ? "" : usuario.getContrasenia();
+
         return User.builder()
                 .username(usuario.getCorreo())
-                .password(usuario.getContrasenia())
+                .password(clave)
                 .roles(usuario.getTipoUsuario().getNombre()) // agrega el prefijo ROLE_: ROLE_CLIENTE
                 .disabled(!usuario.getActivo())
                 .build();

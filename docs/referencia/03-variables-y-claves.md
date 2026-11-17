@@ -30,6 +30,7 @@ DB_PASSWORD=...          # clave de root
 MIGRATOR_PASSWORD=...    # clave de tecnofactory_migrator
 APP_DB_PASSWORD=...      # clave de tecnofactory_app
 JWT_SECRET=...           # firma los tokens (mínimo 32 bytes)
+GOOGLE_CLIENT_ID=...     # Client ID público de Google Cloud (login con Google)
 ADMIN_PASSWORD=...       # clave del administrador inicial (8 a 72 caracteres)
 ```
 
@@ -54,6 +55,7 @@ Entrega 64 caracteres aleatorios, solo letras y números. Se usa `-hex` porque `
 | `MIGRATOR_PASSWORD` | Clave de `tecnofactory_migrator` | `FLYWAY_PASSWORD` |
 | `APP_DB_PASSWORD` | Clave de `tecnofactory_app` | `DB_PASSWORD` **en prod** |
 | `JWT_SECRET` | No lo usa | `JWT_SECRET` |
+| `GOOGLE_CLIENT_ID` | No lo usa | `GOOGLE_CLIENT_ID` |
 
 `DB_PASSWORD` significa **cosas distintas** según el perfil. Por eso en los comandos de prod se escribe `DB_PASSWORD="$APP_DB_PASSWORD"`: esa asignación, en la misma línea del comando, tiene prioridad sobre el `DB_PASSWORD` (clave de root) que cargó `source .env`.
 
@@ -67,6 +69,7 @@ Entrega 64 caracteres aleatorios, solo letras y números. Se usa `-hex` porque `
 | `DB_PASSWORD` | **Obligatoria** | **Obligatoria** | Sin valor por defecto en ningún perfil. La app no arranca si falta |
 | `FLYWAY_USER` / `FLYWAY_PASSWORD` | No se usan (Flyway usa la conexión de la app) | **Obligatorias** | Solo en `application-prod.yaml` |
 | `JWT_SECRET` | **Obligatoria** | **Obligatoria** | Mínimo 32 bytes. Se rechazan los valores de ejemplo. **Si mide menos, la app no arranca** (`WeakKeyException`). Con ella se firman los tokens: quien la conozca puede falsificar una sesión. Ver [21](21-seguridad-jwt-y-roles-explicada.md#3-qué-es-un-jwt) |
+| `GOOGLE_CLIENT_ID` | **Obligatoria** | **Obligatoria** | Client ID **público** de Google Cloud (no es un secreto y no se usa Client Secret). Se rechazan los placeholders. Sin ella la app no arranca. Debe coincidir con el `aud` del ID token. Ver [29](29-login-con-google-explicado.md) |
 | `CORS_ORIGINS` | Por defecto `http://localhost:5173` | **Recomendada** | Orígenes del frontend permitidos por CORS, separados por comas. En prod, la URL real, **nunca `*`**. Ver [20](20-configuracion-base-explicada.md#6-cors) |
 | `UPLOADS_DIR` | Por defecto `./uploads` | **Recomendada** | Carpeta donde se guardan las imágenes subidas. En Docker vale `/app/uploads` y es un volumen del servidor (ver `UPLOADS_HOST_DIR`): nunca queda dentro del contenedor |
 | `UPLOADS_HOST_DIR` | Por defecto `./uploads` | Solo Docker | Carpeta **del servidor** que se monta en `/app/uploads`; ahí quedan las imágenes aunque se destruya el contenedor |

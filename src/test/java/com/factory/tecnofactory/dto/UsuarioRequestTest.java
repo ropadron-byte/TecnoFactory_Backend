@@ -54,6 +54,13 @@ class UsuarioRequestTest {
     }
 
     @Test
+    void aceptaCualquierDominioDeCorreoValido() {
+        UsuarioRequest r = crear("5", "ana@gmail.com", "Clave12345",
+                LocalDate.of(1990, 5, 20), "+56912345678");
+        assertTrue(camposConError(r).isEmpty());
+    }
+
+    @Test
     void claveCortaEsInvalida() {
         UsuarioRequest r = crear("5", "ana@correo.cl", "abc",
                 LocalDate.of(1990, 5, 20), "+56912345678");

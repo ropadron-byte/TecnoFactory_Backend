@@ -168,6 +168,11 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.UNAUTHORIZED, "Correo o contraseña incorrectos", req, null);
     }
 
+    @ExceptionHandler(TokenGoogleInvalidoException.class)
+    public ResponseEntity<ErrorResponse> tokenGoogleInvalido(TokenGoogleInvalidoException ex, HttpServletRequest req) {
+        return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), req, null);
+    }
+
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> noAutenticado(AuthenticationException ex, HttpServletRequest req) {
         return build(HttpStatus.UNAUTHORIZED, "Se requiere un token válido en la cabecera Authorization: Bearer ...", req, null);

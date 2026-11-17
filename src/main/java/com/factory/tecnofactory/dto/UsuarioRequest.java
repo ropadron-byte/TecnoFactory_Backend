@@ -1,5 +1,6 @@
 package com.factory.tecnofactory.dto;
 
+import com.factory.tecnofactory.validation.ConRun;
 import com.factory.tecnofactory.validation.RunValido;
 import jakarta.validation.constraints.*;
 
@@ -48,7 +49,7 @@ public record UsuarioRequest(
 
         @NotNull(message = "La comuna es obligatoria")
         Integer idComuna
-) {
+) implements ConRun {
 
     @Override
     public String toString() {

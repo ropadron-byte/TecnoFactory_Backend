@@ -56,4 +56,24 @@ class JwtServiceTest {
     void secretoDeMenosDe32BytesNoSePermite() {
         assertThrows(JwtException.class, () -> new JwtService("corto", UNA_HORA));
     }
+
+    @Test
+    void tokenDeRegistroGuardaDatosPeroNoSirveComoTokenDeAcceso() {
+        String token = jwt.generarTokenRegistroGoogle("google-123", "ana@correo.cl", "Ana", "Pérez");
+
+        JwtService.RegistroGoogle registro = jwt.leerRegistroGoogle(token);
+
+        assertEquals("google-123", registro.googleId());
+        assertEquals("ana@correo.cl", registro.correo());
+        assertEquals("Ana", registro.nombre());
+        assertEquals("Pérez", registro.apellidos());
+        assertFalse(jwt.esValido(token), "un token de registro no debe autenticar peticiones");
+    }
+
+    @Test
+    void unTokenDeAccesoNoSeAceptaComoTokenDeRegistro() {
+        String token = jwt.generarToken("ana@correo.cl", "CLIENTE");
+
+        assertThrows(JwtException.class, () -> jwt.leerRegistroGoogle(token));
+    }
 }

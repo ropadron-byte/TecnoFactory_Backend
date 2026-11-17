@@ -1,6 +1,6 @@
 # 22. Diccionario de datos
 
-Las 13 tablas de `V1__esquema_inicial.sql`, las 3 tablas puente de `V5` (`blog_imagen`, `producto_imagen`, `categoria_imagen`) y `contacto` (`V6`), columna por columna, con sus reglas. **La base manda**: si una entidad no coincide con esto, `ddl-auto: validate` impide que la app arranque.
+Las 13 tablas de `V1__esquema_inicial.sql`, las 3 tablas puente de `V5` (`blog_imagen`, `producto_imagen`, `categoria_imagen`) y `contacto` (`V6`), columna por columna, con sus reglas. `V8` agrega `usuario.google_id` y permite `contrasenia NULL` para las cuentas solo-Google. **La base manda**: si una entidad no coincide con esto, `ddl-auto: validate` impide que la app arranque.
 
 Estado de cada tabla en el código: ✅ tiene entidad y repository · ⏳ solo existe en la base.
 
@@ -50,7 +50,8 @@ Datos (`V2`): `ADMINISTRADOR`, `VENDEDOR`, `CLIENTE`. El código **busca por nom
 | `fecha_nacimiento` | `DATE` | Obligatoria |
 | `direccion` | `VARCHAR(255)` | Obligatoria |
 | `telefono` | `VARCHAR(15)` | Obligatorio |
-| `contrasenia` | `VARCHAR(255)` | Hash **BCrypt** (60 caracteres). Nunca sale en una respuesta |
+| `contrasenia` | `VARCHAR(255)` | Hash **BCrypt** (60 caracteres). **`NULL`** en cuentas creadas solo con Google (`V8`). Nunca sale en una respuesta |
+| `google_id` | `VARCHAR(255)` | Identificador de la cuenta de Google (claim `sub`). **Único** y opcional (`V8`); `NULL` si la cuenta no está vinculada |
 | `activo` | `BOOLEAN` | Por defecto `TRUE`. En `FALSE` el usuario pierde el acceso al instante |
 | `tipo_usuario_id_tipo_usuario` | `BIGINT` | FK → `tipo_usuario`, `RESTRICT` |
 | `comuna_id_comuna` | `INT` | FK → `comuna`, `RESTRICT` |

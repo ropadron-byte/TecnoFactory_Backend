@@ -15,6 +15,7 @@ React es la **ventanilla de atención**: muestra formularios y botones. La API e
 | Cabeceras permitidas | `Authorization` y `Content-Type` |
 | Métodos permitidos | `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS` |
 | Vida del token | 1 hora |
+| Login con Google | `VITE_GOOGLE_CLIENT_ID` (el mismo `GOOGLE_CLIENT_ID` del backend) |
 | Formato de fechas | `AAAA-MM-DD` (fecha) y hora de Chile |
 | Dinero | Pesos enteros; el formato (`$12.990`) lo pone el frontend |
 
@@ -63,6 +64,119 @@ export async function api(ruta, opciones = {}) {
 ```
 
 Una sola función `api()` para todas las llamadas evita repetir la cabecera y centraliza el manejo del 401.
+
+## Login con Google
+
+El backend **no redirige** a Google: React carga Google Identity Services, muestra el botón,
+recibe un **ID token** (`credential`) y lo envía a `POST /api/auth/google`.
+
+**1. Cargar el script** en `index.html` (o con un `<script>` dinámico):
+
+```html
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+```
+
+**2. Configurar el Client ID** en `.env` del frontend (Vite):
+
+```env
+VITE_GOOGLE_CLIENT_ID=1234567890-abc.apps.googleusercontent.com
+```
+
+Debe ser **el mismo** Client ID que `GOOGLE_CLIENT_ID` en el backend y tener
+`http://localhost:5173` como origen autorizado en Google Cloud.
+
+**3. Componente del botón y los tres finales posibles:**
+
+```jsx
+import { useEffect, useRef, useState } from "react";
+
+const API = "http://localhost:8080";
+
+export function BotonGoogle({ onSesion, onCompletarPerfil }) {
+  const contenedor = useRef(null);
+
+  useEffect(() => {
+    const iniciar = () => {
+      window.google.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        callback: async ({ credential }) => {
+          const r = await fetch(`${API}/api/auth/google`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ credential }),
+          });
+
+          if (r.status === 200) {
+            const sesion = await r.json();        // { token, tipo, correo, rol }
+            sessionStorage.setItem("token", sesion.token);
+            onSesion(sesion);
+          } else if (r.status === 202) {
+            const pendiente = await r.json();     // { registroToken, correo, nombre, apellidos }
+            onCompletarPerfil(pendiente);         // muestra el formulario
+          } else if (r.status === 409) {
+            const error = await r.json();
+            alert(error.mensaje);                 // hay que entrar con contraseña y vincular
+          } else {
+            alert("No se pudo iniciar sesión con Google");
+          }
+        },
+      });
+
+      window.google.accounts.id.renderButton(contenedor.current, {
+        theme: "outline",
+        size: "large",
+        text: "continue_with",
+      });
+    };
+
+    if (window.google?.accounts?.id) iniciar();
+    else window.addEventListener("load", iniciar, { once: true });
+  }, [onSesion, onCompletarPerfil]);
+
+  return <div ref={contenedor} />;
+}
+```
+
+**4. Formulario para completar el perfil** (solo cuando la API respondió **202**). El correo,
+el nombre y los apellidos vienen de Google y no se editan; el `registroToken` viaja tal cual:
+
+```jsx
+async function completarPerfil(pendiente, datos) {
+  const r = await fetch(`${API}/api/auth/google/completar`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...datos, registroToken: pendiente.registroToken }),
+  });
+  if (r.status === 201) {
+    const sesion = await r.json();
+    sessionStorage.setItem("token", sesion.token);
+    return sesion;
+  }
+  throw await r.json();   // 400 detalles por campo, 401 token vencido, 409 RUN/correo repetido
+}
+```
+
+`datos` lleva `run`, `runDv`, `fechaNacimiento`, `direccion`, `telefono` e `idComuna`.
+
+**5. Vincular Google a una cuenta que ya tiene contraseña.** Después de un login normal
+(`POST /api/auth/login`) y con el token guardado, se envía el `credential` de Google:
+
+```js
+await api("/api/auth/google/vincular", {
+  method: "POST",
+  body: JSON.stringify({ credential }),
+}); // 204: listo. El correo de Google debe coincidir con el de la cuenta.
+```
+
+| Respuesta de `/api/auth/google` | Qué hace React |
+| --- | --- |
+| **200** | Guarda el `token` y entra |
+| **202** | Guarda el `registroToken` en memoria y muestra el formulario de perfil |
+| **409** | Avisa que debe iniciar sesión con contraseña y luego vincular |
+| **401** | El token de Google no sirve: mostrar error y no crear nada |
+
+**El `registroToken` no es un token de sesión**: no lo mandes como `Bearer` y no lo guardes
+en `localStorage`; solo sirve para el paso de completar el perfil y dura 10 minutos.
 
 ## Cómo mostrar los errores
 
@@ -128,4 +242,4 @@ Para empezar, `sessionStorage` con vida de token corta (1 hora) es un compromiso
 
 ## Para saber más
 
-[Referencia 23: catálogo de endpoints](../referencia/23-catalogo-de-endpoints.md) · [Guía 11: seguridad y login](11-seguridad-y-login.md) · [Guía 10: errores](10-errores-de-la-api.md)
+[Referencia 23: catálogo de endpoints](../referencia/23-catalogo-de-endpoints.md) · [Guía 11: seguridad y login](11-seguridad-y-login.md) · [Guía 10: errores](10-errores-de-la-api.md) · [Referencia 29: login con Google](../referencia/29-login-con-google-explicado.md)

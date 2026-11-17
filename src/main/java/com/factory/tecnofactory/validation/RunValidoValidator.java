@@ -1,13 +1,12 @@
 package com.factory.tecnofactory.validation;
 
-import com.factory.tecnofactory.dto.UsuarioRequest;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class RunValidoValidator implements ConstraintValidator<RunValido, UsuarioRequest> {
+public class RunValidoValidator implements ConstraintValidator<RunValido, ConRun> {
 
     @Override
-    public boolean isValid(UsuarioRequest request, ConstraintValidatorContext context) {
+    public boolean isValid(ConRun request, ConstraintValidatorContext context) {
         if (request == null || request.run() == null || request.runDv() == null) {
             return true;
         }

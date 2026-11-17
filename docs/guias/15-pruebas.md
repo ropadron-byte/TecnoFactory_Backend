@@ -14,7 +14,7 @@ Una prueba es como un **simulacro de incendio**: se hace en un entorno controlad
 | **De service** (Mockito) | La lógica de negocio | Repositories falsos (`@Mock`) | `UsuarioServiceTest`, `AuthServiceTest` |
 | **De controller** (`@WebMvcTest` + `MockMvc`) | HTTP: códigos, JSON, validaciones, seguridad | Service falso (`@MockitoBean`) | `UsuarioControllerTest`, `AuthControllerTest` |
 
-## Los 204 tests (más `contextLoads`)
+## Los 249 tests (más `contextLoads`)
 
 | Archivo | Tests |
 | --- | --- |
@@ -23,12 +23,16 @@ Una prueba es como un **simulacro de incendio**: se hace en un entorno controlad
 | `PageResponseTest` | 1 |
 | `UsuarioServiceTest` | 6 |
 | `UsuarioServiceVendedorTest` | 3 |
+| `UsuarioServiceBajaTest` | 7 |
 | `AuthServiceTest` | 3 |
-| `UserDetailsServiceImplTest` | 3 |
-| `JwtServiceTest` | 6 |
+| `GoogleAuthServiceTest` | 11 |
+| `UserDetailsServiceImplTest` | 4 |
+| `JwtServiceTest` | 8 |
+| `GoogleTokenVerifierTest` | 5 |
 | `JwtAuthFilterTest` | 6 |
-| `AuthControllerTest` | 3 |
+| `AuthControllerTest` | 11 |
 | `UsuarioControllerTest` | 14 |
+| `UsuarioControllerBajaTest` | 9 |
 | `BlogServiceTest` | 14 |
 | `BlogServiceGestionTest` | 12 |
 | `BlogControllerTest` | 15 |
@@ -40,12 +44,12 @@ Una prueba es como un **simulacro de incendio**: se hace en un entorno controlad
 | `ContactoControllerTest` | 10 |
 | `GestionSeguridadTest` | 15 |
 | `AdministradorInicialRunnerTest` | 6 |
-| `ConfiguracionValidatorTest` | 5 |
+| `ConfiguracionValidatorTest` | 7 |
 | `ValidadorClavesTest` | 4 |
 | `CabecerasUploadsFilterTest` | 2 |
 | `GlobalExceptionHandlerTest` | 2 |
 
-`GestionSeguridadTest` es la prueba de la política «todo lo no listado queda cerrado» (`denyAll`): reglas por rol, `/api/imagenes/**` y cabeceras de `/uploads/**`. Estado al 6 nov 2026: **204 tests, 0 fallos**. Contacto: [referencia 28, sección 11](../referencia/28-contacto-explicado.md#11-las-pruebas).
+`GestionSeguridadTest` es la prueba de la política «todo lo no listado queda cerrado» (`denyAll`): reglas por rol, `/api/imagenes/**` y cabeceras de `/uploads/**`. Estado al 11 nov 2026: **249 tests, 0 fallos**, más `contextLoads` en verde contra MySQL 8.4. Contacto: [referencia 28, sección 11](../referencia/28-contacto-explicado.md#11-las-pruebas).
 
 `TecnoFactoryApplicationTests` (`contextLoads`) arranca **toda** la app y necesita la base: por eso se ejecutan los demás con `-Dtest="*Test"`.
 
@@ -57,7 +61,7 @@ Una prueba es como un **simulacro de incendio**: se hace en un entorno controlad
 ./mvnw test -Dtest="UsuarioRequestTest,RunUtilTest"
 ```
 
-Resultado esperado: `Tests run: 204, Failures: 0, Errors: 0` y `BUILD SUCCESS`.
+Resultado esperado: `Tests run: 249, Failures: 0, Errors: 0` y `BUILD SUCCESS`.
 
 ## El vocabulario
 

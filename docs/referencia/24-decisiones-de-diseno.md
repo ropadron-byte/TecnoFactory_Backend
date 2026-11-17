@@ -118,6 +118,11 @@ Formato: **Decisión · Motivo · Alternativa descartada · Consecuencia.**
 - **Decisión (6 nov):** posponerlo. Se documenta en la [guía de subida de imágenes](../guias/18-subida-de-imagenes.md) y queda como tarea futura; no se crea migración ni job.
 - **Consecuencia:** el disco puede crecer con archivos sin referencia; se revisa a mano cuando haga falta.
 
+### D36. Login con Google con ID token, no con redirección OAuth2
+- **Motivo:** la API es *stateless* y ya entrega un JWT propio. La redirección OAuth2 de Spring crea sesión con cookies, obliga a CORS con credenciales y mezcla dos formas de sesión. Además, vincular Google automáticamente por correo permitiría que alguien cree una cuenta de Google con el correo de otra persona y entre a la cuenta ajena.
+- **Decisión (11 nov):** React obtiene un **ID token** con Google Identity Services y lo envía a `POST /api/auth/google`. La API verifica firma (JWKS), `iss`, `aud`, `exp` y `email_verified`, y emite su propio JWT. Una cuenta nueva recibe **202** y un token temporal de 10 minutos; la cuenta se crea solo al completar el perfil. Una cuenta con contraseña responde **409** y se vincula únicamente con sesión iniciada (`/api/auth/google/vincular`, **204**).
+- **Consecuencia:** no se usa Client Secret; `GOOGLE_CLIENT_ID` es público pero obligatorio. El `registroToken` no sirve como `Bearer` (lleva `proposito=registro_google`). Ver [referencia 29](29-login-con-google-explicado.md).
+
 ## Configuración
 
 ### D25. Secretos solo por variables de entorno, sin valor por defecto en producción

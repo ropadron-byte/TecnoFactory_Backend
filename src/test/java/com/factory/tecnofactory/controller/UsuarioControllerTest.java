@@ -1,5 +1,6 @@
 package com.factory.tecnofactory.controller;
 
+import com.factory.tecnofactory.dto.PerfilRequest;
 import com.factory.tecnofactory.dto.UsuarioRequest;
 import com.factory.tecnofactory.dto.UsuarioResponse;
 import com.factory.tecnofactory.exception.RecursoNoEncontradoException;
@@ -20,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDate;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,6 +29,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -54,6 +57,14 @@ class UsuarioControllerTest {
               "correo": "ana@correo.cl", "clave": "Clave12345",
               "fechaNacimiento": "1990-05-20", "direccion": "Calle Falsa 123",
               "telefono": "+56912345678", "idComuna": 13101
+            }
+            """;
+
+    private static final String JSON_PERFIL = """
+            {
+              "run": 12345678, "runDv": "5", "nombre": "Ana María", "apellidos": "Pérez Soto",
+              "fechaNacimiento": "1991-06-15", "direccion": "Nueva Calle 456",
+              "telefono": "+56987654321", "idComuna": 13102
             }
             """;
 
@@ -169,6 +180,53 @@ class UsuarioControllerTest {
         mockMvc.perform(get("/api/usuarios/me").with(user("ana@correo.cl").roles("CLIENTE")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.correo").value("ana@correo.cl"));
+    }
+
+    @Test
+    void actualizarMiPerfilDevuelve200ConLosDatosNuevos() throws Exception {
+        when(usuarioService.actualizarPerfil(eq("ana@correo.cl"), any(PerfilRequest.class)))
+                .thenReturn(respuesta());
+
+        mockMvc.perform(put("/api/usuarios/me")
+                        .with(user("ana@correo.cl").roles("CLIENTE"))
+                        .contentType(MediaType.APPLICATION_JSON).content(JSON_PERFIL))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.correo").value("ana@correo.cl"))
+                .andExpect(jsonPath("$.run").value(12345678));
+
+        verify(usuarioService).actualizarPerfil(eq("ana@correo.cl"), any(PerfilRequest.class));
+    }
+
+    @Test
+    void actualizarMiPerfilSinTokenDevuelve401() throws Exception {
+        mockMvc.perform(put("/api/usuarios/me")
+                        .contentType(MediaType.APPLICATION_JSON).content(JSON_PERFIL))
+                .andExpect(status().isUnauthorized());
+        verify(usuarioService, never()).actualizarPerfil(any(), any());
+    }
+
+    @Test
+    void actualizarMiPerfilConRunDuplicadoDevuelve409() throws Exception {
+        when(usuarioService.actualizarPerfil(eq("ana@correo.cl"), any(PerfilRequest.class)))
+                .thenThrow(new ReglaNegocioException("El RUN ya está registrado"));
+
+        mockMvc.perform(put("/api/usuarios/me")
+                        .with(user("ana@correo.cl").roles("CLIENTE"))
+                        .contentType(MediaType.APPLICATION_JSON).content(JSON_PERFIL))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.mensaje").value("El RUN ya está registrado"));
+    }
+
+    @Test
+    void actualizarMiPerfilConDatosInvalidosDevuelve400() throws Exception {
+        mockMvc.perform(put("/api/usuarios/me")
+                        .with(user("ana@correo.cl").roles("CLIENTE"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(JSON_PERFIL.replace("\"runDv\": \"5\"", "\"runDv\": \"9\"")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje").value("Datos inválidos"))
+                .andExpect(jsonPath("$.detalles.runDv").exists());
+        verify(usuarioService, never()).actualizarPerfil(any(), any());
     }
 
     @Test

@@ -69,4 +69,17 @@ class UserDetailsServiceImplTest {
 
         assertThrows(UsernameNotFoundException.class, () -> service.loadUserByUsername("nadie@correo.cl"));
     }
+
+    @Test
+    void cuentaSoloGoogleNoTieneContrasenaPeroConservaSuRol() {
+        Usuario soloGoogle = usuario("CLIENTE", true);
+        soloGoogle.setContrasenia(null);
+        when(usuarioRepository.findByCorreo("ana@correo.cl")).thenReturn(Optional.of(soloGoogle));
+
+        UserDetails ud = service.loadUserByUsername("ana@correo.cl");
+
+        assertEquals("", ud.getPassword());
+        assertEquals(List.of("ROLE_CLIENTE"),
+                ud.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
+    }
 }

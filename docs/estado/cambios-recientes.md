@@ -67,6 +67,18 @@ Guía completa: [21-seguridad-jwt-y-roles-explicada.md](../referencia/21-segurid
 - [x] **`POST /api/imagenes/productos` no registraba la imagen en `imagen_url`**: resuelto el 3 nov (ver la entrada de las 03:10). Falta poder asignar imágenes a productos y categorías por id (sus controllers).
 - [ ] **Mover `JwtServiceTest` y `UserDetailsServiceImplTest`** a `src/test/.../security/` (hoy están en `service/`; `JwtServiceTest` declara el paquete `security` y compila igual, pero la carpeta no coincide).
 
+### Login con Google (11 nov)
+
+- [x] **Backend completo**: `GoogleTokenVerifier` (JWKS, `iss`, `aud`, `exp`, `email_verified`), `GoogleAuthService` y endpoints `POST /api/auth/google`, `/google/completar` y `/google/vincular`.
+- [x] **Cuenta nueva**: responde **202** con un `registroToken` de 10 minutos; la cuenta se crea recién en `/completar` con **201**. El `registroToken` no sirve como `Bearer`.
+- [x] **Cuenta existente con contraseña**: **409**; se vincula solo después de un login normal con `/google/vincular` (**204**).
+- [x] **Base de datos**: `V8__google_auth.sql` agrega `usuario.google_id` único y permite `contrasenia NULL`.
+- [x] **Configuración**: `GOOGLE_CLIENT_ID` obligatoria en `.env`, `application.yaml`, `ConfiguracionValidator`, `dev.sh` y `dev.ps1`.
+- [x] **Tests**: `GoogleTokenVerifierTest` (5), `GoogleAuthServiceTest` (11), `JwtServiceTest` (8), `AuthControllerTest` (11) y `UserDetailsServiceImplTest` (4). Suite completa: **249 tests, 0 fallos**.
+- [x] **Confirmar el arranque** con `./scripts/dev.sh`: `contextLoads` en verde contra MySQL 8.4 el 11 nov y `V8` aplicada.
+- [ ] **Probar el flujo real** con el Client ID de Google Cloud: usuario nuevo 202→201, segundo login 200, cuenta con contraseña 409→login→vincular 204. Hace falta el navegador.
+- [ ] **Revisar la pantalla de consentimiento** en Google Cloud antes de publicar: nombre de la app, logo, dominio autorizado y política de privacidad.
+
 ### Formulario de contacto
 
 Guía: [19](../guias/19-formulario-de-contacto.md) · Referencia: [28](../referencia/28-contacto-explicado.md).
@@ -113,6 +125,37 @@ Guía: [19](../guias/19-formulario-de-contacto.md) · Referencia: [28](../refere
 
 ## Historial
 
+
+### 11 nov 2026: login con Google
+
+Se agregó una segunda forma de entrar, sin romper el login con contraseña ni las reglas
+`fail-closed` de `SecurityConfig`.
+
+- **Flujo elegido:** React usa Google Identity Services, obtiene un **ID token** y lo envía a
+  `POST /api/auth/google`. La API lo verifica con `NimbusJwtDecoder` y las claves públicas de
+  Google (JWKS): firma, `iss`, `aud` contra `GOOGLE_CLIENT_ID`, `exp` y `email_verified`.
+  No se usa redirección OAuth2 ni Client Secret.
+- **Cuenta nueva:** responde **202** con `requiereCompletarPerfil`, `registroToken` (10 min) y
+  los datos que Google ya entregó. La cuenta **no se crea** hasta `POST /api/auth/google/completar`,
+  que exige RUN, DV, fecha de nacimiento, dirección, teléfono y comuna y responde **201**.
+- **Cuenta con contraseña:** **no** se vincula automáticamente (evita el pre-registro con el
+  correo ajeno). Responde **409**; el flujo correcto es login normal + `POST /api/auth/google/vincular`
+  (**204**), que exige que el correo de Google coincida con la cuenta autenticada.
+- **Cuenta solo-Google:** `contrasenia = NULL` y `google_id` único. `UserDetailsServiceImpl`
+  usa `""` para que el login con contraseña devuelva **401**.
+- **Token temporal:** `JwtService.generarTokenRegistroGoogle` agrega `proposito=registro_google`;
+  `esValido()` lo rechaza como token de acceso. `leerRegistroGoogle` rechaza un token normal.
+- **Migración:** `V8__google_auth.sql` (`google_id` único nullable y `contrasenia` nullable).
+- **Configuración:** `google.client-id: ${GOOGLE_CLIENT_ID}` y validación al arrancar. Se
+  actualizaron `.env.example`, `scripts/dev.sh` y `scripts/dev.ps1`.
+- **Tests:** `GoogleTokenVerifierTest` (5), `GoogleAuthServiceTest` (11), 2 casos nuevos en
+  `JwtServiceTest`, 1 en `UserDetailsServiceImplTest` y 5 en `AuthControllerTest`.
+  **249 tests, 0 fallos**, más `contextLoads` en verde contra MySQL 8.4.
+- **Documentación:** [referencia 29](../referencia/29-login-con-google-explicado.md), guía 11,
+  guía 17 (React), catálogo de endpoints, diccionario, variables, YAML y seguridad.
+
+Pendiente de comprobar a mano con el Client ID real y MySQL: el recorrido 202→201, el segundo
+login 200 y el 409→login→vincular→204. Ver la lista de arriba.
 
 ### 6 nov (tarde): baja de cuentas y `uploads/` fuera del contenedor
 

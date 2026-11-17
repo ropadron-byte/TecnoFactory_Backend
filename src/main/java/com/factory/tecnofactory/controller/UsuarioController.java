@@ -1,5 +1,6 @@
 package com.factory.tecnofactory.controller;
 
+import com.factory.tecnofactory.dto.PerfilRequest;
 import com.factory.tecnofactory.dto.UsuarioRequest;
 import com.factory.tecnofactory.dto.UsuarioResponse;
 import com.factory.tecnofactory.service.UsuarioService;
@@ -19,7 +20,7 @@ import java.net.URI;
 @RestController
 @RequestMapping("/api/usuarios")
 @RequiredArgsConstructor
-@Tag(name = "Usuarios", description = "Registro y consulta de usuarios")
+@Tag(name = "Usuarios", description = "Registro, consulta y perfil de usuarios")
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
@@ -51,6 +52,14 @@ public class UsuarioController {
     @Operation(summary = "Ver mi propio perfil (cualquier usuario con sesión)")
     public UsuarioResponse miPerfil(Authentication autenticacion) {
         return usuarioService.buscarPorCorreo(autenticacion.getName());
+    }
+
+    @PutMapping("/me")
+    @Operation(summary = "Actualizar mis datos personales (cualquier usuario con sesión)",
+            description = "El correo no se puede cambiar: está ligado a la cuenta de Google o al registro original.")
+    public UsuarioResponse actualizarMiPerfil(Authentication autenticacion,
+                                              @Valid @RequestBody PerfilRequest request) {
+        return usuarioService.actualizarPerfil(autenticacion.getName(), request);
     }
 
     @PatchMapping("/me/desactivar")

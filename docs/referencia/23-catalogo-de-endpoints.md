@@ -9,6 +9,9 @@ Base: `http://localhost:8080` · Formato: JSON · Autenticación: cabecera `Auth
 | Método | Ruta | Quién | Éxito |
 | --- | --- | --- | --- |
 | `POST` | `/api/auth/login` | Público | 200 |
+| `POST` | `/api/auth/google` | Público (ID token de Google) | 200 / 202 |
+| `POST` | `/api/auth/google/completar` | Público (token temporal) | 201 |
+| `POST` | `/api/auth/google/vincular` | Cualquier sesión | 204 |
 | `POST` | `/api/usuarios` | Público (registro) | 201 |
 | `GET` | `/api/usuarios/me` | Cualquier sesión | 200 |
 | `GET` | `/api/usuarios/{id}` | `ADMINISTRADOR` | 200 |
@@ -41,7 +44,7 @@ Cambia correo y clave por un token.
 **Pide:**
 
 ```json
-{ "correo": "admin@tecnofactory.cl", "clave": "MiClaveSegura1" }
+{ "correo": "ro.padron@duocuc.cl", "clave": "MiClaveSegura1" }
 ```
 
 | Campo | Regla |
@@ -52,7 +55,7 @@ Cambia correo y clave por un token.
 **Devuelve 200:**
 
 ```json
-{ "token": "eyJhbGciOiJIUzI1NiJ9...", "tipo": "Bearer", "correo": "admin@tecnofactory.cl", "rol": "ADMINISTRADOR" }
+{ "token": "eyJhbGciOiJIUzI1NiJ9...", "tipo": "Bearer", "correo": "ro.padron@duocuc.cl", "rol": "ADMINISTRADOR" }
 ```
 
 | Código | Cuándo |
@@ -61,6 +64,103 @@ Cambia correo y clave por un token.
 | 401 | Correo inexistente, clave incorrecta **o usuario desactivado** (mismo mensaje en los tres casos, a propósito) |
 
 El token dura **1 hora** (`jwt.expiration-ms: 3600000`).
+
+---
+
+## `POST /api/auth/google`
+
+Recibe el **ID token** que Google Identity Services entrega en el navegador y lo verifica
+(firma, emisor, audiencia y `email_verified`). No usa redirección OAuth2 ni Client Secret.
+
+**Pide:**
+
+```json
+{ "credential": "eyJhbGciOiJSUzI1NiIsImtpZCI6..." }
+```
+
+**Devuelve 200** si la cuenta de Google ya está vinculada:
+
+```json
+{ "token": "eyJhbGciOiJIUzI1NiJ9...", "tipo": "Bearer", "correo": "ana@correo.cl", "rol": "CLIENTE" }
+```
+
+**Devuelve 202** si es la primera vez (la cuenta **todavía no se crea**):
+
+```json
+{
+  "requiereCompletarPerfil": true,
+  "registroToken": "eyJhbGciOiJIUzI1NiJ9...",
+  "correo": "ana@correo.cl", "nombre": "Ana", "apellidos": "Pérez"
+}
+```
+
+| Código | Cuándo |
+| --- | --- |
+| 400 | Falta `credential` |
+| 401 | Token de Google inválido, expirado, de otro Client ID, correo no verificado **o cuenta desactivada** |
+| 409 | El correo ya existe con contraseña: hay que iniciar sesión y usar `/api/auth/google/vincular`; o ya está vinculado a otra cuenta de Google |
+
+El `registroToken` dura **10 minutos**, solo sirve para `/api/auth/google/completar` y **no vale como `Bearer`**.
+
+---
+
+## `POST /api/auth/google/completar`
+
+Crea la cuenta `CLIENTE` con los datos que Google no entrega. El correo y el `google_id`
+salen del token temporal, no del cuerpo.
+
+**Pide:**
+
+```json
+{
+  "registroToken": "eyJhbGciOiJIUzI1NiJ9...",
+  "run": 12345678, "runDv": "5",
+  "nombre": "Ana", "apellidos": "Pérez Soto",
+  "fechaNacimiento": "1995-04-10",
+  "direccion": "Av. Siempre Viva 742", "telefono": "+56912345678",
+  "idComuna": 13101
+}
+```
+
+| Campo | Regla |
+| --- | --- |
+| `registroToken` | Obligatorio, emitido por `/api/auth/google` y vigente |
+| `run` / `runDv` | Mismas reglas que el registro normal (módulo 11, `@RunValido`) |
+| `nombre`, `apellidos`, `direccion` | Obligatorios, máx. 255 |
+| `fechaNacimiento` | Obligatoria, anterior a hoy |
+| `telefono` | 8 a 14 dígitos, `+` opcional |
+| `idComuna` | Obligatorio, debe existir |
+
+**Devuelve 201** con el mismo `AuthResponse` del login (`token`, `tipo`, `correo`, `rol`).
+La cuenta queda con `contrasenia = NULL`: solo puede entrar con Google.
+
+| Código | Cuándo |
+| --- | --- |
+| 400 | Falta un campo o no cumple una regla |
+| 401 | `registroToken` inválido o expirado |
+| 404 | La comuna no existe |
+| 409 | El correo, el RUN o la cuenta de Google ya están registrados |
+
+---
+
+## `POST /api/auth/google/vincular`
+
+Vincula Google a la cuenta con la que ya se inició sesión **con contraseña**.
+Exige `Authorization: Bearer <token>`; el correo de Google debe coincidir con el de la cuenta.
+
+**Pide:**
+
+```json
+{ "credential": "eyJhbGciOiJSUzI1NiIsImtpZCI6..." }
+```
+
+| Código | Cuándo |
+| --- | --- |
+| 204 | Vinculado (o ya estaba vinculado a la misma cuenta de Google) |
+| 400 | Falta `credential` |
+| 401 | Sin sesión o ID token de Google inválido |
+| 404 | La cuenta autenticada ya no existe |
+| 409 | El correo de Google no coincide, o esa cuenta de Google ya pertenece a otro usuario |
 
 ---
 

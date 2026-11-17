@@ -25,6 +25,7 @@ Spring lee `application.yaml` (base) y encima el del perfil activo (`local` o `p
 | `spring.cache.redis.time-to-live` | `10m` | Cuánto vive un dato en caché |
 | `jwt.secret` | `${JWT_SECRET}` | Clave que firma los tokens. **Mínimo 32 caracteres. Sin valor por defecto desde el 3 nov**: antes traía una clave escrita en el código y, si se arrancaba sin la variable ni perfil, cualquiera podía firmar un token de administrador |
 | `jwt.expiration-ms` | `3600000` | Vida del token: 1 hora |
+| `google.client-id` | `${GOOGLE_CLIENT_ID}` | Client ID público de Google Cloud. **Obligatorio**: `ConfiguracionValidator` impide arrancar si falta o si quedó el placeholder. No se usa Client Secret |
 | `cors.allowed-origins` | `${CORS_ORIGINS:http://localhost:5173}` | Orígenes del frontend permitidos (lista separada por comas) |
 | `management.endpoints.web.exposure.include` | `health` | Único endpoint de Actuator publicado |
 
@@ -33,7 +34,7 @@ Spring lee `application.yaml` (base) y encima el del perfil activo (`local` o `p
 - `${DB_USER:root}` → usa la variable `DB_USER`; si no existe, `root`.
 - `${DB_PASSWORD}` (sin `:`) → **obligatoria**: si falta, la app no arranca (`Could not resolve placeholder`).
 
-> Observación: el perfil base ya **no** trae clave de base de datos (`root`) ni `jwt.secret`. El perfil `prod` además quita el resto de valores por defecto a propósito. `ConfiguracionValidator` rechaza los valores de ejemplo de `.env.example` al arrancar.
+> Observación: el perfil base ya **no** trae clave de base de datos (`root`) ni `jwt.secret`. El perfil `prod` además quita el resto de valores por defecto a propósito. `ConfiguracionValidator` rechaza los valores de ejemplo de `.env.example` al arrancar, y exige `GOOGLE_CLIENT_ID` para el login con Google.
 
 ## `application-local.yaml` (desarrollo)
 
@@ -65,6 +66,7 @@ Spring lee `application.yaml` (base) y encima el del perfil activo (`local` o `p
 | `spring.jpa.show-sql` | `false` | No imprime consultas |
 | `spring.cache.type` | `none` | Cambiará a `redis` cuando exista |
 | `jwt.secret` | `${JWT_SECRET}` | **Sin valor por defecto**: falta → no arranca |
+| `google.client-id` | Hereda de `application.yaml` (`${GOOGLE_CLIENT_ID}`) | **Sin valor por defecto**: falta → no arranca |
 | `springdoc.*.enabled` | `false` | Sin Swagger ni descripción de la API |
 | `logging.level.root` / `com.factory` | `WARN` / `INFO` | Mínimo ruido |
 | `management.endpoint.health.show-details` | `never` | Solo `UP` o `DOWN` |

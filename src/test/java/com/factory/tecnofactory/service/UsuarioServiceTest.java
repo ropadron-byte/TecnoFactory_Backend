@@ -1,5 +1,6 @@
 package com.factory.tecnofactory.service;
 
+import com.factory.tecnofactory.dto.PerfilRequest;
 import com.factory.tecnofactory.dto.UsuarioRequest;
 import com.factory.tecnofactory.dto.UsuarioResponse;
 import com.factory.tecnofactory.entity.Comuna;
@@ -126,6 +127,112 @@ class UsuarioServiceTest {
         when(usuarioRepository.findByCorreo("nadie@correo.cl")).thenReturn(Optional.empty());
 
         assertThrows(RecursoNoEncontradoException.class, () -> service.buscarPorCorreo("nadie@correo.cl"));
+    }
+
+    // ---- Perfil editable -------------------------------------------------------------------
+
+    private static PerfilRequest perfilValido() {
+        return new PerfilRequest(12345678, "5", "Ana María", "Pérez Soto",
+                LocalDate.of(1991, 6, 15), "Nueva Calle 456", "+56987654321", 13102);
+    }
+
+    private static Usuario usuarioExistente() {
+        Region region = new Region();
+        region.setId(13);
+        region.setNombre("Metropolitana");
+
+        Comuna comuna = new Comuna();
+        comuna.setId(13101);
+        comuna.setNombre("Santiago");
+        comuna.setRegion(region);
+
+        TipoUsuario cliente = new TipoUsuario();
+        cliente.setId(3L);
+        cliente.setNombre("CLIENTE");
+
+        Usuario usuario = new Usuario();
+        usuario.setId(7L);
+        usuario.setRun(11111111);
+        usuario.setRunDv("1");
+        usuario.setNombre("Ana");
+        usuario.setApellidos("Pérez");
+        usuario.setCorreo("ana@correo.cl");
+        usuario.setContrasenia("HASH");
+        usuario.setFechaNacimiento(LocalDate.of(1990, 5, 20));
+        usuario.setDireccion("Calle 1");
+        usuario.setTelefono("+56912345678");
+        usuario.setTipoUsuario(cliente);
+        usuario.setComuna(comuna);
+        usuario.setActivo(true);
+        return usuario;
+    }
+
+    @Test
+    void actualizarPerfilGuardaLosDatosSinTocarCorreoNiContrasenia() {
+        Usuario usuario = usuarioExistente();
+
+        Region region = new Region();
+        region.setId(13);
+        region.setNombre("Metropolitana");
+        Comuna nuevaComuna = new Comuna();
+        nuevaComuna.setId(13102);
+        nuevaComuna.setNombre("Cerrillos");
+        nuevaComuna.setRegion(region);
+
+        when(usuarioRepository.findByCorreo("ana@correo.cl")).thenReturn(Optional.of(usuario));
+        when(usuarioRepository.existsByRunAndIdNot(12345678, 7L)).thenReturn(false);
+        when(comunaRepository.findById(13102)).thenReturn(Optional.of(nuevaComuna));
+        when(usuarioRepository.save(usuario)).thenReturn(usuario);
+
+        UsuarioResponse respuesta = service.actualizarPerfil("ana@correo.cl", perfilValido());
+
+        assertEquals(12345678, usuario.getRun());
+        assertEquals("5", usuario.getRunDv());
+        assertEquals("Ana María", usuario.getNombre());
+        assertEquals("Pérez Soto", usuario.getApellidos());
+        assertEquals(LocalDate.of(1991, 6, 15), usuario.getFechaNacimiento());
+        assertEquals("Nueva Calle 456", usuario.getDireccion());
+        assertEquals("+56987654321", usuario.getTelefono());
+        assertEquals(13102, usuario.getComuna().getId());
+
+        // Datos que el perfil no puede cambiar
+        assertEquals("ana@correo.cl", usuario.getCorreo());
+        assertEquals("HASH", usuario.getContrasenia());
+        assertEquals("CLIENTE", usuario.getTipoUsuario().getNombre());
+
+        assertEquals("Cerrillos", respuesta.comuna());
+        assertEquals("ana@correo.cl", respuesta.correo());
+    }
+
+    @Test
+    void actualizarPerfilConRunDeOtroUsuarioLanzaReglaDeNegocio() {
+        Usuario usuario = usuarioExistente();
+        when(usuarioRepository.findByCorreo("ana@correo.cl")).thenReturn(Optional.of(usuario));
+        when(usuarioRepository.existsByRunAndIdNot(12345678, 7L)).thenReturn(true);
+
+        assertThrows(ReglaNegocioException.class,
+                () -> service.actualizarPerfil("ana@correo.cl", perfilValido()));
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    void actualizarPerfilConComunaInexistenteLanzaRecursoNoEncontrado() {
+        Usuario usuario = usuarioExistente();
+        when(usuarioRepository.findByCorreo("ana@correo.cl")).thenReturn(Optional.of(usuario));
+        when(usuarioRepository.existsByRunAndIdNot(12345678, 7L)).thenReturn(false);
+        when(comunaRepository.findById(13102)).thenReturn(Optional.empty());
+
+        assertThrows(RecursoNoEncontradoException.class,
+                () -> service.actualizarPerfil("ana@correo.cl", perfilValido()));
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    void actualizarPerfilDeUnUsuarioInexistenteLanzaRecursoNoEncontrado() {
+        when(usuarioRepository.findByCorreo("nadie@correo.cl")).thenReturn(Optional.empty());
+
+        assertThrows(RecursoNoEncontradoException.class,
+                () -> service.actualizarPerfil("nadie@correo.cl", perfilValido()));
     }
 
 }

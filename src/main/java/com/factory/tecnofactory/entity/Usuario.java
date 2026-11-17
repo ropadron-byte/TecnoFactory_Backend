@@ -49,8 +49,12 @@ public class Usuario {
     @Column(name = "telefono", nullable = false, length = 15)
     private String telefono;
 
-    @Column(name = "contrasenia", nullable = false)
+    @Column(name = "contrasenia")
     private String contrasenia;
+
+    /** Identificador de la cuenta de Google (claim "sub"). NULL si la cuenta no está vinculada. */
+    @Column(name = "google_id", unique = true)
+    private String googleId;
 
     @Column(name = "activo", nullable = false)
     private Boolean activo = true;

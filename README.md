@@ -6,7 +6,7 @@ La documentación tiene **tres lugares**, según lo que necesites:
 | --- | --- |
 | **Hacer algo** (levantar, agregar una entidad, arreglar un fallo) | [`docs/personal/`](docs/personal/00-empieza-aqui.md): manual por tareas |
 | **Entender un tema rápido**, con analogías | [`docs/guias/`](docs/guias/01-el-proyecto-en-una-pagina.md): 19 guías cortas |
-| **Todo el detalle**, línea por línea | [`docs/referencia/`](docs/referencia/): 28 documentos técnicos |
+| **Todo el detalle**, línea por línea | [`docs/referencia/`](docs/referencia/): 29 documentos técnicos |
 | **Saber qué cambió y qué falta** | [`docs/estado/cambios-recientes.md`](docs/estado/cambios-recientes.md) |
 
 **Primera vez:** empieza por [Empieza aquí](docs/personal/00-empieza-aqui.md).
@@ -19,7 +19,7 @@ cp .env.example .env      # solo la primera vez; completa las claves
 .\scripts\dev.ps1         # Windows
 ```
 
-El lanzador levanta MySQL en el puerto **3307** (deja libre el 3306 para otro MySQL instalado en el computador), espera a que esté `healthy` y arranca el backend con el perfil `local`.
+El lanzador levanta MySQL en el puerto **3307** (deja libre el 3306 para otro MySQL instalado en el computador), espera a que esté `healthy` y arranca el backend con el perfil `local`. El `.env` debe incluir `GOOGLE_CLIENT_ID` además de las claves: sin ella la app no arranca.
 
 ## Manual personal (por tareas)
 
@@ -89,11 +89,12 @@ El lanzador levanta MySQL en el puerto **3307** (deja libre el 3306 para otro My
 | 21 | [Seguridad con JWT y roles explicada](docs/referencia/21-seguridad-jwt-y-roles-explicada.md) | Login, token JWT, filtro, reglas por ruta, 401 y 403 en JSON; explicado primero con una analogía y después línea por línea |
 | 22 | [Diccionario de datos](docs/referencia/22-diccionario-de-datos.md) | Las tablas columna por columna (incluida `contacto`), relaciones, qué pasa al borrar y convenciones |
 | 23 | [Catálogo de endpoints](docs/referencia/23-catalogo-de-endpoints.md) | Cada ruta que existe: qué pide, qué devuelve, errores posibles y paginación |
-| 24 | [Decisiones de diseño](docs/referencia/24-decisiones-de-diseno.md) | 35 decisiones con su motivo, la alternativa descartada y su consecuencia |
+| 24 | [Decisiones de diseño](docs/referencia/24-decisiones-de-diseno.md) | 36 decisiones con su motivo, la alternativa descartada y su consecuencia |
 | 25 | [Glosario](docs/referencia/25-glosario.md) | Las palabras del proyecto, explicadas sin jerga |
 | 26 | [Configuración YAML explicada](docs/referencia/26-configuracion-yaml-explicada.md) | Cada propiedad de `application`, `local` y `prod`, y las observaciones para desplegar |
 | 27 | [Subida de imágenes explicada](docs/referencia/27-subida-de-imagenes-explicada.md) | La subida de imágenes línea por línea: validación del contenido, carpetas y registro en `imagen_url` |
 | 28 | [Contacto explicado](docs/referencia/28-contacto-explicado.md) | El formulario de contacto pieza por pieza: migración `V6`, entidad, DTOs, mapper, service, controller, regla de seguridad y pruebas |
+| 29 | [Login con Google explicado](docs/referencia/29-login-con-google-explicado.md) | ID token de Google, verificación JWKS, token temporal de registro, completar perfil, vinculación y configuración de Google Cloud |
 
 
 **Archivo vivo:** [Cambios recientes](docs/estado/cambios-recientes.md) reúne lo que falta y lo que ya se hizo, sesión por sesión.
@@ -108,13 +109,14 @@ El lanzador levanta MySQL en el puerto **3307** (deja libre el 3306 para otro My
 | `V1` con las 13 tablas y 15 claves foráneas | **Aplicada en MySQL 8.4** (Flyway, 18 oct) |
 | `V2` con 3 roles, 16 regiones y 346 comunas | **Aplicada en MySQL 8.4** |
 | `V3` con categorías base | **Aplicada en MySQL 8.4** (Flyway quedó en la versión 3) |
-| `V4` a `V7` | **Escritas**: fecha del blog, portada/galería de imágenes, tabla `contacto` y unicidad de región/comuna. `V7` exige revisar duplicados antes de aplicarla en una base existente |
+| `V4` a `V8` | **Escritas**: fecha del blog, portada/galería de imágenes, tabla `contacto`, unicidad de región/comuna y `google_id`/contraseña opcional. `V8` **aplicada en local** el 11 nov. `V7` exige revisar duplicados antes de aplicarla en una base existente |
 | `application-local.yaml` | Corregido |
 | Manejo de errores (`exception/`) | **Probado** con controllers: 400, 401, 403, 404, 405, 409, 415 y (3 nov) 413 y los 400 de `sort` inválido, falta de `archivo` y archivo no válido. Faltan 500 y 409 por el `UNIQUE` de la base. Ver [11](docs/referencia/11-excepciones-explicadas.md) y [10](docs/guias/10-errores-de-la-api.md) |
 | Entidades | **4 de 12** (`TipoUsuario`, `Region`, `Comuna`, `Usuario`); **validan** contra MySQL 8.4. Ver [13](docs/referencia/13-entidades-explicadas.md) |
 | Repositories | **4** (uno por entidad); errores de nombres corregidos. Arranque completo **confirmado** (log del 18 oct). Ver [14](docs/referencia/14-repositories-explicados.md) |
 | `SecurityConfig` y `PasswordEncoder` (BCrypt) | **Reescrito el 6 nov**: reglas explícitas por método y rol y **`anyRequest().denyAll()`**. Públicas: Swagger, `health`, `/error`, `OPTIONS`, login, registro, contacto (solo POST), lectura de blogs y `/uploads/**`. `GET /api/imagenes/**` y `/api/blogs/gestion/**` exigen personal. Probado con `GestionSeguridadTest`. Ver [21](docs/referencia/21-seguridad-jwt-y-roles-explicada.md) (la [15](docs/referencia/15-seguridad-codigo-explicado.md) explica la primera versión) |
-| JWT (`JwtService`, `JwtAuthFilter`, `UserDetailsServiceImpl`), login (`AuthService`, `AuthController`) y errores 401/403 en JSON (`ManejadorErroresSeguridad`) | **Escritos y aplicados** (20 oct). La suite completa pasa (204 tests el 6 nov); falta confirmar el flujo de login en Swagger. Ver [21](docs/referencia/21-seguridad-jwt-y-roles-explicada.md) |
+| JWT (`JwtService`, `JwtAuthFilter`, `UserDetailsServiceImpl`), login (`AuthService`, `AuthController`) y errores 401/403 en JSON (`ManejadorErroresSeguridad`) | **Escritos y aplicados** (20 oct). La suite completa pasa (249 tests el 11 nov); falta confirmar el flujo de login en Swagger. Ver [21](docs/referencia/21-seguridad-jwt-y-roles-explicada.md) |
+| Login con Google (`GoogleTokenVerifier`, `GoogleAuthService`, `/api/auth/google/**`) | **Escrito y probado el 11 nov** (249 tests). Cuenta nueva → 202 y perfil obligatorio → 201; cuenta existente → 200; cuenta con contraseña → 409 y vinculación con sesión → 204. Ver [29](docs/referencia/29-login-con-google-explicado.md) y [guía 17](docs/guias/17-integracion-con-react.md#login-con-google) |
 | Administrador inicial | **Se crea por código al arrancar** (no con una migración) desde variables `ADMIN_*`, con validaciones de clave y datos. Verificado el 18 oct; validaciones y tests, el 6 nov. Ver [17](docs/referencia/17-administrador-inicial-explicado.md) |
 | Services | `UsuarioService` (administrador inicial, `registrar`, `buscarPorId`, `buscarPorCorreo`) y `AuthService` (login). Ver [19](docs/referencia/19-validacion-run-service-y-controller-explicados.md) y [21](docs/referencia/21-seguridad-jwt-y-roles-explicada.md) |
 | DTOs y mapper de `Usuario` | `UsuarioResponse`, `UsuarioRequest` y `UsuarioMapper` **confirmados** (10 tests de `UsuarioRequestTest`), con validación del dígito verificador (módulo 11, `RunUtilTest`). Ver [18](docs/referencia/18-dto-mapper-y-validaciones-explicados.md) y [19](docs/referencia/19-validacion-run-service-y-controller-explicados.md) |
@@ -123,13 +125,13 @@ El lanzador levanta MySQL en el puerto **3307** (deja libre el 3306 para otro My
 | Blogs e imágenes (`BlogController`, `ImagenController`, `AlmacenamientoService`) | **Revisados el 6 nov**: el detalle público usa `BlogPublicoResponse` (sin datos del autor) y la gestión (`/api/blogs/gestion/{id}`) usa `BlogResponse` con `autorCorreo`. `GET /api/imagenes/**` exige personal; `/uploads/**` sigue público con cabeceras `nosniff` y CSP. Tests en verde. Ver [cambios recientes](docs/estado/cambios-recientes.md) y [guía 18](docs/guias/18-subida-de-imagenes.md) |
 | Formulario de contacto (`V6`, `Contacto`, `ContactoController`) | **Escrito el 3 nov y probado el 6 nov**: `POST /api/contactos` **público** y lectura (`GET /api/contactos` y `/{id}`) solo para `ADMINISTRADOR`. 14 tests en verde. Falta un límite de envíos contra spam. Ver [guía 19](docs/guias/19-formulario-de-contacto.md) y [referencia 28](docs/referencia/28-contacto-explicado.md) |
 | `jwt.secret` y `DB_PASSWORD` | **Sin valor por defecto** (3 y 6 nov): si faltan, la app no arranca. `ConfiguracionValidator` también rechaza los placeholders de `.env.example`. Ver [26](docs/referencia/26-configuracion-yaml-explicada.md) |
-| Pruebas | `.\mvnw.cmd test -Dtest="*Test"`: **204 tests, 0 fallos** (6 nov). `contextLoads` necesita MySQL/Docker y no se ejecutó en este entorno |
+| Pruebas | `.\mvnw.cmd test -Dtest="*Test"`: **249 tests, 0 fallos** (11 nov). `contextLoads` **también en verde** contra MySQL 8.4 el 11 nov, con `V8` aplicada |
 | `Dockerfile` y servicio `backend` del compose | Vacío / comentado |
 
 ## Reglas de oro
 
 1. **Spring no lee el `.env`.** Lo lee Docker Compose; a Spring hay que pasarle las variables al arrancar. Para eso está `scripts/dev.sh` (o `scripts/dev.ps1` en Windows).
-2. **Una migración aplicada no se edita.** Los cambios son archivos nuevos (`V8__...` en adelante; `V1` a `V7` ya existen). Mientras `V1` y `V2` solo existan en tu máquina, puedes recrearlas con `docker compose down -v`.
+2. **Una migración aplicada no se edita.** Los cambios son archivos nuevos (`V9__...` en adelante; `V1` a `V8` ya existen). Mientras `V1` y `V2` solo existan en tu máquina, puedes recrearlas con `docker compose down -v`.
 3. **Los scripts de `docker/mysql-init` y las claves `MYSQL_*` solo se aplican al crear el volumen.**
 4. **`docker compose down -v` borra los datos.** Nunca en producción.
 5. **La app en producción usa `tecnofactory_app`**, nunca `root`.

@@ -30,7 +30,7 @@ IMAGEN_URL: cada imagen pertenece a UN producto, UNA categoría o UN blog
 | --- | --- | --- |
 | `region`, `comuna` | Geografía de Chile | `comuna.region_id_region` → `region`. Ids **manuales** (sin `AUTO_INCREMENT`) |
 | `tipo_usuario` | Roles | `nombre_tipo_usuario` único |
-| `usuario` | Cuentas | `run` y `correo` únicos; FK a `comuna` y `tipo_usuario`; `activo` por defecto `TRUE` |
+| `usuario` | Cuentas | `run` y `correo` únicos; `google_id` único y opcional (`V8`); FK a `comuna` y `tipo_usuario`; `activo` por defecto `TRUE`; `contrasenia` puede ser `NULL` en cuentas solo-Google |
 | `producto` | Catálogo | `CHECK` en precio, stock, stock crítico y descuento (0 a 100); `activo` por defecto `TRUE` |
 | `categoria` | Categorías | `nombre_categoria` único |
 | `producto_categoria` | Muchos a muchos | PK compuesta `(producto, categoria)` |
