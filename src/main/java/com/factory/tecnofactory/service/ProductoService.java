@@ -4,6 +4,7 @@ import com.factory.tecnofactory.dto.PageResponse;
 import com.factory.tecnofactory.dto.ProductoRequest;
 import com.factory.tecnofactory.dto.ProductoResponse;
 import com.factory.tecnofactory.entity.Categoria;
+import com.factory.tecnofactory.entity.ImagenUrl;
 import com.factory.tecnofactory.entity.Producto;
 import com.factory.tecnofactory.entity.ProductoCategoria;
 import com.factory.tecnofactory.exception.RecursoNoEncontradoException;
@@ -29,6 +30,7 @@ public class ProductoService {
     private final ProductoRepository productoRepository;
     private final CategoriaRepository categoriaRepository;
     private final ProductoMapper productoMapper;
+    private final ResolutorImagenes resolutorImagenes;
 
     /** Catálogo público: solo productos activos, con filtro opcional por categoría. */
     @Transactional(readOnly = true)
@@ -71,6 +73,7 @@ public class ProductoService {
 
         Producto guardado = productoRepository.save(productoMapper.toEntity(request));
         asignarCategorias(guardado, categorias);
+        asignarImagenes(guardado, request.imagenes());
 
         log.info("Producto creado con id {}", guardado.getId());
         return productoMapper.toResponse(guardado);
@@ -83,6 +86,7 @@ public class ProductoService {
 
         productoMapper.actualizar(request, producto);
         asignarCategorias(producto, categorias);
+        asignarImagenes(producto, request.imagenes());
 
         log.info("Producto {} actualizado", id);
         return productoMapper.toResponse(producto);
@@ -136,5 +140,18 @@ public class ProductoService {
                 producto.getCategorias().add(new ProductoCategoria(producto, categoria));
             }
         }
+    }
+
+    /**
+     * Deja el producto con exactamente esas imágenes. Si la lista es null no toca nada (así un
+     * PUT sin "imagenes" conserva las que ya tenía); si viene vacía, las quita todas.
+     */
+    private void asignarImagenes(Producto producto, List<String> urls) {
+        if (urls == null) {
+            return;
+        }
+        Set<ImagenUrl> nuevas = resolutorImagenes.resolver(urls);
+        producto.getImagenesProducto().retainAll(nuevas);
+        producto.getImagenesProducto().addAll(nuevas);
     }
 }

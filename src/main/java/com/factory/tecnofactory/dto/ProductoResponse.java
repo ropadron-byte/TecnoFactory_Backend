@@ -12,7 +12,8 @@ public record ProductoResponse(
         Integer descuento,
         Long precioFinal,
         Boolean activo,
-        List<CategoriaResumen> categorias
+        List<CategoriaResumen> categorias,
+        List<String> imagenes
 ) {
 
     public record CategoriaResumen(Long id, String nombre) {

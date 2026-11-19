@@ -2,6 +2,7 @@ package com.factory.tecnofactory.dto;
 
 import jakarta.validation.constraints.*;
 
+import java.util.List;
 import java.util.Set;
 
 /** Datos para crear o editar un producto. No lleva id ni activo: los decide el sistema. */
@@ -32,6 +33,12 @@ public record ProductoRequest(
         Integer descuento,
 
         @NotEmpty(message = "Debe indicar al menos una categoría")
-        Set<@NotNull(message = "El id de categoría no puede ser nulo") Long> categoriaIds
+        Set<@NotNull(message = "El id de categoría no puede ser nulo") Long> categoriaIds,
+
+        // Opcional. Si no viene, no se tocan las imágenes; si viene vacía, se quitan todas.
+        // La primera de la lista es la portada.
+        @Size(max = 10, message = "Un producto admite hasta 10 imágenes")
+        List<@NotBlank(message = "La URL de la imagen no puede estar vacía")
+                @Size(max = 1000, message = "La URL de la imagen no puede superar los 1000 caracteres") String> imagenes
 ) {
 }
