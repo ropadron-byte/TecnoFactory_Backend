@@ -117,6 +117,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/productos/*").permitAll()
                         .requestMatchers("/api/v1/productos/**").hasRole(ROL_ADMINISTRADOR)
 
+                        // Categorías: lectura pública, escritura solo del administrador
+                        .requestMatchers(HttpMethod.GET, "/api/v1/categorias", "/api/v1/categorias/*").permitAll()
+                        .requestMatchers("/api/v1/categorias/**").hasRole(ROL_ADMINISTRADOR)
+
                         // Carrito: cualquier usuario con sesión usa el suyo
                         .requestMatchers("/api/v1/carrito/**").authenticated()
 
