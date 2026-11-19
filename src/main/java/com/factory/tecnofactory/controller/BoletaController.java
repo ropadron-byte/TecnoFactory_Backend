@@ -16,7 +16,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/boletas")
+@RequestMapping("/api/v1/boletas")
 @RequiredArgsConstructor
 @Tag(name = "Boletas", description = "Compras realizadas")
 public class BoletaController {
@@ -28,7 +28,7 @@ public class BoletaController {
     public ResponseEntity<BoletaResponse> checkout(Authentication autenticacion) {
         BoletaResponse creada = boletaService.generarDesdeCarrito(autenticacion.getName());
         URI ubicacion = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/boletas/{id}")
+                .path("/api/v1/boletas/{id}")
                 .buildAndExpand(creada.id())
                 .toUri();
         return ResponseEntity.created(ubicacion).body(creada);

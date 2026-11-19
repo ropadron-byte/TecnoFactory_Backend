@@ -18,7 +18,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/usuarios")
+@RequestMapping("/api/v1/usuarios")
 @RequiredArgsConstructor
 @Tag(name = "Usuarios", description = "Registro, consulta y perfil de usuarios")
 public class UsuarioController {
@@ -42,7 +42,7 @@ public class UsuarioController {
     public ResponseEntity<UsuarioResponse> crearVendedor(@Valid @RequestBody UsuarioRequest request) {
         UsuarioResponse creado = usuarioService.crearVendedor(request);
         URI ubicacion = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/usuarios/{id}")
+                .path("/api/v1/usuarios/{id}")
                 .buildAndExpand(creado.id())
                 .toUri();
         return ResponseEntity.created(ubicacion).body(creado);

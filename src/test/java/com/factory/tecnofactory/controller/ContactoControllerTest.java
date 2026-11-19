@@ -57,17 +57,17 @@ class ContactoControllerTest {
     void crearSinSesionDevuelve201ConLocation() throws Exception {
         when(contactoService.crear(any(ContactoRequest.class))).thenReturn(respuesta());
 
-        mockMvc.perform(post("/api/contactos")
+        mockMvc.perform(post("/api/v1/contactos")
                         .contentType(MediaType.APPLICATION_JSON).content(JSON_VALIDO))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", "http://localhost/api/contactos/1"))
+                .andExpect(header().string("Location", "http://localhost/api/v1/contactos/1"))
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.correo").value("ana@correo.cl"));
     }
 
     @Test
     void crearConCorreoInvalidoDevuelve400() throws Exception {
-        mockMvc.perform(post("/api/contactos")
+        mockMvc.perform(post("/api/v1/contactos")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nombre\": \"Ana\", \"correo\": \"no-es-correo\", \"comentario\": \"Hola\"}"))
                 .andExpect(status().isBadRequest())
@@ -78,7 +78,7 @@ class ContactoControllerTest {
 
     @Test
     void crearSinComentarioDevuelve400() throws Exception {
-        mockMvc.perform(post("/api/contactos")
+        mockMvc.perform(post("/api/v1/contactos")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nombre\": \"Ana\", \"correo\": \"ana@correo.cl\"}"))
                 .andExpect(status().isBadRequest())
@@ -90,7 +90,7 @@ class ContactoControllerTest {
     @Test
     void crearConComentarioDemasiadoLargoDevuelve400() throws Exception {
         String largo = "x".repeat(501);
-        mockMvc.perform(post("/api/contactos")
+        mockMvc.perform(post("/api/v1/contactos")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nombre\": \"Ana\", \"correo\": \"ana@correo.cl\", \"comentario\": \"" + largo + "\"}"))
                 .andExpect(status().isBadRequest())
@@ -104,7 +104,7 @@ class ContactoControllerTest {
         when(contactoService.listar(any()))
                 .thenReturn(new PageResponse<>(List.of(respuesta()), 0, 20, 1, 1));
 
-        mockMvc.perform(get("/api/contactos").with(user("admin@correo.cl").roles("ADMINISTRADOR")))
+        mockMvc.perform(get("/api/v1/contactos").with(user("admin@correo.cl").roles("ADMINISTRADOR")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.contenido[0].nombre").value("Ana"))
                 .andExpect(jsonPath("$.totalElementos").value(1));
@@ -112,13 +112,13 @@ class ContactoControllerTest {
 
     @Test
     void listarSinSesionDevuelve401() throws Exception {
-        mockMvc.perform(get("/api/contactos"))
+        mockMvc.perform(get("/api/v1/contactos"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void listarComoClienteDevuelve403() throws Exception {
-        mockMvc.perform(get("/api/contactos").with(user("cliente@correo.cl").roles("CLIENTE")))
+        mockMvc.perform(get("/api/v1/contactos").with(user("cliente@correo.cl").roles("CLIENTE")))
                 .andExpect(status().isForbidden());
     }
 
@@ -126,7 +126,7 @@ class ContactoControllerTest {
     void buscarComoAdministradorDevuelve200() throws Exception {
         when(contactoService.buscarPorId(1L)).thenReturn(respuesta());
 
-        mockMvc.perform(get("/api/contactos/1").with(user("admin@correo.cl").roles("ADMINISTRADOR")))
+        mockMvc.perform(get("/api/v1/contactos/1").with(user("admin@correo.cl").roles("ADMINISTRADOR")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.comentario").value("Hola, quiero más información"));
     }
@@ -135,13 +135,13 @@ class ContactoControllerTest {
     void buscarInexistenteDevuelve404() throws Exception {
         when(contactoService.buscarPorId(99L)).thenThrow(new RecursoNoEncontradoException("Contacto", 99L));
 
-        mockMvc.perform(get("/api/contactos/99").with(user("admin@correo.cl").roles("ADMINISTRADOR")))
+        mockMvc.perform(get("/api/v1/contactos/99").with(user("admin@correo.cl").roles("ADMINISTRADOR")))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void buscarComoVendedorDevuelve403() throws Exception {
-        mockMvc.perform(get("/api/contactos/1").with(user("vendedor@correo.cl").roles("VENDEDOR")))
+        mockMvc.perform(get("/api/v1/contactos/1").with(user("vendedor@correo.cl").roles("VENDEDOR")))
                 .andExpect(status().isForbidden());
     }
 }

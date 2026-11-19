@@ -97,10 +97,10 @@ class BlogControllerTest {
         when(blogService.crear(any(BlogRequest.class), eq("admin@correo.cl")))
                 .thenReturn(respuestaBlog());
 
-        mockMvc.perform(post("/api/blogs").with(admin())
+        mockMvc.perform(post("/api/v1/blogs").with(admin())
                         .contentType(MediaType.APPLICATION_JSON).content(JSON_VALIDO))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", "http://localhost/api/blogs/1"))
+                .andExpect(header().string("Location", "http://localhost/api/v1/blogs/1"))
                 .andExpect(jsonPath("$.titulo").value("Mi blog"))
                 .andExpect(jsonPath("$.autorCorreo").value("ana@correo.cl"))
                 .andExpect(jsonPath("$.imagenPrincipal.id").value(7))
@@ -109,7 +109,7 @@ class BlogControllerTest {
 
     @Test
     void crearComoClienteDevuelve403() throws Exception {
-        mockMvc.perform(post("/api/blogs")
+        mockMvc.perform(post("/api/v1/blogs")
                         .with(user("cliente@correo.cl").roles("CLIENTE"))
                         .contentType(MediaType.APPLICATION_JSON).content(JSON_VALIDO))
                 .andExpect(status().isForbidden());
@@ -119,7 +119,7 @@ class BlogControllerTest {
 
     @Test
     void crearSinTituloDevuelve400() throws Exception {
-        mockMvc.perform(post("/api/blogs").with(admin())
+        mockMvc.perform(post("/api/v1/blogs").with(admin())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"contenido\": \"Contenido\"}"))
                 .andExpect(status().isBadRequest())
@@ -135,7 +135,7 @@ class BlogControllerTest {
                         LocalDateTime.of(2026, 11, 3, 12, 0), imagenResumen())),
                         0, 20, 1, 1));
 
-        mockMvc.perform(get("/api/blogs"))
+        mockMvc.perform(get("/api/v1/blogs"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.contenido[0].titulo").value("Mi blog"))
                 .andExpect(jsonPath("$.totalElementos").value(1));
@@ -145,7 +145,7 @@ class BlogControllerTest {
     void buscarEsPublicoSinDatosDelAutor() throws Exception {
         when(blogService.buscarPorId(eq(1L), any())).thenReturn(respuestaBlogPublico());
 
-        mockMvc.perform(get("/api/blogs/1"))
+        mockMvc.perform(get("/api/v1/blogs/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.autorCorreo").doesNotExist())
@@ -157,7 +157,7 @@ class BlogControllerTest {
     void buscarGestionDevuelveDatosDelAutorParaPersonal() throws Exception {
         when(blogService.buscarGestionPorId(eq(1L), any())).thenReturn(respuestaBlog());
 
-        mockMvc.perform(get("/api/blogs/gestion/1").with(vendedor()))
+        mockMvc.perform(get("/api/v1/blogs/gestion/1").with(vendedor()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.autorCorreo").value("ana@correo.cl"))
                 .andExpect(jsonPath("$.autorNombre").value("Ana"));
@@ -165,7 +165,7 @@ class BlogControllerTest {
 
     @Test
     void buscarGestionSinTokenDevuelve401() throws Exception {
-        mockMvc.perform(get("/api/blogs/gestion/1"))
+        mockMvc.perform(get("/api/v1/blogs/gestion/1"))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -174,7 +174,7 @@ class BlogControllerTest {
         when(blogService.buscarPorId(eq(99L), any()))
                 .thenThrow(new RecursoNoEncontradoException("Blog", 99L));
 
-        mockMvc.perform(get("/api/blogs/99"))
+        mockMvc.perform(get("/api/v1/blogs/99"))
                 .andExpect(status().isNotFound());
     }
 
@@ -182,7 +182,7 @@ class BlogControllerTest {
     void portadaDevuelveLaImagen() throws Exception {
         when(imagenService.obtenerPortada(eq(1L), any())).thenReturn(imagenResumen());
 
-        mockMvc.perform(get("/api/blogs/1/imagen"))
+        mockMvc.perform(get("/api/v1/blogs/1/imagen"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.url").value("/uploads/blog/a.jpg"));
     }
@@ -191,7 +191,7 @@ class BlogControllerTest {
     void portadaSinImagenDevuelve204() throws Exception {
         when(imagenService.obtenerPortada(eq(1L), any())).thenReturn(null);
 
-        mockMvc.perform(get("/api/blogs/1/imagen"))
+        mockMvc.perform(get("/api/v1/blogs/1/imagen"))
                 .andExpect(status().isNoContent());
     }
 
@@ -199,7 +199,7 @@ class BlogControllerTest {
     void galeriaEsPublica() throws Exception {
         when(imagenService.listarPorBlog(eq(1L), any())).thenReturn(List.of(imagenResumen()));
 
-        mockMvc.perform(get("/api/blogs/1/imagenes"))
+        mockMvc.perform(get("/api/v1/blogs/1/imagenes"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(7));
     }
@@ -212,9 +212,9 @@ class BlogControllerTest {
         MockMultipartFile archivo = new MockMultipartFile("archivo", "a.jpg",
                 "image/jpeg", new byte[]{1});
 
-        mockMvc.perform(multipart("/api/blogs/1/imagenes").file(archivo).with(vendedor()))
+        mockMvc.perform(multipart("/api/v1/blogs/1/imagenes").file(archivo).with(vendedor()))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", "http://localhost/api/blogs/1/imagenes/7"))
+                .andExpect(header().string("Location", "http://localhost/api/v1/blogs/1/imagenes/7"))
                 .andExpect(jsonPath("$.url").value("/uploads/blog/a.jpg"));
     }
 
@@ -223,7 +223,7 @@ class BlogControllerTest {
         MockMultipartFile archivo = new MockMultipartFile("archivo", "a.jpg",
                 "image/jpeg", new byte[]{1});
 
-        mockMvc.perform(multipart("/api/blogs/1/imagenes").file(archivo))
+        mockMvc.perform(multipart("/api/v1/blogs/1/imagenes").file(archivo))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -232,9 +232,9 @@ class BlogControllerTest {
         when(imagenService.agregarExistenteABlog(eq(1L), eq(7L), any()))
                 .thenReturn(respuestaImagen());
 
-        mockMvc.perform(post("/api/blogs/1/imagenes/7").with(vendedor()))
+        mockMvc.perform(post("/api/v1/blogs/1/imagenes/7").with(vendedor()))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", "http://localhost/api/blogs/1/imagenes"))
+                .andExpect(header().string("Location", "http://localhost/api/v1/blogs/1/imagenes"))
                 .andExpect(jsonPath("$.id").value(7));
     }
 
@@ -243,7 +243,7 @@ class BlogControllerTest {
         when(blogService.asignarImagenPrincipal(eq(1L), eq(7L), any()))
                 .thenReturn(respuestaBlog());
 
-        mockMvc.perform(put("/api/blogs/1/imagen-principal/7").with(vendedor()))
+        mockMvc.perform(put("/api/v1/blogs/1/imagen-principal/7").with(vendedor()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.imagenPrincipal.id").value(7));
     }

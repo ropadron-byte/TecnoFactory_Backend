@@ -25,7 +25,7 @@ class CabecerasUploadsFilterTest {
 
     @Test
     void noAgregaCabecerasAlRestoDeRutas() throws Exception {
-        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/blogs");
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/blogs");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         filtro.doFilter(request, response, new MockFilterChain());

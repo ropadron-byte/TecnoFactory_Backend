@@ -55,7 +55,7 @@ class UsuarioControllerBajaTest {
 
     @Test
     void clienteDesactivaSuCuentaConElCorreoDeLaSesion() throws Exception {
-        mockMvc.perform(patch("/api/usuarios/me/desactivar").with(cliente()))
+        mockMvc.perform(patch("/api/v1/usuarios/me/desactivar").with(cliente()))
                 .andExpect(status().isNoContent());
         verify(usuarioService).desactivarMiCuenta("ana@correo.cl");
     }
@@ -63,21 +63,21 @@ class UsuarioControllerBajaTest {
     @Test
     void clienteNoPuedeBorrarSuCuenta() throws Exception {
         // DELETE /me cae en la regla de administrador: el cliente recibe 403 y nada se borra
-        mockMvc.perform(delete("/api/usuarios/me").with(cliente())).andExpect(status().isForbidden());
+        mockMvc.perform(delete("/api/v1/usuarios/me").with(cliente())).andExpect(status().isForbidden());
         verify(usuarioService, never()).eliminarVendedor(any());
     }
 
     @Test
     void vendedorYAdministradorNoUsanLaDesactivacionDeCliente() throws Exception {
-        mockMvc.perform(patch("/api/usuarios/me/desactivar").with(vendedor())).andExpect(status().isForbidden());
-        mockMvc.perform(patch("/api/usuarios/me/desactivar").with(admin())).andExpect(status().isForbidden());
+        mockMvc.perform(patch("/api/v1/usuarios/me/desactivar").with(vendedor())).andExpect(status().isForbidden());
+        mockMvc.perform(patch("/api/v1/usuarios/me/desactivar").with(admin())).andExpect(status().isForbidden());
         verify(usuarioService, never()).desactivarMiCuenta(any());
     }
 
     @Test
     void sinTokenDevuelve401() throws Exception {
-        mockMvc.perform(patch("/api/usuarios/me/desactivar")).andExpect(status().isUnauthorized());
-        mockMvc.perform(patch("/api/usuarios/2/desactivar")).andExpect(status().isUnauthorized());
+        mockMvc.perform(patch("/api/v1/usuarios/me/desactivar")).andExpect(status().isUnauthorized());
+        mockMvc.perform(patch("/api/v1/usuarios/2/desactivar")).andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -86,7 +86,7 @@ class UsuarioControllerBajaTest {
                 "luis@correo.cl", LocalDate.of(1990, 5, 20), "Calle 1", "+56912345678",
                 false, "VENDEDOR", "Santiago", "Metropolitana"));
 
-        mockMvc.perform(patch("/api/usuarios/2/desactivar").with(admin()))
+        mockMvc.perform(patch("/api/v1/usuarios/2/desactivar").with(admin()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.activo").value(false))
                 .andExpect(jsonPath("$.tipoUsuario").value("VENDEDOR"));
@@ -94,14 +94,14 @@ class UsuarioControllerBajaTest {
 
     @Test
     void administradorBorraUnVendedor() throws Exception {
-        mockMvc.perform(delete("/api/usuarios/2").with(admin())).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/v1/usuarios/2").with(admin())).andExpect(status().isNoContent());
         verify(usuarioService).eliminarVendedor(2L);
     }
 
     @Test
     void clienteYVendedorNoPuedenGestionarVendedores() throws Exception {
-        mockMvc.perform(delete("/api/usuarios/2").with(cliente())).andExpect(status().isForbidden());
-        mockMvc.perform(patch("/api/usuarios/2/desactivar").with(vendedor())).andExpect(status().isForbidden());
+        mockMvc.perform(delete("/api/v1/usuarios/2").with(cliente())).andExpect(status().isForbidden());
+        mockMvc.perform(patch("/api/v1/usuarios/2/desactivar").with(vendedor())).andExpect(status().isForbidden());
         verify(usuarioService, never()).eliminarVendedor(any());
         verify(usuarioService, never()).desactivarVendedor(any());
     }
@@ -111,7 +111,7 @@ class UsuarioControllerBajaTest {
         doThrow(new ReglaNegocioException("El vendedor tiene blogs asociados; desactiva su cuenta en lugar de borrarla"))
                 .when(usuarioService).eliminarVendedor(2L);
 
-        mockMvc.perform(delete("/api/usuarios/2").with(admin()))
+        mockMvc.perform(delete("/api/v1/usuarios/2").with(admin()))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.mensaje").exists());
     }
@@ -120,6 +120,6 @@ class UsuarioControllerBajaTest {
     void borrarVendedorInexistenteDevuelve404() throws Exception {
         doThrow(new RecursoNoEncontradoException("Usuario", 99L)).when(usuarioService).eliminarVendedor(99L);
 
-        mockMvc.perform(delete("/api/usuarios/99").with(admin())).andExpect(status().isNotFound());
+        mockMvc.perform(delete("/api/v1/usuarios/99").with(admin())).andExpect(status().isNotFound());
     }
 }

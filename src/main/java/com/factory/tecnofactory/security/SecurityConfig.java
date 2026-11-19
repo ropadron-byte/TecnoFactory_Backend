@@ -60,71 +60,71 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // Públicos: login, login con Google y registro de clientes
-                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/google").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/google/completar").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/google").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/google/completar").permitAll()
                         // Vincular Google exige haber iniciado sesión con contraseña
-                        .requestMatchers(HttpMethod.POST, "/api/auth/google/vincular").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/google/vincular").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/usuarios").permitAll()
 
                         // Contacto: cualquier persona puede enviar; solo el administrador lee
-                        .requestMatchers(HttpMethod.POST, "/api/contactos").permitAll()
-                        .requestMatchers("/api/contactos/**").hasRole(ROL_ADMINISTRADOR)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/contactos").permitAll()
+                        .requestMatchers("/api/v1/contactos/**").hasRole(ROL_ADMINISTRADOR)
 
                         // Cualquier usuario con sesión: ver y editar su propio perfil
-                        .requestMatchers(HttpMethod.GET, "/api/usuarios/me").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/usuarios/me").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/usuarios/me").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/usuarios/me").authenticated()
 
                         // Un cliente solo puede desactivar su cuenta, no borrarla: sus compras se resguardan
-                        // (ANTES de /api/usuarios/{id}; DELETE /me cae en la regla de administrador)
-                        .requestMatchers(HttpMethod.PATCH, "/api/usuarios/me/desactivar").hasRole(ROL_CLIENTE)
+                        // (ANTES de /api/v1/usuarios/{id}; DELETE /me cae en la regla de administrador)
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/usuarios/me/desactivar").hasRole(ROL_CLIENTE)
 
-                        // El resto de /api/usuarios (incluye desactivar y borrar vendedores): solo administrador
-                        .requestMatchers("/api/usuarios/**").hasRole(ROL_ADMINISTRADOR)
+                        // El resto de /api/v1/usuarios (incluye desactivar y borrar vendedores): solo administrador
+                        .requestMatchers("/api/v1/usuarios/**").hasRole(ROL_ADMINISTRADOR)
 
                         // Gestión de blogs (incluye desactivados y datos del autor): ANTES de la lectura pública
-                        .requestMatchers(HttpMethod.GET, "/api/blogs/gestion/**")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/blogs/gestion/**")
                         .hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
 
-                        // Lectura pública solo de las rutas necesarias (no todo /api/blogs/**)
+                        // Lectura pública solo de las rutas necesarias (no todo /api/v1/blogs/**)
                         .requestMatchers(HttpMethod.GET,
-                                "/api/blogs",
-                                "/api/blogs/*",
-                                "/api/blogs/*/imagen",
-                                "/api/blogs/*/imagenes").permitAll()
+                                "/api/v1/blogs",
+                                "/api/v1/blogs/*",
+                                "/api/v1/blogs/*/imagen",
+                                "/api/v1/blogs/*/imagenes").permitAll()
 
                         // Los metadatos de imágenes ya no son públicos; /uploads/** sí, para los <img>
-                        .requestMatchers(HttpMethod.GET, "/api/imagenes/**")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/imagenes/**")
                         .hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 
                         // Crear blogs, subir imágenes y cambiar portadas: administrador o vendedor
-                        .requestMatchers(HttpMethod.POST, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
-                        .requestMatchers(HttpMethod.PUT, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
                         // Activar/desactivar y borrar blogs, o quitarles imágenes (el servicio exige además ser personal)
-                        .requestMatchers(HttpMethod.PATCH, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
-                        .requestMatchers(HttpMethod.DELETE, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
 
                         // Administrador y vendedor: subir, reemplazar, desacoplar y borrar imágenes
-                        .requestMatchers(HttpMethod.POST, "/api/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
-                        .requestMatchers(HttpMethod.PUT, "/api/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
-                        .requestMatchers(HttpMethod.DELETE, "/api/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
 
                         // Catálogo: lectura pública; el personal ve más; solo el administrador modifica
-                        .requestMatchers(HttpMethod.GET, "/api/productos", "/api/productos/ofertas").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/productos/criticos", "/api/productos/admin")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/productos", "/api/v1/productos/ofertas").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/productos/criticos", "/api/v1/productos/admin")
                         .hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
-                        .requestMatchers(HttpMethod.GET, "/api/productos/*").permitAll()
-                        .requestMatchers("/api/productos/**").hasRole(ROL_ADMINISTRADOR)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/productos/*").permitAll()
+                        .requestMatchers("/api/v1/productos/**").hasRole(ROL_ADMINISTRADOR)
 
                         // Carrito: cualquier usuario con sesión usa el suyo
-                        .requestMatchers("/api/carrito/**").authenticated()
+                        .requestMatchers("/api/v1/carrito/**").authenticated()
 
                         // Boletas: el listado completo es del personal; anular es del administrador;
                         // comprar, ver las propias y el detalle, cualquier usuario con sesión
-                        .requestMatchers(HttpMethod.GET, "/api/boletas").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
-                        .requestMatchers(HttpMethod.PATCH, "/api/boletas/*/anular").hasRole(ROL_ADMINISTRADOR)
-                        .requestMatchers("/api/boletas/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/boletas").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/boletas/*/anular").hasRole(ROL_ADMINISTRADOR)
+                        .requestMatchers("/api/v1/boletas/**").authenticated()
 
                         // Fail-closed: cualquier ruta nueva sin regla explícita queda denegada
                         .anyRequest().denyAll()

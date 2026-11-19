@@ -15,7 +15,7 @@ class GlobalExceptionHandlerTest {
     void elMensajeDeTamanoUsaLaConfiguracion() {
         GlobalExceptionHandler handler = new GlobalExceptionHandler(DataSize.ofMegabytes(2));
         HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getRequestURI()).thenReturn("/api/imagenes/productos");
+        when(request.getRequestURI()).thenReturn("/api/v1/imagenes/productos");
 
         ErrorResponse respuesta = handler.archivoMuyGrande(
                 new MaxUploadSizeExceededException(2 * 1024 * 1024), request).getBody();
@@ -27,7 +27,7 @@ class GlobalExceptionHandlerTest {
     void elMensajeFuncionaConKilobytes() {
         GlobalExceptionHandler handler = new GlobalExceptionHandler(DataSize.ofKilobytes(512));
         HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getRequestURI()).thenReturn("/api/imagenes/productos");
+        when(request.getRequestURI()).thenReturn("/api/v1/imagenes/productos");
 
         ErrorResponse respuesta = handler.archivoMuyGrande(
                 new MaxUploadSizeExceededException(512 * 1024), request).getBody();

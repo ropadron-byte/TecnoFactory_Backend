@@ -70,7 +70,7 @@ class AuthControllerTest {
         when(authService.login(any(LoginRequest.class)))
                 .thenReturn(new AuthResponse("jwt-de-prueba", "Bearer", "ana@correo.cl", "CLIENTE"));
 
-        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(JSON_LOGIN))
+        mockMvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON).content(JSON_LOGIN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").value("jwt-de-prueba"))
                 .andExpect(jsonPath("$.tipo").value("Bearer"))
@@ -81,14 +81,14 @@ class AuthControllerTest {
     void loginConCredencialesIncorrectasDevuelve401() throws Exception {
         when(authService.login(any(LoginRequest.class))).thenThrow(new BadCredentialsException("mal"));
 
-        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(JSON_LOGIN))
+        mockMvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON).content(JSON_LOGIN))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.mensaje").value("Correo o contraseña incorrectos"));
     }
 
     @Test
     void loginConCorreoVacioDevuelve400ConDetalle() throws Exception {
-        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
                         .content("{ \"correo\": \"\", \"clave\": \"Clave12345\" }"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detalles.correo").value("El correo es obligatorio"));
@@ -100,7 +100,7 @@ class AuthControllerTest {
                 .thenReturn(GoogleAuthService.Resultado.completado(
                         new AuthResponse("jwt-google", "Bearer", "ana@correo.cl", "CLIENTE")));
 
-        mockMvc.perform(post("/api/auth/google").contentType(MediaType.APPLICATION_JSON).content(JSON_GOOGLE))
+        mockMvc.perform(post("/api/v1/auth/google").contentType(MediaType.APPLICATION_JSON).content(JSON_GOOGLE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").value("jwt-google"))
                 .andExpect(jsonPath("$.correo").value("ana@correo.cl"));
@@ -112,7 +112,7 @@ class AuthControllerTest {
                 .thenReturn(GoogleAuthService.Resultado.pendiente(
                         new GooglePerfilPendienteResponse(true, "registro-token", "ana@correo.cl", "Ana", "Pérez")));
 
-        mockMvc.perform(post("/api/auth/google").contentType(MediaType.APPLICATION_JSON).content(JSON_GOOGLE))
+        mockMvc.perform(post("/api/v1/auth/google").contentType(MediaType.APPLICATION_JSON).content(JSON_GOOGLE))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.requiereCompletarPerfil").value(true))
                 .andExpect(jsonPath("$.registroToken").value("registro-token"))
@@ -124,7 +124,7 @@ class AuthControllerTest {
         when(googleAuthService.iniciarSesion(any(GoogleLoginRequest.class)))
                 .thenThrow(new ReglaNegocioException("Ya existe una cuenta con este correo. Inicia sesión con tu contraseña y vincula Google"));
 
-        mockMvc.perform(post("/api/auth/google").contentType(MediaType.APPLICATION_JSON).content(JSON_GOOGLE))
+        mockMvc.perform(post("/api/v1/auth/google").contentType(MediaType.APPLICATION_JSON).content(JSON_GOOGLE))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.mensaje").value("Ya existe una cuenta con este correo. Inicia sesión con tu contraseña y vincula Google"));
     }
@@ -134,14 +134,14 @@ class AuthControllerTest {
         when(googleAuthService.iniciarSesion(any(GoogleLoginRequest.class)))
                 .thenThrow(new TokenGoogleInvalidoException());
 
-        mockMvc.perform(post("/api/auth/google").contentType(MediaType.APPLICATION_JSON).content(JSON_GOOGLE))
+        mockMvc.perform(post("/api/v1/auth/google").contentType(MediaType.APPLICATION_JSON).content(JSON_GOOGLE))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.mensaje").value("El token de Google no es válido o expiró"));
     }
 
     @Test
     void googleSinCredentialDevuelve400() throws Exception {
-        mockMvc.perform(post("/api/auth/google").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mockMvc.perform(post("/api/v1/auth/google").contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detalles.credential").value("El token de Google es obligatorio"));
     }
@@ -151,7 +151,7 @@ class AuthControllerTest {
         when(googleAuthService.completarPerfil(any(GoogleCompletarRequest.class)))
                 .thenReturn(new AuthResponse("jwt-nuevo", "Bearer", "ana@correo.cl", "CLIENTE"));
 
-        mockMvc.perform(post("/api/auth/google/completar")
+        mockMvc.perform(post("/api/v1/auth/google/completar")
                         .contentType(MediaType.APPLICATION_JSON).content(JSON_COMPLETAR))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.token").value("jwt-nuevo"))
@@ -160,14 +160,14 @@ class AuthControllerTest {
 
     @Test
     void vincularGoogleSinSesionDevuelve401() throws Exception {
-        mockMvc.perform(post("/api/auth/google/vincular")
+        mockMvc.perform(post("/api/v1/auth/google/vincular")
                         .contentType(MediaType.APPLICATION_JSON).content(JSON_GOOGLE))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void vincularGoogleConSesionDevuelve204() throws Exception {
-        mockMvc.perform(post("/api/auth/google/vincular")
+        mockMvc.perform(post("/api/v1/auth/google/vincular")
                         .with(user("ana@correo.cl").roles("CLIENTE"))
                         .contentType(MediaType.APPLICATION_JSON).content(JSON_GOOGLE))
                 .andExpect(status().isNoContent());

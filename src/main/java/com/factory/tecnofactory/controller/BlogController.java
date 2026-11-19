@@ -27,7 +27,7 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/blogs")
+@RequestMapping("/api/v1/blogs")
 @RequiredArgsConstructor
 @Tag(name = "Blogs", description = "Publicaciones con portada y galería de imágenes")
 public class BlogController {
@@ -92,7 +92,7 @@ public class BlogController {
                                                                  Authentication autenticacion) {
         ImagenResponse imagen = imagenService.agregarExistenteABlog(id, idImagen, autenticacion);
         URI ubicacion = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/blogs/{id}/imagenes")
+                .path("/api/v1/blogs/{id}/imagenes")
                 .buildAndExpand(id)
                 .toUri();
         return ResponseEntity.created(ubicacion).body(imagen);

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 /** Todas las rutas son del carrito de quien tiene la sesión iniciada. */
 @RestController
-@RequestMapping("/api/carrito")
+@RequestMapping("/api/v1/carrito")
 @RequiredArgsConstructor
 @Tag(name = "Carrito", description = "Carrito de compras del usuario con sesión")
 public class CarritoController {

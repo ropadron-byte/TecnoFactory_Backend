@@ -18,7 +18,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/contactos")
+@RequestMapping("/api/v1/contactos")
 @RequiredArgsConstructor
 @Tag(name = "Contacto", description = "Formulario de contacto")
 public class ContactoController {

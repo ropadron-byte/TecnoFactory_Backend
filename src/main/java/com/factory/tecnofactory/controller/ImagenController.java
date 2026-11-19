@@ -26,7 +26,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/imagenes")
+@RequestMapping("/api/v1/imagenes")
 @RequiredArgsConstructor
 @Tag(name = "Imágenes", description = "Consulta de imágenes y subida de archivos")
 public class ImagenController {
@@ -48,14 +48,14 @@ public class ImagenController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Subir una imagen sin dueño (ADMINISTRADOR o VENDEDOR)",
             description = "Guarda el archivo, lo registra y devuelve su id. Después se asigna por id, "
-                    + "por ejemplo a un blog con POST /api/blogs/{id}/imagenes/{idImagen}.")
+                    + "por ejemplo a un blog con POST /api/v1/blogs/{id}/imagenes/{idImagen}.")
     public ResponseEntity<ImagenResponse> subir(@RequestParam("archivo") MultipartFile archivo) {
         return creada(imagenService.subir(archivo, "general"));
     }
 
     @PostMapping(value = "/productos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Subir imagen de producto, sin dueño todavía (ADMINISTRADOR o VENDEDOR)",
-            description = "Igual que POST /api/imagenes, pero guarda el archivo en la carpeta productos.")
+            description = "Igual que POST /api/v1/imagenes, pero guarda el archivo en la carpeta productos.")
     public ResponseEntity<ImagenResponse> subirProducto(@RequestParam("archivo") MultipartFile archivo) {
         return creada(imagenService.subir(archivo, "productos"));
     }
@@ -97,7 +97,7 @@ public class ImagenController {
 
     private static ResponseEntity<ImagenResponse> creada(ImagenResponse imagen) {
         URI ubicacion = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/imagenes/{id}")
+                .path("/api/v1/imagenes/{id}")
                 .buildAndExpand(imagen.id())
                 .toUri();
         return ResponseEntity.created(ubicacion).body(imagen);

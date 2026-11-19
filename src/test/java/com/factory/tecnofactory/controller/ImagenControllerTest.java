@@ -57,13 +57,13 @@ class ImagenControllerTest {
 
     @Test
     void listarExigePersonal() throws Exception {
-        mockMvc.perform(get("/api/imagenes"))
+        mockMvc.perform(get("/api/v1/imagenes"))
                 .andExpect(status().isUnauthorized());
 
         when(imagenService.listar(any()))
                 .thenReturn(new PageResponse<>(List.of(respuestaImagen()), 0, 20, 1, 1));
 
-        mockMvc.perform(get("/api/imagenes").with(user("admin@correo.cl").roles("ADMINISTRADOR")))
+        mockMvc.perform(get("/api/v1/imagenes").with(user("admin@correo.cl").roles("ADMINISTRADOR")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.contenido[0].id").value(7))
                 .andExpect(jsonPath("$.contenido[0].duenos[0].tipo").value("BLOG"));
@@ -71,18 +71,18 @@ class ImagenControllerTest {
 
     @Test
     void listarComoClienteDevuelve403() throws Exception {
-        mockMvc.perform(get("/api/imagenes").with(user("cliente@correo.cl").roles("CLIENTE")))
+        mockMvc.perform(get("/api/v1/imagenes").with(user("cliente@correo.cl").roles("CLIENTE")))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void buscarPorIdExigePersonal() throws Exception {
-        mockMvc.perform(get("/api/imagenes/7"))
+        mockMvc.perform(get("/api/v1/imagenes/7"))
                 .andExpect(status().isUnauthorized());
 
         when(imagenService.buscarPorId(7L)).thenReturn(respuestaImagen());
 
-        mockMvc.perform(get("/api/imagenes/7").with(user("vendedor@correo.cl").roles("VENDEDOR")))
+        mockMvc.perform(get("/api/v1/imagenes/7").with(user("vendedor@correo.cl").roles("VENDEDOR")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.url").value("/uploads/blog/a.jpg"))
                 .andExpect(jsonPath("$.duenos[0].id").value(1));
@@ -93,7 +93,7 @@ class ImagenControllerTest {
         when(imagenService.buscarPorId(99L))
                 .thenThrow(new RecursoNoEncontradoException("Imagen", 99L));
 
-        mockMvc.perform(get("/api/imagenes/99").with(user("admin@correo.cl").roles("ADMINISTRADOR")))
+        mockMvc.perform(get("/api/v1/imagenes/99").with(user("admin@correo.cl").roles("ADMINISTRADOR")))
                 .andExpect(status().isNotFound());
     }
 
@@ -105,7 +105,7 @@ class ImagenControllerTest {
         MockMultipartFile archivo = new MockMultipartFile("archivo", "a.jpg",
                 "image/jpeg", new byte[]{1});
 
-        mockMvc.perform(multipart("/api/imagenes/productos").file(archivo)
+        mockMvc.perform(multipart("/api/v1/imagenes/productos").file(archivo)
                         .with(user("admin@correo.cl").roles("ADMINISTRADOR")))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(7))
@@ -120,10 +120,10 @@ class ImagenControllerTest {
         MockMultipartFile archivo = new MockMultipartFile("archivo", "b.png",
                 "image/png", new byte[]{1});
 
-        mockMvc.perform(multipart("/api/imagenes").file(archivo)
+        mockMvc.perform(multipart("/api/v1/imagenes").file(archivo)
                         .with(user("vendedor@correo.cl").roles("VENDEDOR")))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", org.hamcrest.Matchers.endsWith("/api/imagenes/8")))
+                .andExpect(header().string("Location", org.hamcrest.Matchers.endsWith("/api/v1/imagenes/8")))
                 .andExpect(jsonPath("$.id").value(8))
                 .andExpect(jsonPath("$.duenos").isEmpty());
     }
@@ -133,7 +133,7 @@ class ImagenControllerTest {
         MockMultipartFile archivo = new MockMultipartFile("archivo", "b.png",
                 "image/png", new byte[]{1});
 
-        mockMvc.perform(multipart("/api/imagenes").file(archivo))
+        mockMvc.perform(multipart("/api/v1/imagenes").file(archivo))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -142,7 +142,7 @@ class ImagenControllerTest {
         MockMultipartFile archivo = new MockMultipartFile("archivo", "b.png",
                 "image/png", new byte[]{1});
 
-        mockMvc.perform(multipart("/api/imagenes").file(archivo)
+        mockMvc.perform(multipart("/api/v1/imagenes").file(archivo)
                         .with(user("cliente@correo.cl").roles("CLIENTE")))
                 .andExpect(status().isForbidden());
     }
@@ -152,7 +152,7 @@ class ImagenControllerTest {
         MockMultipartFile archivo = new MockMultipartFile("archivo", "a.jpg",
                 "image/jpeg", new byte[]{1});
 
-        mockMvc.perform(multipart("/api/imagenes/productos").file(archivo)
+        mockMvc.perform(multipart("/api/v1/imagenes/productos").file(archivo)
                         .with(user("cliente@correo.cl").roles("CLIENTE")))
                 .andExpect(status().isForbidden());
     }
@@ -162,7 +162,7 @@ class ImagenControllerTest {
         when(imagenService.listar(any()))
                 .thenThrow(new PropertyReferenceException("string", TypeInformation.of(ImagenUrl.class), List.of()));
 
-        mockMvc.perform(get("/api/imagenes").param("sort", "string")
+        mockMvc.perform(get("/api/v1/imagenes").param("sort", "string")
                         .with(user("admin@correo.cl").roles("ADMINISTRADOR")))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.mensaje").value("No se puede ordenar por 'string'"));
@@ -170,7 +170,7 @@ class ImagenControllerTest {
 
     @Test
     void subirSinElCampoArchivoDevuelve400() throws Exception {
-        mockMvc.perform(multipart("/api/imagenes/productos")
+        mockMvc.perform(multipart("/api/v1/imagenes/productos")
                         .with(user("admin@correo.cl").roles("ADMINISTRADOR")))
                 .andExpect(status().isBadRequest());
     }
@@ -182,7 +182,7 @@ class ImagenControllerTest {
 
         MockMultipartFile archivo = new MockMultipartFile("archivo", "a.gif", "image/gif", new byte[]{1});
 
-        mockMvc.perform(multipart("/api/imagenes/productos").file(archivo)
+        mockMvc.perform(multipart("/api/v1/imagenes/productos").file(archivo)
                         .with(user("admin@correo.cl").roles("ADMINISTRADOR")))
                 .andExpect(status().isBadRequest());
     }
@@ -194,7 +194,7 @@ class ImagenControllerTest {
 
         MockMultipartFile archivo = new MockMultipartFile("archivo", "a.jpg", "image/jpeg", new byte[]{1});
 
-        mockMvc.perform(multipart("/api/imagenes/productos").file(archivo)
+        mockMvc.perform(multipart("/api/v1/imagenes/productos").file(archivo)
                         .with(user("admin@correo.cl").roles("ADMINISTRADOR")))
                 .andExpect(status().isPayloadTooLarge());
     }
