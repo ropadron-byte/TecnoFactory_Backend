@@ -66,6 +66,8 @@ public class SecurityConfig {
                         // Vincular Google exige haber iniciado sesión con contraseña
                         .requestMatchers(HttpMethod.POST, "/api/auth/google/vincular").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
+                        // El listado del panel es solo de administrador (el POST público va arriba)
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole(ROL_ADMINISTRADOR)
 
                         // Contacto: cualquier persona puede enviar; solo el administrador lee
                         .requestMatchers(HttpMethod.POST, "/api/contactos").permitAll()

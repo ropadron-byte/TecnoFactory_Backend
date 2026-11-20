@@ -1,6 +1,8 @@
 package com.factory.tecnofactory.controller;
 
+import com.factory.tecnofactory.dto.PageResponse;
 import com.factory.tecnofactory.dto.PerfilRequest;
+import com.factory.tecnofactory.dto.UsuarioActualizarRequest;
 import com.factory.tecnofactory.dto.UsuarioRequest;
 import com.factory.tecnofactory.dto.UsuarioResponse;
 import com.factory.tecnofactory.service.UsuarioService;
@@ -9,6 +11,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -46,6 +49,20 @@ public class UsuarioController {
                 .buildAndExpand(creado.id())
                 .toUri();
         return ResponseEntity.created(ubicacion).body(creado);
+    }
+
+    @GetMapping
+    @Operation(summary = "Listar usuarios (solo administrador)", description = "Paginado; el panel pide todas las páginas con ?size=1000.")
+    public PageResponse<UsuarioResponse> listar(Pageable pageable) {
+        return usuarioService.listar(pageable);
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Editar un usuario (solo administrador)",
+            description = "La clave es opcional: si se omite se conserva la actual.")
+    public UsuarioResponse actualizar(@PathVariable Long id,
+                                      @Valid @RequestBody UsuarioActualizarRequest request) {
+        return usuarioService.actualizarPorAdministrador(id, request);
     }
 
     @GetMapping("/me")

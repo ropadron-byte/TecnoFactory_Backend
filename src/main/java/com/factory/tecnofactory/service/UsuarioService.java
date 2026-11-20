@@ -1,6 +1,8 @@
 package com.factory.tecnofactory.service;
 
+import com.factory.tecnofactory.dto.PageResponse;
 import com.factory.tecnofactory.dto.PerfilRequest;                        // NUEVO
+import com.factory.tecnofactory.dto.UsuarioActualizarRequest;
 import com.factory.tecnofactory.dto.UsuarioRequest;                       // NUEVO
 import com.factory.tecnofactory.dto.UsuarioResponse;                      // NUEVO
 import com.factory.tecnofactory.entity.Comuna;
@@ -15,6 +17,8 @@ import com.factory.tecnofactory.repository.TipoUsuarioRepository;
 import com.factory.tecnofactory.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -116,6 +120,53 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findByCorreo(correo)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Usuario", correo));
         return usuarioMapper.toResponse(usuario);
+    }
+
+    /** Listado paginado que usa el panel de administración. */
+    @Transactional(readOnly = true)
+    public PageResponse<UsuarioResponse> listar(Pageable pageable) {
+        Page<UsuarioResponse> pagina = usuarioRepository.findAll(pageable)
+                .map(usuarioMapper::toResponse);
+        return PageResponse.de(pagina);
+    }
+
+    /** Edición de cualquier usuario por parte del administrador. */
+    @Transactional
+    public UsuarioResponse actualizarPorAdministrador(Long id, UsuarioActualizarRequest request) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario", id));
+
+        if (usuarioRepository.existsByCorreoAndIdNot(request.correo(), id)) {
+            throw new ReglaNegocioException("El correo ya está registrado");
+        }
+        if (usuarioRepository.existsByRunAndIdNot(request.run(), id)) {
+            throw new ReglaNegocioException("El RUN ya está registrado");
+        }
+
+        Comuna comuna = comunaRepository.findById(request.idComuna())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Comuna", request.idComuna()));
+
+        usuario.setRun(request.run());
+        usuario.setRunDv(request.runDv().toUpperCase());
+        usuario.setNombre(request.nombre());
+        usuario.setApellidos(request.apellidos());
+        usuario.setCorreo(request.correo());
+        usuario.setFechaNacimiento(request.fechaNacimiento());
+        usuario.setDireccion(request.direccion());
+        usuario.setTelefono(request.telefono());
+        usuario.setComuna(comuna);
+
+        // En blanco = mantener la contraseña actual.
+        if (request.clave() != null && !request.clave().isBlank()) {
+            usuario.setContrasenia(passwordEncoder.encode(request.clave()));
+        }
+        if (request.activo() != null) {
+            usuario.setActivo(request.activo());
+        }
+
+        Usuario guardado = usuarioRepository.save(usuario);
+        log.info("Usuario {} actualizado por un administrador", guardado.getCorreo());
+        return usuarioMapper.toResponse(guardado);
     }
 
     /** Cualquier usuario autenticado actualiza sus propios datos personales. */
