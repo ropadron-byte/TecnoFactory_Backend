@@ -7,6 +7,7 @@ import com.factory.tecnofactory.util.Roles;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -36,13 +37,13 @@ public class BoletaController {
 
     @GetMapping("/mias")
     @Operation(summary = "Mis boletas, de la más nueva a la más antigua")
-    public PageResponse<BoletaResponse> mias(Authentication autenticacion, Pageable pageable) {
+    public PageResponse<BoletaResponse> mias(Authentication autenticacion, @ParameterObject Pageable pageable) {
         return boletaService.listarMias(autenticacion.getName(), pageable);
     }
 
     @GetMapping
     @Operation(summary = "Todas las boletas (administrador y vendedor)")
-    public PageResponse<BoletaResponse> todas(Pageable pageable) {
+    public PageResponse<BoletaResponse> todas(@ParameterObject Pageable pageable) {
         return boletaService.listarTodas(pageable);
     }
 

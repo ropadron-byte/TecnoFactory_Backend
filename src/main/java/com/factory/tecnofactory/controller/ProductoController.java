@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -31,20 +32,20 @@ public class ProductoController {
     @SecurityRequirements
     @Operation(summary = "Catálogo de productos activos, paginado (público). Filtro opcional por categoría")
     public PageResponse<ProductoResponse> listar(@RequestParam(required = false) Long categoriaId,
-                                                 Pageable pageable) {
+                                                 @ParameterObject Pageable pageable) {
         return productoService.listarActivos(categoriaId, pageable);
     }
 
     @GetMapping("/ofertas")
     @SecurityRequirements
     @Operation(summary = "Productos con descuento (público)")
-    public PageResponse<ProductoResponse> ofertas(Pageable pageable) {
+    public PageResponse<ProductoResponse> ofertas(@ParameterObject Pageable pageable) {
         return productoService.listarOfertas(pageable);
     }
 
     @GetMapping("/admin")
     @Operation(summary = "Todos los productos, incluidos los desactivados (administrador y vendedor)")
-    public PageResponse<ProductoResponse> listarTodos(Pageable pageable) {
+    public PageResponse<ProductoResponse> listarTodos(@ParameterObject Pageable pageable) {
         return productoService.listarTodos(pageable);
     }
 
