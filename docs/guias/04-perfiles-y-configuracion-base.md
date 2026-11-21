@@ -24,6 +24,7 @@ Se elige con `SPRING_PROFILES_ACTIVE`. **Sin perfil, la app intenta usar Redis y
 | `time-zone: America/Santiago` (Jackson e Hibernate) | Misma hora para el JSON y la base | Un reloj de pared común para toda la oficina |
 | `max-page-size: 100` | Tope de elementos por página en los listados | Un buscador muestra 10 resultados por página, no un millón |
 | `PageResponse<T>` | Formato único de todos los listados | Todas las páginas de resultados se ven igual |
+| `@ParameterObject` en los `Pageable` | Swagger muestra `page`, `size` y `sort` como parámetros | El menú del restaurante incluye cómo pedir cada página (productos, boletas, blogs, etc.) |
 | `OpenApiConfig` | Título de Swagger y botón **Authorize** | El menú del restaurante |
 | `CorsConfig` | Qué frontend puede llamar a la API | El portero con la lista de visitas |
 | `jwt.expiration-ms: 3600000` | El token dura 1 hora | La tarjeta del hotel vence |

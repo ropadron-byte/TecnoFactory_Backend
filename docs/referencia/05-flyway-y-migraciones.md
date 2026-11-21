@@ -49,7 +49,7 @@ Al arrancar, Flyway:
 | --- | --- |
 | `V1` y `V2` solo existen en tu base de desarrollo | Puedes editarlas: `docker compose down -v`, `up -d` y arrancar de nuevo |
 | `V1` o `V2` ya se aplicaron en un servidor o las usa otra persona | **No se editan nunca más.** Cambio nuevo = `V3__...` |
-| Necesitas más datos de referencia | Una migración nueva (`V9__...` en adelante: `V1` a `V8` ya existen; el administrador inicial **no** se hace con una migración, se crea por código al arrancar) |
+| Necesitas más datos de referencia | Una migración nueva (`V10__...` en adelante: `V1` a `V9` ya existen; el administrador inicial **no** se hace con una migración, se crea por código al arrancar) |
 | Un cambio de entidad | Una migración equivalente en SQL, y viceversa: con `validate` deben coincidir |
 
 ## Reglas al escribir migraciones
@@ -98,6 +98,7 @@ Resultado de la prueba del 16 oct 2026: versión `1`, descripción `esquema inic
 | 6 | `V6__contacto.sql` | Crea la tabla `contacto` |
 | 7 | `V7__unicidad_region_comuna.sql` | `UNIQUE` en `region.nombre_region` y `comuna.nombre_comuna` |
 | 8 | `V8__google_auth.sql` | `usuario.google_id` único y `contrasenia` nullable para cuentas solo-Google |
+| 9 | `V9__catalogo_inicial.sql` | Catálogo inicial: 21 productos, 6 categorías y 63 filas en `imagen_url`. No crea tablas; usa `INSERT ... WHERE NOT EXISTS` para ser idempotente |
 
 > `V7` hace real la unicidad que las entidades ya declaraban con `unique = true`. Antes de aplicarla en una base con datos, comprueba que no haya duplicados:
 >
@@ -111,6 +112,7 @@ Resultado de la prueba del 16 oct 2026: versión `1`, descripción `esquema inic
 | Dato | Valor |
 | --- | --- |
 | Tablas tras migrar | 17 de negocio + `flyway_schema_history` |
+| Migraciones actuales | `V1` a `V9` (la próxima es `V10`) |
 | Usuario que migra (prod) | `tecnofactory_migrator` |
 | Usuario que lee/escribe luego | `tecnofactory_app` |
 

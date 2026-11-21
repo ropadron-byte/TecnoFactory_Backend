@@ -27,15 +27,15 @@ Las cosas que más salen caras si se olvidan. Cada una viene de algo que ya pas�
 | Métodos de repository con nombre de columna | `No property 'x' found` | Usa el atributo Java |
 | `@Column(name)` omitido | `validate` busca otro nombre | Pon siempre el nombre real |
 | Campo `contrasenia` en un DTO | Sale en el JSON | El DTO usa `clave` y el Response no la incluye |
-| `GET /api/x/abc` con `Long` | 500 si falta el handler | Ya cubierto (`MethodArgumentTypeMismatch`) |
+| `GET /api/v1/x/abc` con `Long` | 500 si falta el handler | Ya cubierto (`MethodArgumentTypeMismatch`) |
 | `JwtAuthFilter` con `@Component` | Los `@WebMvcTest` lo cargan y fallan | Créalo en `SecurityConfig` |
 | `@MockitoBean` faltante en un test de controller | `No qualifying bean` | Mockea `UsuarioService`, `JwtService`, `UserDetailsService` |
 | Pegar `Bearer` en Swagger | 401 | Pega solo el token |
-| `unique = true` en `Region` y `Comuna` | Desajuste con la base | Pendiente de quitar |
+| `unique = true` en `Region` y `Comuna` | Antes la base no tenía esa restricción | Ya resuelto: `V7__unicidad_region_comuna.sql` creó el `UNIQUE` real en `nombre_region` y `nombre_comuna`; entidad y base coinciden (en `@Column` sigue siendo solo documentación) |
 | Archivo de test en carpeta equivocada | Confunde | `security/` para `JwtServiceTest` y `UserDetailsServiceImplTest` |
-| Copia de un archivo de código dentro de `src/test` | Compila dos veces | Bórrala |
-| Comentarios `// NUEVO` | Ruido | Pendiente de borrar (7 en `UsuarioService`) |
-| Confiar en que «compila» | Maven no se ejecutó en este entorno | Corre tú `./mvnw test` |
+| Copia de un archivo de código dentro de `src/test` | Compila dos veces | Ya no está la copia de `UsuarioController.java` en `controller/`; si aparece otra, bórrala |
+| Comentarios `// NUEVO` | Ruido | **Sigue pendiente**: quedan 7 en `UsuarioService` (imports, constantes y una anotación) |
+| Confiar en que «compila» | Compilar no prueba el comportamiento | Corre tú `./mvnw test -Dtest="*Test"` (269 tests en verde al 20 nov) |
 
 ## Cómo trabajar con ayuda de la IA
 

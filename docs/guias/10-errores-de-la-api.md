@@ -12,7 +12,7 @@ Es un **mostrador de reclamos**: no importa qué falló ni dónde, el cliente re
   "status": 409,
   "error": "Conflict",
   "mensaje": "El correo ya está registrado",
-  "ruta": "/api/usuarios",
+  "ruta": "/api/v1/usuarios",
   "detalles": null
 }
 ```
@@ -23,11 +23,11 @@ Cuando es un error de validación, `detalles` trae el campo que falló: `{ "runD
 
 | Código | Cómo contarlo | Ejemplo en TecnoFactory | Excepción |
 | --- | --- | --- | --- |
-| **400** | «Tu pedido está mal escrito» | Falta el correo; JSON roto; `GET /api/usuarios/abc`; `?sort=campoQueNoExiste`; subir sin el campo `archivo`; un archivo que no es imagen | `MethodArgumentNotValidException`, `HttpMessageNotReadableException`, `MethodArgumentTypeMismatchException`, `MissingServletRequestParameterException`, `PropertyReferenceException`, `MissingServletRequestPartException`, `ArchivoNoValidoException` |
+| **400** | «Tu pedido está mal escrito» | Falta el correo; JSON roto; `GET /api/v1/usuarios/abc`; `?sort=campoQueNoExiste`; subir sin el campo `archivo`; un archivo que no es imagen | `MethodArgumentNotValidException`, `HttpMessageNotReadableException`, `MethodArgumentTypeMismatchException`, `MissingServletRequestParameterException`, `PropertyReferenceException`, `MissingServletRequestPartException`, `ArchivoNoValidoException` |
 | **401** | «No sé quién eres» | Sin token, token vencido, clave incorrecta | `AuthenticationException`, `BadCredentialsException` |
-| **403** | «Sé quién eres, pero no puedes» | Un cliente en `/api/usuarios/1` | `AccessDeniedException` |
+| **403** | «Sé quién eres, pero no puedes» | Un cliente en `/api/v1/usuarios/1` | `AccessDeniedException` |
 | **404** | «Eso no existe» | Usuario o comuna inexistente; ruta inexistente | `RecursoNoEncontradoException`, `NoResourceFoundException` |
-| **405** | «Ese método no está permitido aquí» | `DELETE /api/usuarios` | `HttpRequestMethodNotSupportedException` |
+| **405** | «Ese método no está permitido aquí» | `DELETE /api/v1/usuarios` | `HttpRequestMethodNotSupportedException` |
 | **409** | «Es válido, pero choca con lo que hay» | Correo o RUN repetido | `ReglaNegocioException`, `DataIntegrityViolationException` |
 | **413** | «Eso pesa demasiado» | Subir una imagen de más de 5 MB | `MaxUploadSizeExceededException` |
 | **415** | «No leo ese formato» | `POST` con texto plano | `HttpMediaTypeNotSupportedException` |

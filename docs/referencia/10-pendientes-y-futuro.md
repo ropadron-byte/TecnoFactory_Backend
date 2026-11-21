@@ -8,15 +8,15 @@ Lo que falta construir, en orden recomendado, y qué cambia en la configuración
 | --- | --- | --- | --- | --- |
 | 0 | Limpieza y decisiones del esquema | — | **Ahora** | **Hecha** |
 | 1 | Esquema definitivo y datos iniciales (`V1`, `V2`, `V3`) | 0 | **Ahora** | **Hecha** (el administrador pasó a crearse por código, ver fase 2) |
-| 2 | Entidades, repositorios y manejo de errores | 1 | Alta | **En curso**: 4 de 12 entidades, 4 repositories, `SecurityConfig` temporal y errores escritos; falta el primer controller |
-| 3 | Catálogo: categorías y productos | 2 | Alta | Pendiente |
-| 4 | Seguridad: JWT, roles y usuarios | 2 | Alta | **En curso**: login, filtro, `SecurityConfig` con reglas por rol, 401/403 en JSON y login con Google **escritos**; la suite pasa (249 tests) y `contextLoads` arranca con MySQL 8.4 (11 nov); falta el flujo en Swagger |
-| 5 | Carrito, boleta y pago simulado | 3, 4 | Media | Pendiente |
-| 6 | Imágenes y blog | 3, 4 | Media | Pendiente |
+| 2 | Entidades, repositorios y manejo de errores | 1 | Alta | **Hecha**: 14 entidades + 2 claves compuestas, 12 repositories, errores probados; el `SecurityConfig` temporal ya no existe |
+| 3 | Catálogo: categorías y productos | 2 | Alta | **Hecha**: CRUD, paginación, ofertas y `V9` ([30](30-catalogo-y-precios.md)) |
+| 4 | Seguridad: JWT, roles y usuarios | 2 | Alta | **Hecha en código**: 269 tests y `contextLoads` en verde; falta solo el recorrido manual en Swagger |
+| 5 | Carrito y boleta | 3, 4 | Media | **Hecha**: checkout transaccional, anulación y paginación ([31](31-carrito-y-boletas.md)) |
+| 6 | Imágenes y blog | 3, 4 | Media | **Hecha** en el backend (subida, panel y CRUD de blogs) |
 | 7 | Correo y caché (Redis) | 4 | Baja | Pendiente |
-| 8 | Pruebas automáticas | todas | Continua | Pendiente |
+| 8 | Pruebas automáticas | todas | Continua | 269 tests; faltan pruebas de catálogo, carrito y boletas |
 | 9 | Despliegue completo | todas | Al final | Pendiente |
-| 10 | Frontend React | 3 en adelante | En paralelo | Pendiente |
+| 10 | Frontend React | 3 en adelante | En paralelo | **Hecho**: catálogo sincronizado desde `/api/v1` |
 
 ---
 
@@ -43,12 +43,12 @@ Lo que falta construir, en orden recomendado, y qué cambia en la configuración
 | Borrado de productos | Se **desactivan** (`activo`); `detalle_boleta` → `producto` es `RESTRICT` |
 | Detalle de boleta | Lleva `producto_id_producto` además de la copia congelada |
 | Borrado en cascada | Solo `carrito`, `detalle_carrito`, `producto_categoria` e `imagen_url`; las boletas nunca |
-| Descuento | Entero 0-100 en producto (y copia en el detalle de boleta). Falta **definir cómo se aplica sobre `precio`** |
+| Descuento | Entero 0-100 en producto (y copia en el detalle de boleta). **Resuelto**: `Precios.conDescuento` redondea al peso; ver [30](30-catalogo-y-precios.md) |
 
 - [x] `V1` aplicada desde cero (probada en MariaDB 10.11).
 - [x] **`V2__datos_iniciales.sql`**: 3 tipos de usuario, 16 regiones y 346 comunas. **Hecho.**
 - [x] **Confirmar `V1` + `V2` en tu MySQL 8.4 de Docker.** **Hecho.**
-- [x] **Categorías base** (`V3`). **Aplicada** en tu MySQL 8.4 (Flyway quedó en la versión 3). Si cambias la lista antes de desplegar, recrea la base (`down -v`); después de desplegar, se hace con una migración nueva.
+- [x] **Categorías base** (`V3`). **Aplicada** en tu MySQL 8.4 (fue la versión 3 de la historia; hoy Flyway llega a `V9`). Si cambias la lista antes de desplegar, recrea la base (`down -v`); después de desplegar, se hace con una migración nueva.
 - [x] **Administrador inicial: se cambió de `V4` a creación por código** (decisión del 18 oct). La plantilla `V4` ya no se usa. Sigue en la fase 2 (ver abajo). **Nunca** una contraseña en texto plano en Git.
 - [ ] Actualizar el diagrama de `Diagrama/`. **Pospuesto**: está hecho en Oracle SQL Developer Data Modeler, cuyos tipos de dato son distintos a los de MySQL, y no se puede exportar directo. La fuente de verdad es `V1`.
 
@@ -61,11 +61,11 @@ Lo que falta construir, en orden recomendado, y qué cambia en la configuración
 | `exception/RecursoNoEncontradoException` | **Hecho** (extiende `RuntimeException`) |
 | `exception/ReglaNegocioException` | **Hecho** |
 | `exception/ErrorResponse` | **Hecho** (`record`) |
-| `exception/GlobalExceptionHandler` | **Hecho** (con los errores de Spring incluidos); falta compilarlo y probarlo ([Cambios recientes](../estado/cambios-recientes.md#cobertura-de-los-errores-de-spring)) |
-| `entity/TipoUsuario`, `Region`, `Comuna`, `Usuario` | **Hechas**; las cuatro validan contra MySQL 8.4. Explicadas en [13](13-entidades-explicadas.md). Mejoras de la sección 7 de esa guía: **aplicadas** `camelCase` (`runDv`, `fechaNacimiento`), `unique = false` en `run_dv` e `Integer id` en `Region` y `Comuna` (comprobado el 19 oct); **pendientes** quitar `unique = true` de `nombre_region` y `nombre_comuna` y limpiar los comentarios |
-| `entity/*` restantes | Pendiente: `Categoria`, `Producto`, `ImagenUrl`, `Carrito`, `DetalleCarrito`, `Boleta`, `DetalleBoleta`, `Blog` (mapeo en [06](06-base-de-datos.md#mapeo-a-entidades-java)) |
-| `repository/*` de las 4 entidades | **Hechos**; errores de nombres de método corregidos. Arranque completo confirmado (18 oct). Explicados en [14](14-repositories-explicados.md) |
-| `repository/*` restantes | Pendiente: uno por entidad nueva |
+| `exception/GlobalExceptionHandler` | **Hecho**: handlers para 400, 401, 403, 404, 405, 409, 415, 413, 500 y el 409 por `UNIQUE`. Los tests cubren 400/404/405/409/415/413; el 500, el 409 por `UNIQUE` y el 400 por parámetro faltante siguen sin test directo |
+| `entity/TipoUsuario`, `Region`, `Comuna`, `Usuario` | **Hechas**; las cuatro validan contra MySQL 8.4. `camelCase`, `unique = false` en `run_dv`, `Integer id` y el `UNIQUE` real de nombres (`V7`) están aplicados; siguen pendientes solo los comentarios `// NUEVO` de `UsuarioService` |
+| `entity/*` restantes | **Hechas**: `Categoria`, `Producto`, `ImagenUrl`, `Carrito`, `DetalleCarrito`, `Boleta`, `DetalleBoleta`, `Blog`, más las claves compuestas `ProductoCategoriaId` y `DetalleCarritoId` |
+| `repository/*` de las 4 entidades | **Hechos**; errores de nombres de método corregidos. Explicados en [14](14-repositories-explicados.md) |
+| `repository/*` restantes | **Hechos**: 12 interfaces en total, una por entidad con id propio |
 | `SecurityConfig` | **Reescrito el 20 oct**: la versión temporal (todo abierto) ya no existe. Ver [21](21-seguridad-jwt-y-roles-explicada.md) y, para la primera versión, [15](15-seguridad-codigo-explicado.md) |
 | `service/DatosAdministrador`, `service/UsuarioService`, `config/AdministradorInicialRunner` | **Hechos** (18 oct): el administrador se crea por código al arrancar. Verificado en el log; faltan 2 comprobaciones (fila en la base y segundo arranque). Explicados en [17](17-administrador-inicial-explicado.md) |
 | `dto/UsuarioResponse`, `dto/UsuarioRequest`, `mapper/UsuarioMapper`, `UsuarioRequestTest` | **Hechos y confirmados** (19 oct): 10 tests de `UsuarioRequestTest`. Explicados en [18](18-dto-mapper-y-validaciones-explicados.md) |
@@ -95,13 +95,15 @@ Se avanza **de a un paso** y se arranca la app al terminar cada uno. Los pasos 1
 
 Antes del paso 8 conviene aplicar las tres mejoras a las entidades ([13, sección 7](13-entidades-explicadas.md#7-observaciones-sobre-el-código-actual)).
 
-## Fase 3. Catálogo
+## Fase 3. Catálogo — **hecha**
+
+Detalle completo en [30-catalogo-y-precios.md](30-catalogo-y-precios.md). El catálogo inicial de 21 productos y 6 categorías viene de `V9__catalogo_inicial.sql`.
 
 - `dto/CategoriaRequest|Response`, `ProductoRequest|Response`.
 - `mapper/CategoriaMapper`, `ProductoMapper` (MapStruct).
 - `service/CategoriaService`, `ProductoService`: crear, editar, buscar, paginar, validar stock y descuento.
-- `controller/CategoriaController`, `ProductoController`: `/api/categorias`, `/api/productos`. **GET público; escritura solo administrador.**
-- Decidir la paginación (`Pageable`) y filtros (por categoría, texto, rango de precio).
+- `controller/CategoriaController`, `ProductoController`: `/api/v1/categorias`, `/api/v1/productos`. **GET público; escritura solo administrador.**
+- Paginación resuelta con `Pageable` + `@ParameterObject` y filtro por `categoriaId` (texto y rango de precio siguen sin implementarse).
 
 ## Fase 4. Seguridad y usuarios
 
@@ -115,21 +117,24 @@ Guía: [21-seguridad-jwt-y-roles-explicada.md](21-seguridad-jwt-y-roles-explicad
 | `security/SecurityConfig` | Rutas públicas, protegidas y por rol; BCrypt; CORS; sin sesión | Hecho; falta confirmar |
 | `security/ManejadorErroresSeguridad` | 401 y 403 con el JSON de `ErrorResponse` | Hecho; falta confirmar |
 | `dto/LoginRequest`, `AuthResponse` | Entrada y salida del login; la clave nunca sale | Hecho |
-| `service/AuthService`, `controller/AuthController` | `POST /api/auth/login` | Hecho; falta confirmar |
+| `service/AuthService`, `controller/AuthController` | `POST /api/v1/auth/login` | Hecho; falta confirmar |
 | `UsuarioController` (`/me`) y `UsuarioService.buscarPorCorreo` | Perfil propio | Hecho; falta confirmar |
 | `config/OpenApiConfig`, `config/CorsConfig` | Botón Authorize en Swagger; dominio de React | Hechos (configuración base, [20](20-configuracion-base-explicada.md)) |
 
 **Pendiente de la fase:**
 
-- **Confirmar** el flujo de login en Swagger; los 249 tests y `contextLoads` con MySQL ya pasan (11 nov).
-- `GET /api/usuarios` paginado para administrador y vendedor (solo lectura), `PUT /api/usuarios/me` y una ruta de administrador para crear vendedores.
+- **Confirmar** el flujo de login en Swagger; los 269 tests y `contextLoads` con MySQL pasan.
+- Usuarios ya implementados: `GET /api/v1/usuarios` paginado (administrador y vendedor, solo
+  lectura), `PUT /api/v1/usuarios/me` y `POST /api/v1/usuarios/vendedores`.
 - **Límite de intentos de login**.
 - Decidir el flujo de **recuperar contraseña** (necesita correo, fase 7).
 - **Validar el RUN chileno**: hecho (paso 8.3, [19](19-validacion-run-service-y-controller-explicados.md)).
 
 Cambios de configuración: ninguno, salvo `JWT_SECRET` de producción nuevo (mínimo 32 caracteres) y `CORS_ORIGINS` con la URL real del frontend.
 
-## Fase 5. Carrito, boleta y pago simulado
+## Fase 5. Carrito y boleta — **hecha en el backend**
+
+Detalle en [31-carrito-y-boletas.md](31-carrito-y-boletas.md). No existe una interfaz `PasarelaPago` en el backend: la simulación de pago exitoso/rechazado está en el frontend React, que decide si llama al `checkout`.
 
 - `Carrito` (uno por usuario), `DetalleCarrito`: agregar, cambiar cantidad, quitar, vaciar.
 - `Boleta`, `DetalleBoleta`: copia de nombre y precio al comprar.
@@ -139,17 +144,17 @@ Cambios de configuración: ninguno, salvo `JWT_SECRET` de producción nuevo (mí
 - **Nunca** guardes números de tarjeta.
 - Alerta de `stock_critico` (por ahora un registro en el log; luego correo al administrador).
 
-## Fase 6. Imágenes y blog
+## Fase 6. Imágenes y blog — **hecha en el backend**
 
 | Pieza | Detalle |
 | --- | --- |
-| Subida | Validar tipo (jpg, png, webp) y tamaño (límite actual 5 MB), guardar con nombre UUID, devolver la URL |
-| `config/WebConfig` | Sirve la carpeta `/uploads` como estática |
+| Subida | Valida contenido (jpg, png, webp) y tamaño (límite actual 5 MB), guarda con nombre UUID y devuelve la URL |
+| `config/WebConfig` | Sirve la carpeta `/uploads` como estática, con cabeceras de `CabecerasUploadsFilter` |
 | Almacenamiento | **Volumen Docker** o almacenamiento en la nube; sin volumen se pierden al recrear el contenedor |
 | `IMAGEN_URL` | Solo guarda la URL |
 | Blog | `BlogController` público para lectura (`visible = true`), edición por administrador |
 
-Cambios: agregar un volumen para `/uploads` en el compose y una variable `UPLOAD_DIR`.
+Cambios: el compose (aún con el servicio `backend` comentado) ya prevé el volumen `${UPLOADS_HOST_DIR:-./uploads}:/app/uploads` y la variable es `UPLOADS_DIR` / `UPLOADS_HOST_DIR` (no `UPLOAD_DIR`).
 
 ## Fase 7. Correo y caché
 
@@ -171,7 +176,7 @@ Cambios: agregar un volumen para `/uploads` en el compose y una variable `UPLOAD
 ## Fase 8. Pruebas
 
 - Pruebas de repositorios con **Testcontainers** (usa `testcontainers-mysql` y el mismo `V1` real).
-- Pruebas de servicio (stock, totales, descuento, pago simulado).
+- Pruebas de servicio de catálogo, carrito y boletas (stock, totales y descuento): **aún no existen**.
 - Pruebas de endpoints con `@WebMvcTest` y Spring Security Test.
 - Reemplazar el `contextLoads` por defecto (hoy falla sin MySQL).
 - Ejecutar `./mvnw verify` en cada `git push` con **GitHub Actions** (el repositorio ya está en GitHub).
@@ -207,11 +212,11 @@ Ver el [Escenario 3 de 07](07-ejecucion-local-y-prod.md#escenario-3-prod-real-pr
 | --- | --- | --- | --- | --- |
 | Redis | `cache.type: redis` (opcional) | `cache.type: redis`, `health.redis` activo, `REDIS_HOST` | Servicio `redis` | — |
 | Correo real | Mailpit en `1025` | `MAIL_*`, `health.mail` activo | Servicio `mailpit` solo en local | `MAIL_USER`, `MAIL_PASSWORD` |
-| Imágenes | `UPLOAD_DIR` local | `UPLOAD_DIR` del volumen | Volumen `uploads` | — |
+| Imágenes | `UPLOAD_DIR` local | `UPLOAD_DIR` del volumen | Volumen `uploads` (`UPLOADS_HOST_DIR`) | — |
 | Nuevos usuarios de BD | — | — | Otro script `02-...sh` | Nueva clave |
 | Dominio / HTTPS | — | CORS con el dominio real | Servicio `proxy` (Nginx o Caddy) | — |
 | Administrador inicial por código | — | — | — | `ADMIN_EMAIL`, `ADMIN_PASSWORD` (el resto de los datos va fijo en el runner). Con `set -a; source .env` quedan disponibles al arrancar |
-| Nueva tabla o columna | — | — | — | — (se hace con una migración nueva, `V4__...sql` en adelante) |
+| Nueva tabla o columna | — | — | — | — (se hace con una migración nueva, `V10__...sql` en adelante) |
 
 ## Mejoras opcionales a más largo plazo
 
@@ -220,7 +225,7 @@ Ver el [Escenario 3 de 07](07-ejecucion-local-y-prod.md#escenario-3-prod-real-pr
 | Rate limiting en login | Frena la fuerza bruta |
 | Auditoría (`creado_en`, `modificado_en`, `creado_por`) | Trazabilidad |
 | Paginación y búsqueda de texto completo (`FULLTEXT`) | Catálogo grande |
-| Pago real (Webpay, Mercado Pago) detrás de `PasarelaPago` | La interfaz ya permite cambiar sin tocar el resto |
+| Pago real (Webpay, Mercado Pago) | Hoy no hay `PasarelaPago` en el backend: habría que crear esa abstracción |
 | Roles con permisos finos | Más allá de administrador/vendedor/cliente |
 | Almacenamiento de imágenes en la nube (S3) | Sin depender del disco del servidor |
 | Observabilidad (Prometheus + Grafana) | Métricas del JVM y de las consultas |

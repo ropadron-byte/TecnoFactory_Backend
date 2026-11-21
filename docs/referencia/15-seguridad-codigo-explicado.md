@@ -253,8 +253,8 @@ Que `BCryptPasswordEncoder` funcione con claves reales y que el login acepte un 
 | Hoy | En la fase 4 |
 | --- | --- |
 | `.anyRequest().permitAll()` | `.anyRequest().authenticated()` |
-| Rutas públicas: Swagger y `health` | Además: `POST /api/auth/**`, `GET /api/productos/**`, `GET /api/categorias/**` |
-| Sin roles | `.requestMatchers(HttpMethod.POST, "/api/productos/**").hasRole("ADMINISTRADOR")` y similares |
+| Rutas públicas: Swagger y `health` | Además: `POST /api/v1/auth/**`, `GET /api/v1/productos/**`, `GET /api/v1/categorias/**` |
+| Sin roles | `.requestMatchers(HttpMethod.POST, "/api/v1/productos/**").hasRole("ADMINISTRADOR")` y similares |
 | Sin filtro JWT | `.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)` |
 | Sin CORS | `.cors(...)` con el dominio de React |
 

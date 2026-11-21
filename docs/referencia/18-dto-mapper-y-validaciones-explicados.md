@@ -10,6 +10,8 @@ Guía para entender, línea por línea, los tres archivos de `Usuario` que descr
 | `UsuarioRequestTest.java` | `src/test/java/com/factory/tecnofactory/dto/` | Comprueba las validaciones sin base de datos ni controller | [9](#9-usuariorequesttestjava) |
 
 > Estado (19 oct): los cuatro archivos **existen en tu repositorio y coinciden con esta guía** (comparados uno a uno; `UsuarioRequestTest` tiene los 8 tests). `UsuarioResponse` y `toResponse` **compilaron y se revisó el código generado** (18 oct). **Confirmado el 19 oct**: compila y los tests de `UsuarioRequestTest` pasan (ahora son 10, con los dos del 8.3). La validación del dígito verificador del RUN (módulo 11) está en la [guía 19](19-validacion-run-service-y-controller-explicados.md).
+>
+> Estado actual (11 nov): `UsuarioRequest` lleva además `@RunValido` e `implements ConRun` (módulo 11), y `UsuarioRequestTest` tiene 11 tests. El proyecto compila y los 269 tests en 32 archivos pasan. El patrón ya se replicó en las demás entidades del catálogo, carrito y boletas.
 
 ---
 
@@ -75,7 +77,7 @@ Cada pieza actúa en un momento distinto. Es la parte que más confunde al princ
 Flujo completo de un registro (el controller y el service se escriben en el paso 9):
 
 ```
-POST /api/usuarios  { "run": 12345678, "correo": "...", "clave": "..." }
+POST /api/v1/usuarios  { "run": 12345678, "correo": "...", "clave": "..." }
    |
    v
 Jackson convierte el JSON en UsuarioRequest
@@ -202,10 +204,13 @@ public record UsuarioResponse(
 ```java
 package com.factory.tecnofactory.dto;
 
+import com.factory.tecnofactory.validation.ConRun;
+import com.factory.tecnofactory.validation.RunValido;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 
+@RunValido
 public record UsuarioRequest(
 
         @NotNull(message = "El RUN es obligatorio")
@@ -248,7 +253,7 @@ public record UsuarioRequest(
 
         @NotNull(message = "La comuna es obligatoria")
         Integer idComuna
-) {
+) implements ConRun {
 
     @Override
     public String toString() {
@@ -262,7 +267,7 @@ public record UsuarioRequest(
 | Campo | Anotaciones | Por qué |
 | --- | --- | --- |
 | `Integer run` | `@NotNull` + `@Min(1_000_000)` + `@Max(99_999_999)` | Es un número: `@NotNull` (no `@NotBlank`). El rango es el de un RUN real. `1_000_000` es `1000000` (Java admite guiones bajos para leer mejor) |
-| `String runDv` | `@NotBlank` + `@Pattern("[0-9kK]")` | Un solo carácter válido. **No** comprueba que corresponda al RUN: eso es el 8.3 |
+| `String runDv` | `@NotBlank` + `@Pattern("[0-9kK]")` | Un solo carácter válido. Esta anotación **no** comprueba que corresponda al RUN: eso lo hace `@RunValido` sobre la clase (8.3, [guía 19](19-validacion-run-service-y-controller-explicados.md)) |
 | `String nombre` | `@NotBlank` + `@Size(max = 255)` | La columna es `VARCHAR(255)`. Sin `@Size`, un texto largo llegaría a MySQL y fallaría con `Data too long` (un 500 poco claro); con `@Size` es un 400 claro |
 | `String apellidos` | Igual que `nombre` | |
 | `String correo` | `@NotBlank` + `@Email` + `@Size(max = 255)` | Será el identificador de inicio de sesión. La unicidad **no** se valida aquí: se comprueba en el service con `existsByCorreo` |
@@ -288,7 +293,7 @@ El `toString()` automático de un record imprime **todos** los campos, incluida 
 | Qué | Dónde | Por qué ahí |
 | --- | --- | --- |
 | Formato, largos, obligatoriedad | `UsuarioRequest` (anotaciones) | Se puede comprobar mirando solo el dato |
-| Dígito verificador **correcto** | 8.3: validación personalizada | Depende de dos campos a la vez |
+| Dígito verificador **correcto** | `@RunValido` sobre la clase (8.3, guía 19) | Depende de dos campos a la vez |
 | Correo o RUN **ya registrados** | `UsuarioService` | Requiere consultar la base |
 | Comuna **existente** | `UsuarioService` | Requiere consultar la base |
 
@@ -461,7 +466,7 @@ class UsuarioRequestTest {
 | `e.getPropertyPath().toString()` | El nombre del campo que falló (`"correo"`, `"clave"`...) |
 | `.collect(Collectors.toSet())` | Los junta en un conjunto, sin repetidos |
 
-### 9.2 Los ocho tests
+### 9.2 Los ocho tests originales
 
 | Test | Qué comprueba | Cómo |
 | --- | --- | --- |
@@ -475,6 +480,8 @@ class UsuarioRequestTest {
 | `toStringNoRevelaLaClave` | El `toString` no contiene la clave | `assertFalse(valido().toString().contains("Clave12345"))` |
 
 `assertEquals(Set.of("correo"), ...)` es estricto a propósito: comprueba que falló **exactamente** ese campo y ningún otro. Así un test no pasa por casualidad.
+
+> Actualización (11 nov): el archivo actual tiene **11 tests**: los ocho de arriba, los dos del dígito verificador ([guía 19, 8.2](19-validacion-run-service-y-controller-explicados.md#82-dos-tests-nuevos-en-usuariorequesttest-ahora-10)) y `aceptaCualquierDominioDeCorreoValido`.
 
 ---
 
@@ -490,7 +497,7 @@ class UsuarioRequestTest {
 | `./mvnw test` | Ejecuta todos los tests (incluido `contextLoads`, que arranca la app y necesita la base) |
 | `./mvnw compile 2>&1 \| grep -E "WARNING\|ERROR"` | Muestra solo advertencias y errores. Aquí aparecen los `Unmapped target property` |
 
-**Resultado esperado del test:** `Tests run: 8, Failures: 0, Errors: 0` y `BUILD SUCCESS`.
+**Resultado esperado del test:** `BUILD SUCCESS`, sin fallos. Al escribir esta guía eran 8 tests; hoy el archivo tiene 11 (ver 9.2).
 
 ---
 
@@ -502,10 +509,10 @@ class UsuarioRequestTest {
 | El `UsuarioMapperImpl` generado se revisó: está todo menos la contraseña | **Verificado** por ti (18 oct) |
 | `UsuarioRequest`, `toEntity` y el test existen en tu repositorio y coinciden con esta guía | **Verificado** (19 oct, comparación de archivos) |
 | `UsuarioRequest` y `toEntity` compilan | **Verificado** por ti (19 oct) |
-| `UsuarioMapperImpl.toEntity` no llama a `setContrasenia`, `setTipoUsuario`, `setComuna` ni `setId` | **Pendiente** (`grep -c "Contrasenia"` debe dar `0`) |
-| Los tests de `UsuarioRequestTest` pasan | **Verificado** por ti (19 oct: 8 originales + 2 del 8.3) |
-| Que las validaciones respondan 400 con `@Valid` en un controller | **Verificado** por tests (19 oct, `UsuarioControllerTest`); falta Swagger con MySQL (9.3) |
-| Que `toResponse` funcione dentro de una transacción (sin `LazyInitializationException`) | **Verificado** con mocks (19 oct); con MySQL real y `open-in-view: false`, pendiente (9.3) |
+| `UsuarioMapperImpl.toEntity` no llama a `setContrasenia`, `setTipoUsuario`, `setComuna` ni `setId` | **Verificado**: `grep -c "Contrasenia"` sobre el generado actual da `0` |
+| Los tests de `UsuarioRequestTest` pasan | **Verificado** (19 oct: 8 originales + 2 del 8.3; hoy 11) |
+| Que las validaciones respondan 400 con `@Valid` en un controller | **Verificado** por tests; queda repetirlo a mano en Swagger con MySQL (9.3) |
+| Que `toResponse` funcione dentro de una transacción (sin `LazyInitializationException`) | **Verificado** con mocks y con `open-in-view: false` ya fijado en `application.yaml`; queda comprobarlo contra MySQL real (9.3) |
 
 ---
 

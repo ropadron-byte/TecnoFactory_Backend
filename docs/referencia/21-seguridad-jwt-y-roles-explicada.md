@@ -1,6 +1,6 @@
 # 21. Seguridad con JWT y roles explicada
 
-Guía para entender, de lo simple a lo técnico, **cómo inicia sesión un usuario y cómo la API decide qué puede hacer**: el login (`POST /api/auth/login`), el token JWT, el filtro que lo lee en cada petición, las reglas por ruta y los errores 401 y 403 en JSON. Reemplaza en la práctica a la sección 5 de la [guía 15](15-seguridad-codigo-explicado.md) («Lo que cambia cuando llegue el login»), que ya ocurrió.
+Guía para entender, de lo simple a lo técnico, **cómo inicia sesión un usuario y cómo la API decide qué puede hacer**: el login (`POST /api/v1/auth/login`), el token JWT, el filtro que lo lee en cada petición, las reglas por ruta y los errores 401 y 403 en JSON. Reemplaza en la práctica a la sección 5 de la [guía 15](15-seguridad-codigo-explicado.md) («Lo que cambia cuando llegue el login»), que ya ocurrió.
 
 | Archivo | Ruta | Para qué sirve | Sección |
 | --- | --- | --- | --- |
@@ -8,12 +8,12 @@ Guía para entender, de lo simple a lo técnico, **cómo inicia sesión un usuar
 | `UserDetailsServiceImpl.java` | `security/` | Busca a la persona por su correo y le pone su rol | [6](#6-userdetailsserviceimpljava) |
 | `JwtAuthFilter.java` | `security/` | Lee el token en cada petición y deja autenticada a la persona | [7](#7-jwtauthfilterjava) |
 | `LoginRequest`, `AuthResponse` | `dto/` | Lo que entra y lo que sale del login | [8](#8-el-login-loginrequest-authresponse-authservice-y-authcontroller) |
-| `AuthService`, `AuthController` | `service/`, `controller/` | La lógica y la ruta `POST /api/auth/login` | [8](#8-el-login-loginrequest-authresponse-authservice-y-authcontroller) |
+| `AuthService`, `AuthController` | `service/`, `controller/` | La lógica y la ruta `POST /api/v1/auth/login` | [8](#8-el-login-loginrequest-authresponse-authservice-y-authcontroller) |
 | `ManejadorErroresSeguridad.java` | `security/` | Entrega el 401 y el 403 con el mismo JSON que los demás errores | [9](#9-manejadorerroresseguridadjava-y-los-dos-handlers-nuevos) |
 | `SecurityConfig.java` | `security/` | Qué rutas son públicas, cuáles exigen sesión y cuáles un rol | [10](#10-securityconfigjava-las-reglas-de-acceso) |
-| `UsuarioController` y `UsuarioService` | `controller/`, `service/` | Se agregan `GET /api/usuarios/me` y `buscarPorCorreo` | [11](#11-lo-que-cambió-en-usuariocontroller-y-usuarioservice) |
+| `UsuarioController` y `UsuarioService` | `controller/`, `service/` | Se agregan `GET /api/v1/usuarios/me` y `buscarPorCorreo` | [11](#11-lo-que-cambió-en-usuariocontroller-y-usuarioservice) |
 
-> Estado (11 nov): el código de los pasos 1 a 5 está aplicado y **la suite completa pasa: 249 tests, 0 fallos** (`./mvnw test -Dtest="*Test"`), con `contextLoads` en verde contra MySQL 8.4. Desde entonces `SecurityConfig` terminó en `anyRequest().denyAll()` (ver [24, D31–D36](24-decisiones-de-diseno.md)) y se agregó el login con Google ([29](29-login-con-google-explicado.md)). Sigue **pendiente** el recorrido manual del login en Swagger (sección 14).
+> Estado (11 nov): el código de los pasos 1 a 5 está aplicado y **la suite completa pasa: 269 tests, 0 fallos** (`./mvnw test -Dtest="*Test"`), con `contextLoads` en verde contra MySQL 8.4. Desde entonces `SecurityConfig` terminó en `anyRequest().denyAll()` (ver [24, D31–D36](24-decisiones-de-diseno.md)) y se agregó el login con Google ([29](29-login-con-google-explicado.md)). Sigue **pendiente** el recorrido manual del login en Swagger (sección 14).
 
 ---
 
@@ -23,7 +23,7 @@ Piensa en un **hotel**.
 
 | En el hotel | En TecnoFactory |
 | --- | --- |
-| Llegas a recepción y muestras tu documento. Te dan una **tarjeta magnética** | Haces `POST /api/auth/login` con correo y clave. La API te devuelve un **token** |
+| Llegas a recepción y muestras tu documento. Te dan una **tarjeta magnética** | Haces `POST /api/v1/auth/login` con correo y clave. La API te devuelve un **token** |
 | La tarjeta tiene tu nombre, tu nivel de acceso y una **fecha de vencimiento** | El token lleva tu correo, tu rol y cuándo expira (1 hora) |
 | Cada puerta tiene un lector. Acercas la tarjeta y la puerta decide | En cada petición mandas el token. El `JwtAuthFilter` lo lee |
 | El reglamento dice qué tarjetas abren qué puertas (piscina: huéspedes; bodega: personal) | `SecurityConfig` dice qué rutas abre cada rol |
@@ -83,7 +83,7 @@ eyJhbGciOiJIUzI1NiJ9 . eyJzdWIiOiJhbmFAY29ycmVvLmNsIiwicm9sIjoiQ0xJRU5URSIs... .
 ### 4.1 Iniciar sesión
 
 ```
-POST /api/auth/login   {"correo":"ana@correo.cl","clave":"Clave12345"}
+POST /api/v1/auth/login   {"correo":"ana@correo.cl","clave":"Clave12345"}
    |
    v
 [ SecurityConfig ]   -> esta ruta es pública: pasa sin token
@@ -111,7 +111,7 @@ POST /api/auth/login   {"correo":"ana@correo.cl","clave":"Clave12345"}
 ### 4.2 Una petición con token
 
 ```
-GET /api/usuarios/me      Authorization: Bearer eyJ...
+GET /api/v1/usuarios/me      Authorization: Bearer eyJ...
    |
    v
 [ JwtAuthFilter ]  -> ¿hay cabecera "Bearer "? -> ¿el token es válido? -> busca el usuario en MySQL
@@ -356,7 +356,7 @@ public class AuthService {
 
 ```java
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 @Tag(name = "Autenticación", description = "Inicio de sesión con JWT")
 public class AuthController {
@@ -448,35 +448,35 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwt
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/actuator/health", "/error").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/contactos").permitAll()
-                .requestMatchers("/api/contactos/**").hasRole(ROL_ADMINISTRADOR)
-                .requestMatchers(HttpMethod.GET, "/api/usuarios/me").authenticated()
-                .requestMatchers("/api/usuarios/**").hasRole(ROL_ADMINISTRADOR)
+                .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/usuarios").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/contactos").permitAll()
+                .requestMatchers("/api/v1/contactos/**").hasRole(ROL_ADMINISTRADOR)
+                .requestMatchers(HttpMethod.GET, "/api/v1/usuarios/me").authenticated()
+                .requestMatchers("/api/v1/usuarios/**").hasRole(ROL_ADMINISTRADOR)
 
                 // Gestión de blogs (datos del autor, también desactivados)
-                .requestMatchers(HttpMethod.GET, "/api/blogs/gestion/**")
+                .requestMatchers(HttpMethod.GET, "/api/v1/blogs/gestion/**")
                     .hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
 
                 // Lectura pública solo de las rutas necesarias
                 .requestMatchers(HttpMethod.GET,
-                        "/api/blogs", "/api/blogs/*",
-                        "/api/blogs/*/imagen", "/api/blogs/*/imagenes").permitAll()
+                        "/api/v1/blogs", "/api/v1/blogs/*",
+                        "/api/v1/blogs/*/imagen", "/api/v1/blogs/*/imagenes").permitAll()
 
                 // Metadatos de imágenes: personal. Archivos servidos: públicos
-                .requestMatchers(HttpMethod.GET, "/api/imagenes/**")
+                .requestMatchers(HttpMethod.GET, "/api/v1/imagenes/**")
                     .hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
                 .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 
                 // Escritura de blogs e imágenes
-                .requestMatchers(HttpMethod.POST, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
-                .requestMatchers(HttpMethod.PUT, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
-                .requestMatchers(HttpMethod.PATCH, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
-                .requestMatchers(HttpMethod.DELETE, "/api/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
-                .requestMatchers(HttpMethod.POST, "/api/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
-                .requestMatchers(HttpMethod.PUT, "/api/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
-                .requestMatchers(HttpMethod.DELETE, "/api/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                .requestMatchers(HttpMethod.POST, "/api/v1/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                .requestMatchers(HttpMethod.PUT, "/api/v1/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                .requestMatchers(HttpMethod.PATCH, "/api/v1/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/blogs/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                .requestMatchers(HttpMethod.POST, "/api/v1/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                .requestMatchers(HttpMethod.PUT, "/api/v1/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/imagenes/**").hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
 
                 // Fail-closed
                 .anyRequest().denyAll())
@@ -495,17 +495,19 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwt
 | Ruta | Quién entra | Por qué |
 | --- | --- | --- |
 | Swagger, `/v3/api-docs/**`, `/actuator/health` | Todos | Documentación y salud (Swagger está apagado en `prod`) |
-| `POST /api/auth/login` | Todos | Para poder iniciar sesión hay que entrar sin sesión |
-| `POST /api/usuarios` (registro) | Todos | Una persona nueva no tiene token |
-| `POST /api/contactos` (formulario de contacto) | Todos | Un visitante no tiene cuenta ni token |
-| `GET /api/contactos` y `GET /api/contactos/{id}` | Solo `ADMINISTRADOR` | Cada mensaje trae el correo y el comentario de una persona ([28](28-contacto-explicado.md#10-securityconfigjava-las-dos-reglas-nuevas)) |
-| `GET /api/usuarios/me` | Cualquiera **con sesión** | Su propio perfil |
-| Cualquier otra ruta de `/api/usuarios/**` (por ejemplo `GET /api/usuarios/7`) | Solo `ADMINISTRADOR` | Si fuera «cualquiera con sesión», un cliente leería los datos de otros cambiando el id |
-| `GET /api/blogs/gestion/**` | `ADMINISTRADOR` o `VENDEDOR` | Incluye blogs desactivados y el correo del autor |
-| `GET /api/blogs`, `/api/blogs/{id}`, `/imagen`, `/imagenes` | Todos | Un `<img>` y el blog público no envían token. El detalle **no** trae datos del autor |
-| `GET /api/imagenes/**` | `ADMINISTRADOR` o `VENDEDOR` | Revelaba ids de blogs ocultos y sus dueños |
+| `POST /api/v1/auth/login` | Todos | Para poder iniciar sesión hay que entrar sin sesión |
+| `POST /api/v1/usuarios` (registro) | Todos | Una persona nueva no tiene token |
+| `POST /api/v1/contactos` (formulario de contacto) | Todos | Un visitante no tiene cuenta ni token |
+| `GET /api/v1/contactos` y `GET /api/v1/contactos/{id}` | Solo `ADMINISTRADOR` | Cada mensaje trae el correo y el comentario de una persona ([28](28-contacto-explicado.md#10-securityconfigjava-las-dos-reglas-nuevas)) |
+| `GET /api/v1/usuarios/me` | Cualquiera **con sesión** | Su propio perfil |
+| `GET /api/v1/usuarios` (raíz, sin id) | `ADMINISTRADOR` o `VENDEDOR` | Listado paginado de solo lectura para los paneles |
+| Cualquier otra ruta de `/api/v1/usuarios/**` (por ejemplo `GET /api/v1/usuarios/7`) | Solo `ADMINISTRADOR` | Si fuera «cualquiera con sesión», un cliente leería los datos de otros cambiando el id |
+| `.requestMatchers(HttpMethod.POST, "...")` | La regla vale solo para ese verbo. `GET /api/v1/usuarios` y `POST /api/v1/usuarios` son reglas distintas |
+| `GET /api/v1/blogs/gestion/**` | `ADMINISTRADOR` o `VENDEDOR` | Incluye blogs desactivados y el correo del autor |
+| `GET /api/v1/blogs`, `/api/v1/blogs/{id}`, `/imagen`, `/imagenes` | Todos | Un `<img>` y el blog público no envían token. El detalle **no** trae datos del autor |
+| `GET /api/v1/imagenes/**` | `ADMINISTRADOR` o `VENDEDOR` | Revelaba ids de blogs ocultos y sus dueños |
 | `GET /uploads/**` | Todos | Los archivos deben cargar en un `<img>`; se sirven con `nosniff` y CSP restrictiva |
-| Escritura de `/api/blogs/**` y `/api/imagenes/**` | `ADMINISTRADOR` o `VENDEDOR` | El service además comprueba autoría donde corresponde |
+| Escritura de `/api/v1/blogs/**` y `/api/v1/imagenes/**` | `ADMINISTRADOR` o `VENDEDOR` | El service además comprueba autoría donde corresponde |
 | **Cualquier otra ruta** | **Nadie** | `anyRequest().denyAll()`: lo olvidado queda cerrado |
 
 ### 10.2 Línea por línea
@@ -515,7 +517,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwt
 | `.csrf(disable)` | CSRF es un ataque a sesiones con *cookies*; esta API usa tokens en una cabecera, así que no aplica ([15, 3.4](15-seguridad-codigo-explicado.md#34-por-qué-se-desactiva-csrf)) |
 | `.cors(Customizer.withDefaults())` | Aplica la configuración de `CorsConfig` antes que el resto de filtros ([20](20-configuracion-base-explicada.md#6-cors)) |
 | `STATELESS` | Spring Security no crea sesión ni cookie; cada petición se valida sola con su token |
-| `.requestMatchers(HttpMethod.POST, "...")` | La regla vale solo para ese verbo. `GET /api/usuarios` y `POST /api/usuarios` son reglas distintas |
+| `.requestMatchers(HttpMethod.POST, "...")` | La regla vale solo para ese verbo. `GET /api/v1/usuarios` y `POST /api/v1/usuarios` son reglas distintas |
 | `.permitAll()` / `.authenticated()` / `.hasRole("X")` | Todos / con sesión / con sesión **y** ese rol (Spring agrega `ROLE_` solo) |
 | `.anyRequest().denyAll()` | Ninguna petición sin regla explícita pasa: es la red de seguridad contra olvidos |
 | `.exceptionHandling(...)` | Conecta `ManejadorErroresSeguridad` para el 401 y el 403 en JSON |
@@ -527,11 +529,12 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwt
 
 Spring evalúa las reglas **de arriba hacia abajo y se detiene en la primera que coincide**:
 
-- `GET /api/usuarios/me` va **antes** de `/api/usuarios/**`. Si estuviera después, `/me` caería en «solo administrador» y un cliente no podría ver su perfil.
-- `GET /api/blogs/gestion/**` va **antes** de las reglas públicas de blogs: si no, el detalle de gestión caería en `permitAll`.
+- `GET /api/v1/usuarios/me` va **antes** de `/api/v1/usuarios/**`. Si estuviera después, `/me` caería en «solo administrador» y un cliente no podría ver su perfil.
+- `GET /api/v1/usuarios` (raíz) también va **antes** de `/api/v1/usuarios/**` y usa `hasAnyRole`: si estuviera después, el vendedor no podría listar. Esa regla solo vale para `GET`; el `POST` de registro sigue público y las escrituras siguen siendo de administrador.
+- `GET /api/v1/blogs/gestion/**` va **antes** de las reglas públicas de blogs: si no, el detalle de gestión caería en `permitAll`.
 - `anyRequest()` va **siempre al final**. Escribir una regla después lanza `Can't configure requestMatchers after anyRequest` al arrancar.
 
-**Un detalle del controller:** `/me` está declarado antes de `/{id}`. Spring prefiere la ruta literal, así que `/api/usuarios/me` nunca se interpreta como un id.
+**Un detalle del controller:** `/me` está declarado antes de `/{id}`. Spring prefiere la ruta literal, así que `/api/v1/usuarios/me` nunca se interpreta como un id.
 
 ---
 
@@ -579,20 +582,22 @@ Los tres roles viven en la tabla `tipo_usuario` (`ADMINISTRADOR`, `VENDEDOR`, `C
 | Capacidad | CLIENTE | VENDEDOR | ADMINISTRADOR | Estado en la API |
 | --- | --- | --- | --- | --- |
 | Registrarse, iniciar sesión | Sí | Sí | Sí | **Hecho** |
-| Ver su propio perfil (`GET /api/usuarios/me`) | Sí | Sí | Sí | **Hecho** |
+| Ver su propio perfil (`GET /api/v1/usuarios/me`) | Sí | Sí | Sí | **Hecho** |
 | Ver un usuario por id | No | No | Sí | **Hecho** (solo administrador) |
 | Enviar un mensaje de contacto | Sí | Sí | Sí | **Hecho** (también sin sesión) |
-| Leer los mensajes de contacto | No | No | Sí | **Hecho** (`GET /api/contactos`) |
-| Ver la lista de usuarios | No | **Sí** (solo lectura) | Sí | Pendiente: `GET /api/usuarios` con `hasAnyRole` |
-| Editar su **propio** perfil | Sí | Sí | Sí | Pendiente: `PUT /api/usuarios/me` |
-| Editar o desactivar a **otros** | No | No | Sí | Pendiente |
-| Crear vendedores | No | No | Sí | Pendiente: ruta exclusiva (el rol nunca viene del cliente) |
-| Productos: crear, editar, eliminar, ajustar stock | No | **Sí** | Sí | Con el controller de `Producto` |
-| Órdenes: ver las ventas | No | **Sí** | Sí | Con el controller de `Boleta` |
-| Categorías y reportes | No | No | Sí | Con sus controllers |
+| Leer los mensajes de contacto | No | No | Sí | **Hecho** (`GET /api/v1/contactos`) |
+| Ver la lista de usuarios (`GET /api/v1/usuarios`) | No (403) | **Sí** (solo lectura) | Sí | **Hecho** (20 nov): regla `hasAnyRole` antes de `/api/v1/usuarios/**` |
+| Editar su **propio** perfil | Sí | Sí | Sí | **Hecho**: `PUT /api/v1/usuarios/me` |
+| Editar o desactivar a **otros** (vendedores) | No | No | Sí | **Hecho**: `PATCH /{id}/desactivar` y `DELETE /{id}` |
+| Crear vendedores | No | No | Sí | **Hecho**: `POST /api/v1/usuarios/vendedores` |
+| Productos: crear, editar, desactivar, reactivar | No | No | Sí | **Hecho**: escrituras solo `ADMINISTRADOR` ([30](30-catalogo-y-precios.md)) |
+| Boletas: ver todas y anular | No | **Sí** (ver) | Sí | **Hecho**: ver todas = personal; anular = solo administrador ([31](31-carrito-y-boletas.md)) |
+| Categorías | Público (lectura) | Público (lectura) | Sí (escritura) | **Hecho** ([30](30-catalogo-y-precios.md)) |
 | Panel de administración | No (sin botón) | Sí, reducido | Sí, completo | El frontend lo muestra según `AuthResponse.rol` |
 
-**Cómo se agrega cada regla:** una línea en `SecurityConfig`, por ejemplo `.requestMatchers(HttpMethod.GET, "/api/usuarios").hasAnyRole("ADMINISTRADOR", "VENDEDOR")` **antes** de la regla de `/api/usuarios/**`. Las reglas de «solo lo propio» (editar el propio perfil) se resuelven en el service comparando el correo del token con el recurso.
+**Cómo se agrega cada regla:** una línea en `SecurityConfig`, por ejemplo `.requestMatchers(HttpMethod.GET, "/api/v1/usuarios").hasAnyRole("ADMINISTRADOR", "VENDEDOR")` **antes** de la regla de `/api/v1/usuarios/**`. Las reglas de «solo lo propio» (carrito, boletas propias, `/usuarios/me`) usan el correo del token, no un id de la URL.
+
+**Actualizado el 20 nov:** `SecurityConfig` ya incluye reglas para `/api/v1/productos/**`, `/api/v1/categorias/**`, `/api/v1/carrito/**` y `/api/v1/boletas/**`, siempre antes de `.anyRequest().denyAll()`. La lectura de productos y categorías es pública; las escrituras son solo de administrador.
 
 **Ocultar un botón no protege nada.** El frontend usa `rol` para ocultar el panel a un cliente, pero cualquiera puede llamar a la API a mano. La protección real está en `SecurityConfig`.
 
@@ -612,7 +617,8 @@ Los tres roles viven en la tabla `tipo_usuario` (`ADMINISTRADOR`, `VENDEDOR`, `C
 | `UsuarioRequestTest`, `RunUtilTest`, `PageResponseTest` | 10 + 4 + 1 | Sin cambios |
 
 ```bash
-./mvnw test -Dtest="*Test"        # esperado: 249 tests en todo el proyecto (11 nov), 0 fallos
+./mvnw test -Dtest="*Test"        # esperado hoy (20 nov): 269 tests en todo el proyecto, 0 fallos
+# La tabla de arriba es el estado del 20 oct; hoy UsuarioControllerTest tiene 22 tests.
 ```
 
 `UsuarioControllerTest` ahora lleva tres `@MockitoBean` (`UsuarioService`, `JwtService` y `UserDetailsService`) porque `SecurityConfig` los necesita para armar la cadena.
@@ -625,24 +631,25 @@ Con la app arrancada y Swagger en `/swagger-ui/index.html`:
 
 | # | Prueba | Esperado |
 | --- | --- | --- |
-| 1 | `POST /api/auth/login` con `ADMIN_EMAIL` y `ADMIN_PASSWORD` de tu `.env` | 200 con `token`, `tipo`, `correo` y `rol: ADMINISTRADOR` |
+| 1 | `POST /api/v1/auth/login` con `ADMIN_EMAIL` y `ADMIN_PASSWORD` de tu `.env` | 200 con `token`, `tipo`, `correo` y `rol: ADMINISTRADOR` |
 | 2 | Botón **Authorize**: pega el token **sin** escribir `Bearer` (Swagger lo agrega) | El candado se cierra |
-| 3 | `GET /api/usuarios/me` | 200 con el administrador |
-| 4 | `GET /api/usuarios/1` con el token | 200 |
+| 3 | `GET /api/v1/usuarios/me` | 200 con el administrador |
+| 4 | `GET /api/v1/usuarios/1` con el token | 200 |
+| 4.1 | `GET /api/v1/usuarios?size=1000` con el token | 200 con `contenido`, `pagina`, `tamanio`, `totalElementos` y `totalPaginas` |
 | 5 | Mismo `GET` con **Logout** en Authorize | 401 `Se requiere un token válido...` |
-| 6 | `POST /api/usuarios` registra un cliente (sin token) | 201 |
-| 7 | Login con el cliente; con su token, `GET /api/usuarios/me` | 200 |
-| 8 | Con el token del cliente, `GET /api/usuarios/1` | **403** `No tienes permiso...` |
+| 6 | `POST /api/v1/usuarios` registra un cliente (sin token) | 201 |
+| 7 | Login con el cliente; con su token, `GET /api/v1/usuarios/me` | 200 |
+| 8 | Con el token del cliente, `GET /api/v1/usuarios/1` | **403** `No tienes permiso...` |
 | 9 | Login con clave incorrecta, y con un correo que no existe | **El mismo** 401 `Correo o contraseña incorrectos` |
 | 10 | Poner `activo = 0` a un usuario en la base y hacer login | 401 (igual que clave incorrecta). Si ya tenía un token, también deja de funcionar |
 
 Con `curl`:
 
 ```bash
-curl -s -X POST localhost:8080/api/auth/login -H "Content-Type: application/json" \
+curl -s -X POST localhost:8080/api/v1/auth/login -H "Content-Type: application/json" \
   -d '{"correo":"admin@correo.cl","clave":"TU_CLAVE"}'
 
-curl -i localhost:8080/api/usuarios/me -H "Authorization: Bearer EL_TOKEN"
+curl -i localhost:8080/api/v1/usuarios/me -H "Authorization: Bearer EL_TOKEN"
 ```
 
 ---
@@ -654,10 +661,10 @@ curl -i localhost:8080/api/usuarios/me -H "Authorization: Bearer EL_TOKEN"
 | Código de los pasos 1 a 5 presente en tu repositorio | **Verificado** (20 oct, comparación de archivos) |
 | `JwtService` y su test (6) | **Confirmado por ti** (paso 1) |
 | `UserDetailsServiceImpl`, `JwtAuthFilter` y sus tests | Entregados; seguiste con el paso siguiente sin reportar fallos |
-| Los 249 tests sin fallos | **Confirmado** (11 nov, `./mvnw test -Dtest="*Test"`) |
-| La app arranca con `SecurityConfig` nueva (bean `handlerExceptionResolver`, constructor de `DaoAuthenticationProvider`) | **Pendiente** |
+| Los 269 tests sin fallos | **Confirmado** (20 nov, `set -a && . ./.env && set +a && ./mvnw test`) |
+| La app arranca con `SecurityConfig` nueva (bean `handlerExceptionResolver`, constructor de `DaoAuthenticationProvider`) | **Confirmado** (arranque con MySQL 8.4) |
 | Flujo completo de la sección 14 en Swagger contra MySQL | **Pendiente** |
-| Que desaparezca el aviso `Using generated security password` del log | **Pendiente** |
+| Que desaparezca el aviso `Using generated security password` del log | **Confirmado**: no aparece (se desactivó `httpBasic`) |
 | Que `UsuarioService`, `UsuarioController` y los tests nuevos no se ejecutaron donde se escribieron | No se pudo compilar fuera de tu máquina |
 
 ---
@@ -671,11 +678,13 @@ curl -i localhost:8080/api/usuarios/me -H "Authorization: Bearer EL_TOKEN"
 | La app no arranca: `No qualifying bean ... HandlerExceptionResolver` | El nombre del `@Qualifier` | Debe ser `handlerExceptionResolver` |
 | `UsuarioControllerTest` falla con `No qualifying bean of type '...JwtService'` | Falta un `@MockitoBean` | Agregar `JwtService` y `UserDetailsService` al test |
 | Login correcto, pero todas las rutas dan 401 | No se envía la cabecera, o se escribió `Bearer` doble en Swagger | `Authorization: Bearer <token>` (en Swagger solo el token) |
-| Un cliente recibe 403 en `GET /api/usuarios/7` | Es lo esperado: solo el administrador | Usar `/api/usuarios/me` |
-| `/api/usuarios/me` da 403 a un cliente | La regla de `/me` está **después** de `/api/usuarios/**` | Reordenar ([10.3](#103-el-orden-de-las-reglas-importa)) |
+| Un cliente recibe 403 en `GET /api/v1/usuarios/7` | Es lo esperado: solo el administrador | Usar `/api/v1/usuarios/me` |
+| Un cliente recibe 403 en `GET /api/v1/usuarios` | El listado es solo de personal (admin o vendedor) | Usar `/api/v1/usuarios/me` |
+| `GET /api/v1/usuarios` devuelve **405** | No existe `@GetMapping` en la raíz del controller (no es un bloqueo de seguridad: eso daría 401/403) | Agregar el endpoint raíz con `Pageable` |
+| `/api/v1/usuarios/me` da 403 a un cliente | La regla de `/me` está **después** de `/api/v1/usuarios/**` | Reordenar ([10.3](#103-el-orden-de-las-reglas-importa)) |
 | 401 con un token que funcionaba | Expiró (1 hora), o el usuario fue desactivado o borrado | Iniciar sesión de nuevo |
 | El navegador bloquea las llamadas del frontend | CORS | `CORS_ORIGINS` con el origen del frontend ([20, sección 6](20-configuracion-base-explicada.md#6-cors)) |
-| 401 al llamar a `POST /api/usuarios` | La regla del registro falta o está tras `/api/usuarios/**` | Debe ir antes |
+| 401 al llamar a `POST /api/v1/usuarios` | La regla del registro falta o está tras `/api/v1/usuarios/**` | Debe ir antes |
 | Dos clases con el mismo nombre en `main` y `test` | Se copió una clase a `src/test` | Borrar la copia de `test` |
 
 ---
@@ -685,7 +694,8 @@ curl -i localhost:8080/api/usuarios/me -H "Authorization: Bearer EL_TOKEN"
 | Tema | Decisión o límite |
 | --- | --- |
 | Mismo error para correo inexistente, clave incorrecta y usuario desactivado | Evita que se descubran los correos registrados |
-| `GET /api/usuarios/{id}` solo para administrador | Un cliente no debe leer a otros; el perfil propio es `/me` |
+| `GET /api/v1/usuarios/{id}` solo para administrador | Un cliente no debe leer a otros; el perfil propio es `/me` |
+| `GET /api/v1/usuarios` (raíz) para administrador y vendedor | Ambos paneles necesitan el listado; es solo lectura y va antes de `/**` |
 | El rol que decide es el de la **base de datos**, no el del token | Cambiar un rol o desactivar a alguien surte efecto de inmediato; cuesta una consulta por petición |
 | El token **no se puede revocar** antes de que expire | Cerrar sesión es solo borrar el token en el frontend. El filtro consulta la base en cada petición, así que desactivar o borrar al usuario surte efecto de inmediato; el token robado de una cuenta **activa** sirve hasta expirar (1 hora). Riesgo aceptado el 6 nov, ver [D34](24-decisiones-de-diseno.md#d34-la-revocación-inmediata-de-tokens-no-se-implementa) |
 | Sin *refresh token* | Al vencer, hay que iniciar sesión de nuevo. Se puede agregar más adelante |
@@ -699,8 +709,8 @@ curl -i localhost:8080/api/usuarios/me -H "Authorization: Bearer EL_TOKEN"
 
 | Paso | Qué |
 | --- | --- |
-| **Confirmar** | El flujo de la sección 14 en Swagger (los 249 tests y `contextLoads` ya pasan) |
+| **Confirmar** | El flujo de la sección 14 en Swagger (los 269 tests y `contextLoads` ya pasan) |
 | **Limpieza** | Mover `JwtServiceTest` y `UserDetailsServiceImplTest` a `src/test/.../security/` (están en `service/`); borrar los `// NUEVO` de `UsuarioService`; borrar `docs/11-cambios-recientes.md` |
-| **Usuarios** | `GET /api/usuarios` (lista paginada, administrador y vendedor), `PUT /api/usuarios/me`, y una ruta de administrador para crear vendedores |
+| **Usuarios** | Ya hechos: `GET /api/v1/usuarios` (lista paginada, administrador y vendedor), `PUT /api/v1/usuarios/me` y `POST /api/v1/usuarios/vendedores` |
 | **Primera rebanada** | `Categoria` siguiendo la [receta de la guía 19](19-validacion-run-service-y-controller-explicados.md#13-la-receta-para-la-próxima-entidad), con sus reglas por rol |
 | **Después** | `Producto` (vendedor y administrador), `Carrito` y `Boleta` |

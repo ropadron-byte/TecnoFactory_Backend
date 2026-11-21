@@ -1,5 +1,6 @@
 package com.factory.tecnofactory.controller;
 
+import com.factory.tecnofactory.dto.PageResponse;
 import com.factory.tecnofactory.dto.PerfilRequest;
 import com.factory.tecnofactory.dto.UsuarioRequest;
 import com.factory.tecnofactory.dto.UsuarioResponse;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -19,6 +21,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -72,6 +75,14 @@ class UsuarioControllerTest {
         return user("admin@correo.cl").roles("ADMINISTRADOR");
     }
 
+    private static org.springframework.test.web.servlet.request.RequestPostProcessor vendedor() {
+        return user("vendedor@correo.cl").roles("VENDEDOR");
+    }
+
+    private static PageResponse<UsuarioResponse> pagina() {
+        return new PageResponse<>(List.of(respuesta()), 0, 1000, 1, 1);
+    }
+
     private static UsuarioResponse respuesta() {
         return new UsuarioResponse(7L, 12345678, "5", "Ana", "Pérez", "ana@correo.cl",
                 LocalDate.of(1990, 5, 20), "Calle Falsa 123", "+56912345678",
@@ -117,6 +128,42 @@ class UsuarioControllerTest {
         mockMvc.perform(post("/api/v1/usuarios").contentType(MediaType.APPLICATION_JSON).content(JSON_VALIDO))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.mensaje").value("El correo ya está registrado"));
+    }
+
+    @Test
+    void listarDevuelvePaginaParaAdministrador() throws Exception {
+        when(usuarioService.listar(any(Pageable.class))).thenReturn(pagina());
+
+        mockMvc.perform(get("/api/v1/usuarios").param("size", "1000").with(admin()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.contenido[0].correo").value("ana@correo.cl"))
+                .andExpect(jsonPath("$.tamanio").value(1000))
+                .andExpect(jsonPath("$.totalElementos").value(1));
+
+        verify(usuarioService).listar(any(Pageable.class));
+    }
+
+    @Test
+    void listarTambienLoPuedeHacerVendedor() throws Exception {
+        when(usuarioService.listar(any(Pageable.class))).thenReturn(pagina());
+
+        mockMvc.perform(get("/api/v1/usuarios").with(vendedor()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.contenido[0].id").value(7));
+    }
+
+    @Test
+    void listarComoClienteDevuelve403() throws Exception {
+        mockMvc.perform(get("/api/v1/usuarios").with(user("ana@correo.cl").roles("CLIENTE")))
+                .andExpect(status().isForbidden());
+        verify(usuarioService, never()).listar(any());
+    }
+
+    @Test
+    void listarSinTokenDevuelve401() throws Exception {
+        mockMvc.perform(get("/api/v1/usuarios"))
+                .andExpect(status().isUnauthorized());
+        verify(usuarioService, never()).listar(any());
     }
 
     @Test

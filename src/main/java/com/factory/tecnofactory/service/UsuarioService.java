@@ -1,5 +1,6 @@
 package com.factory.tecnofactory.service;
 
+import com.factory.tecnofactory.dto.PageResponse;
 import com.factory.tecnofactory.dto.PerfilRequest;                        // NUEVO
 import com.factory.tecnofactory.dto.UsuarioRequest;                       // NUEVO
 import com.factory.tecnofactory.dto.UsuarioResponse;                      // NUEVO
@@ -15,6 +16,7 @@ import com.factory.tecnofactory.repository.TipoUsuarioRepository;
 import com.factory.tecnofactory.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -102,6 +104,12 @@ public class UsuarioService {
         Usuario guardado = usuarioRepository.save(usuario);
         log.info("Usuario {} registrado con el correo {}", nombreRol, guardado.getCorreo());
         return usuarioMapper.toResponse(guardado);
+    }
+
+    /** Listado paginado para los paneles: administrador y vendedor leen, nadie edita desde aquí. */
+    @Transactional(readOnly = true)
+    public PageResponse<UsuarioResponse> listar(Pageable pageable) {
+        return PageResponse.de(usuarioRepository.findAll(pageable).map(usuarioMapper::toResponse));
     }
 
     @Transactional(readOnly = true)                                       // NUEVO

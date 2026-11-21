@@ -1,6 +1,8 @@
 # 14. Repositories explicados
 
-Guía para entender, línea por línea, las cuatro interfaces del paquete `repository/` y cómo Spring Data JPA convierte el **nombre de un método** en una consulta SQL. Léela de arriba hacia abajo: conceptos, reglas para escribir nombres, cada archivo y los errores que ya aparecieron.
+Guía para entender, línea por línea, las **cuatro interfaces originales** del paquete `repository/` y cómo Spring Data JPA convierte el **nombre de un método** en una consulta SQL. Léela de arriba hacia abajo: conceptos, reglas para escribir nombres, cada archivo y los errores que ya aparecieron.
+
+> **Estado actual (20 nov):** hay **12 interfaces**. Las ocho nuevas son `CategoriaRepository`, `ProductoRepository`, `ProductoCategoriaRepository`, `ImagenUrlRepository`, `BlogRepository`, `CarritoRepository`, `BoletaRepository` y `ContactoRepository`. Sus consultas más importantes (`findByActivoTrue...`, `countByCategoria_IdAndProducto_ActivoTrue`, `findByUsuarioCorreo`, `findByUsuarioCorreoOrderByFechaDesc`, `findByUrl`) se explican en [30](30-catalogo-y-precios.md), [31](31-carrito-y-boletas.md) y [28](28-contacto-explicado.md). `ProductoCategoriaRepository` es el único con id compuesto (`ProductoCategoriaId`).
 
 Archivos que se explican (ruta `src/main/java/com/factory/tecnofactory/repository/`):
 
@@ -11,7 +13,7 @@ Archivos que se explican (ruta `src/main/java/com/factory/tecnofactory/repositor
 | `ComunaRepository.java` | `Comuna` | `Integer` | [5.3](#53-comunarepositoryjava) |
 | `UsuarioRepository.java` | `Usuario` | `Long` | [5.4](#54-usuariorepositoryjava) |
 
-> Estado: Spring encontró las 4 interfaces (`Found 4 JPA repository interfaces`). Los tres errores de nombres de método que salieron durante la sesión del 18 oct se corrigieron en el código; el arranque completo con los archivos corregidos quedó **confirmado** (log del 18 oct: `Started TecnoFactoryApplication`).
+> Estado: en el arranque original Spring informó `Found 4 JPA repository interfaces`; hoy informa **12**. Los tres errores de nombres de método de la sesión del 18 oct se corrigieron y el arranque completo quedó confirmado.
 
 ---
 
@@ -298,7 +300,7 @@ store assignment for repository candidate interface ...ComunaRepository; If you 
 repository to be a Redis repository, consider annotating your entities with ... @RedisHash ...
 ```
 
-Tu proyecto tiene **dos** módulos de Spring Data (JPA y Redis). Spring prueba cada repository con ambos y avisa, a nivel `INFO`, que no puede asignarlo a Redis. Termina asignándolo a JPA (`Found 4 JPA repository interfaces`, `Found 0 Redis repository interfaces`). Es solo ruido: no hay que hacer nada.
+Tu proyecto tiene **dos** módulos de Spring Data (JPA y Redis). Spring prueba cada repository con ambos y avisa, a nivel `INFO`, que no puede asignarlo a Redis. Termina asignándolo a JPA (`Found 12 JPA repository interfaces`, `Found 0 Redis repository interfaces`). Es solo ruido: no hay que hacer nada.
 
 ## 7. Errores de repositories que ya aparecieron
 

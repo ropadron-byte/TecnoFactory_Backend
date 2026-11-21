@@ -19,12 +19,32 @@ React es la **ventanilla de atención**: muestra formularios y botones. La API e
 | Formato de fechas | `AAAA-MM-DD` (fecha) y hora de Chile |
 | Dinero | Pesos enteros; el formato (`$12.990`) lo pone el frontend |
 
-CORS solo se aplica a `/api/**`.
+CORS solo se aplica a `/api/v1/**`.
+
+## Estado real del cliente React
+
+El [README](../../README.md) ya documenta la app React. Hoy conviven dos estilos de llamada en el cliente:
+
+| Parte del frontend | Cómo se conecta |
+| --- | --- |
+| Catálogo (categorías y productos) | Usa el prefijo `/api/v1`: `GET /api/v1/categorias` y `GET /api/v1/productos`; sincroniza las respuestas a `localStorage` como caché |
+| Blog e imágenes | Vienen de la API (`/api/v1/blogs/**`, `/api/v1/imagenes/**` y `/uploads/**`) |
+| Carrito y órdenes | Siguen en `localStorage` de la tienda; todavía no consumen `/api/v1/carrito/**` ni `/api/v1/boletas/**` |
+
+> **Estado real del cliente React (corregido el 20 nov):** las dos formas de llamar de
+> `src/services/api.js` siguen vivas, pero **ambas usan `/api/v1`**. El estilo directo
+> (`peticion(ruta, opciones)` → `fetch(API_URL + ruta)`) recibe rutas completas ya versionadas,
+> y el estilo `{ get, post, put, patch, eliminar }` agrega el prefijo `API_V1`. Antes las
+> llamadas de auth, usuarios, blogs e imágenes iban sin versión y caían en
+> `anyRequest().denyAll()` (**401** sin sesión, **403** con ella): el login respondía
+> «Se requiere un token válido» sin llegar a comprobar credenciales. Ya están corregidas en
+> los servicios y en los tests. No hay proxy de Vite ni capa de compatibilidad en el backend,
+> así que cualquier ruta nueva debe llevar `/api/v1` desde el principio.
 
 ## Flujo de sesión
 
 ```
-1. POST /api/auth/login  {correo, clave}  ->  {token, tipo, correo, rol}
+1. POST /api/v1/auth/login  {correo, clave}  ->  {token, tipo, correo, rol}
 2. Guardar el token (y el rol, para mostrar u ocultar el panel)
 3. En cada llamada:  Authorization: Bearer <token>
 4. Si la API responde 401 -> el token venció o no sirve: volver al login
@@ -38,7 +58,7 @@ CORS solo se aplica a `/api/**`.
 const API = "http://localhost:8080";
 
 export async function login(correo, clave) {
-  const r = await fetch(`${API}/api/auth/login`, {
+  const r = await fetch(`${API}/api/v1/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ correo, clave }),
@@ -68,7 +88,7 @@ Una sola función `api()` para todas las llamadas evita repetir la cabecera y ce
 ## Login con Google
 
 El backend **no redirige** a Google: React carga Google Identity Services, muestra el botón,
-recibe un **ID token** (`credential`) y lo envía a `POST /api/auth/google`.
+recibe un **ID token** (`credential`) y lo envía a `POST /api/v1/auth/google`.
 
 **1. Cargar el script** en `index.html` (o con un `<script>` dinámico):
 
@@ -100,7 +120,7 @@ export function BotonGoogle({ onSesion, onCompletarPerfil }) {
       window.google.accounts.id.initialize({
         client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
         callback: async ({ credential }) => {
-          const r = await fetch(`${API}/api/auth/google`, {
+          const r = await fetch(`${API}/api/v1/auth/google`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ credential }),
@@ -142,7 +162,7 @@ el nombre y los apellidos vienen de Google y no se editan; el `registroToken` vi
 
 ```jsx
 async function completarPerfil(pendiente, datos) {
-  const r = await fetch(`${API}/api/auth/google/completar`, {
+  const r = await fetch(`${API}/api/v1/auth/google/completar`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ...datos, registroToken: pendiente.registroToken }),
@@ -159,16 +179,16 @@ async function completarPerfil(pendiente, datos) {
 `datos` lleva `run`, `runDv`, `fechaNacimiento`, `direccion`, `telefono` e `idComuna`.
 
 **5. Vincular Google a una cuenta que ya tiene contraseña.** Después de un login normal
-(`POST /api/auth/login`) y con el token guardado, se envía el `credential` de Google:
+(`POST /api/v1/auth/login`) y con el token guardado, se envía el `credential` de Google:
 
 ```js
-await api("/api/auth/google/vincular", {
+await api("/api/v1/auth/google/vincular", {
   method: "POST",
   body: JSON.stringify({ credential }),
 }); // 204: listo. El correo de Google debe coincidir con el de la cuenta.
 ```
 
-| Respuesta de `/api/auth/google` | Qué hace React |
+| Respuesta de `/api/v1/auth/google` | Qué hace React |
 | --- | --- |
 | **200** | Guarda el `token` y entra |
 | **202** | Guarda el `registroToken` en memoria y muestra el formulario de perfil |
@@ -204,7 +224,7 @@ El login devuelve `rol`. Con él, React decide qué mostrar:
 | Rol | Muestra |
 | --- | --- |
 | `ADMINISTRADOR` | Panel completo |
-| `VENDEDOR` | Panel reducido (productos, stock, ventas, usuarios en lectura) |
+| `VENDEDOR` | Panel reducido: blogs e imágenes, listado de boletas y lectura de `/api/v1/productos/admin` y `/api/v1/productos/criticos`; **no** escribe productos ni categorías (eso es solo de `ADMINISTRADOR`) |
 | `CLIENTE` | Sin panel y sin botón |
 
 > **Recuerda:** esto es solo **comodidad visual**. Cualquiera puede abrir las herramientas del navegador y mostrar un botón oculto; lo que lo detiene es la respuesta 403 de la API.
@@ -221,7 +241,7 @@ Para empezar, `sessionStorage` con vida de token corta (1 hora) es un compromiso
 
 ## Registro de clientes
 
-`POST /api/usuarios` no necesita token. Valida en el formulario las mismas reglas que la API (RUN con dígito verificador, clave de 8 a 72 caracteres, teléfono de 8 a 14 dígitos) para dar respuesta inmediata, pero **la API vuelve a validar**: nunca confíes solo en el frontend. Para el selector de comuna harán falta endpoints de regiones y comunas (aún no existen).
+`POST /api/v1/usuarios` no necesita token. Valida en el formulario las mismas reglas que la API (RUN con dígito verificador, clave de 8 a 72 caracteres, teléfono de 8 a 14 dígitos) para dar respuesta inmediata, pero **la API vuelve a validar**: nunca confíes solo en el frontend. Para el selector de comuna harán falta endpoints de regiones y comunas (aún no existen).
 
 ## Reglas
 
@@ -239,6 +259,7 @@ Para empezar, `sessionStorage` con vida de token corta (1 hora) es un compromiso
 | El login funciona en Swagger pero no desde React | Falta `Content-Type: application/json` | Agrégalo |
 | 401 en todo tras iniciar sesión | La cabecera no se envía o dice `Bearer Bearer` | Revisa `Authorization: Bearer <token>` |
 | El preflight (`OPTIONS`) falla | Cabecera no permitida | Solo `Authorization` y `Content-Type` están permitidas |
+| El login da 401 con «Se requiere un token válido» | La ruta quedó sin `/api/v1` (antes pasaba en auth/usuarios/blogs/imágenes) | Versiona la ruta en el servicio; ver [Estado real del cliente React](#estado-real-del-cliente-react) |
 
 ## Para saber más
 

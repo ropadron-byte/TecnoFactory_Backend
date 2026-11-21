@@ -6,6 +6,8 @@
 
 El **mesero** (controller) no cocina y el **cocinero** (service) no atiende mesas. Si aparece un `if` de negocio en el controller, probablemente pertenece al service.
 
+El ejemplo es `Usuario`, pero el patrón ya está repetido en todas las entidades: hoy hay **14 entidades, 2 `Embeddable`, 12 repositorios y 9 controllers**, todos bajo `/api/v1/`. Los precios con descuento se calculan en un solo lugar (`util/Precios.conDescuento`), usado por los mappers de `Producto`, `Carrito` y `Boleta`.
+
 ## El service: `UsuarioService.registrar`
 
 Las reglas, en orden:
@@ -32,7 +34,7 @@ Si todo está bien: el mapper copia los datos, el service pone la `K` en mayúsc
 
 ```java
 @RestController
-@RequestMapping("/api/usuarios")
+@RequestMapping("/api/v1/usuarios")
 @RequiredArgsConstructor
 public class UsuarioController {
 

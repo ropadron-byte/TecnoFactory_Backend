@@ -1,6 +1,6 @@
 # Guía 19. Formulario de contacto
 
-> **En una frase:** cualquier persona, **sin iniciar sesión**, puede enviar su nombre, correo y un comentario con `POST /api/contactos`; solo el `ADMINISTRADOR` puede leer lo que llegó.
+> **En una frase:** cualquier persona, **sin iniciar sesión**, puede enviar su nombre, correo y un comentario con `POST /api/v1/contactos`; solo el `ADMINISTRADOR` puede leer lo que llegó.
 
 ## La idea: el buzón de la tienda
 
@@ -8,20 +8,20 @@ Una tienda tiene un **buzón en la puerta**: cualquiera que pasa puede meter una
 
 | En la tienda | En TecnoFactory |
 | --- | --- |
-| La **ranura** del buzón, abierta a todos | `POST /api/contactos`, público |
+| La **ranura** del buzón, abierta a todos | `POST /api/v1/contactos`, público |
 | La **carta** | Una fila de la tabla `contacto` (nombre, correo, comentario) |
-| El **dueño** que abre el buzón | `ADMINISTRADOR`: `GET /api/contactos` y `GET /api/contactos/{id}` |
+| El **dueño** que abre el buzón | `ADMINISTRADOR`: `GET /api/v1/contactos` y `GET /api/v1/contactos/{id}` |
 | El letrero «máximo una hoja» | Los límites de largo (100, 250 y 500 caracteres) |
 
 ## El recorrido
 
 ```
-ENVIAR: React (formulario) -> POST /api/contactos  (sin token)
-        -> SecurityConfig (POST /api/contactos es público)
+ENVIAR: React (formulario) -> POST /api/v1/contactos  (sin token)
+        -> SecurityConfig (POST /api/v1/contactos es público)
         -> ContactoController (@Valid) -> ContactoService (quita espacios, guarda)
-        -> 201 { id, nombre, correo, comentario } + Location: /api/contactos/{id}
+        -> 201 { id, nombre, correo, comentario } + Location: /api/v1/contactos/{id}
 
-LEER:   Panel de administración -> GET /api/contactos  (con token)
+LEER:   Panel de administración -> GET /api/v1/contactos  (con token)
         -> JwtAuthFilter -> SecurityConfig (¿ADMINISTRADOR?)
         -> ContactoController -> ContactoService -> PageResponse
 ```
@@ -46,9 +46,9 @@ Sin token en la lectura → **401**; con token de `VENDEDOR` o `CLIENTE` → **4
 
 | Ruta | Quién entra | Éxito |
 | --- | --- | --- |
-| `POST /api/contactos` | **Todos**, sin sesión | 201 |
-| `GET /api/contactos` | Solo `ADMINISTRADOR` | 200 (paginado) |
-| `GET /api/contactos/{id}` | Solo `ADMINISTRADOR` | 200 |
+| `POST /api/v1/contactos` | **Todos**, sin sesión | 201 |
+| `GET /api/v1/contactos` | Solo `ADMINISTRADOR` | 200 (paginado) |
+| `GET /api/v1/contactos/{id}` | Solo `ADMINISTRADOR` | 200 |
 
 ## Validaciones del formulario
 
@@ -64,12 +64,12 @@ Los máximos son los de las columnas de la tabla: lo que pasa la validación **s
 
 ```bash
 # Enviar un contacto (sin token)
-curl -X POST http://localhost:8080/api/contactos \
+curl -X POST http://localhost:8080/api/v1/contactos \
   -H "Content-Type: application/json" \
   -d '{"nombre":"Ana","correo":"ana@correo.cl","comentario":"Hola, quiero más información"}'
 
 # Leerlos (con el token del administrador)
-curl http://localhost:8080/api/contactos -H "Authorization: Bearer $TOKEN"
+curl http://localhost:8080/api/v1/contactos -H "Authorization: Bearer $TOKEN"
 ```
 
 En Swagger: grupo **Contacto**. El `POST` no muestra candado; los `GET` sí (usa **Authorize** con el token del administrador).
@@ -88,7 +88,7 @@ En Swagger: grupo **Contacto**. El `POST` no muestra candado; los `GET` sí (usa
 | Síntoma | Causa | Arreglo |
 | --- | --- | --- |
 | 400 «Datos inválidos» con `detalles` | Falta un campo, el correo no tiene formato o se pasó del máximo | Revisa el campo que indica `detalles` |
-| 401 al **enviar** | Falta la regla `POST /api/contactos` con `permitAll()` en `SecurityConfig`, o quedó después de `anyRequest()` | Ponla antes de `anyRequest()` |
+| 401 al **enviar** | Falta la regla `POST /api/v1/contactos` con `permitAll()` en `SecurityConfig`, o quedó después de `anyRequest()` | Ponla antes de `anyRequest()` |
 | 403 al **leer** | La sesión no es de administrador | Entra con el administrador |
 | `Schema-validation: missing table [contacto]` al arrancar | No se aplicó `V6` | Revisa que `V6__contacto.sql` esté en `db/migration/` y mira `flyway_schema_history` |
 | `Schema-validation: wrong column type ... id_contacto` | La tabla no es la de `V6` (por ejemplo, quedó `NUMERIC`) | La entidad refleja a la base: corrige la migración (ver [guía 05](05-base-de-datos-y-flyway.md)) |

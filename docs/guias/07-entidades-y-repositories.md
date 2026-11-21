@@ -18,10 +18,17 @@ Tabla tipo_usuario                    Objetos Java
 | Entidad | Tabla | Detalle |
 | --- | --- | --- |
 | `TipoUsuario` | `tipo_usuario` | Los roles |
-| `Region`, `Comuna` | `region`, `comuna` | Ids **manuales** (`Integer`, sin `@GeneratedValue`) |
+| `Region`, `Comuna` | `region`, `comuna` | Ids **manuales** (`Integer`, sin `@GeneratedValue`); `nombre_region` y `nombre_comuna` son `UNIQUE` desde `V7` |
 | `Usuario` | `usuario` | `@ManyToOne` a `TipoUsuario` y `Comuna`; `activo = true` por defecto |
+| `Categoria`, `Producto` | `categoria`, `producto` | Catálogo; `Producto` lleva precio, stock, `stock_critico`, `descuento` y `activo` |
+| `ProductoCategoria` | `producto_categoria` | Relación muchos a muchos; clave compuesta `ProductoCategoriaId` (`@Embeddable`) |
+| `ImagenUrl` | `imagen_url` | URLs de las imágenes subidas y del catálogo inicial (`V9`) |
+| `Blog` | `blog` | Entradas del blog, con portada y galería de imágenes |
+| `Boleta`, `DetalleBoleta` | `boleta`, `detalle_boleta` | Ventas con pago simulado y sus líneas |
+| `Carrito`, `DetalleCarrito` | `carrito`, `detalle_carrito` | Carrito por usuario; clave compuesta `DetalleCarritoId` (`@Embeddable`) |
+| `Contacto` | `contacto` | Mensajes del formulario público |
 
-Cada una tiene su repository (`extends JpaRepository<Entidad, TipoDelId>`). Faltan 8 entidades (ver [hoja de ruta](16-hoja-de-ruta.md)).
+Hay **14 `@Entity` y 2 `@Embeddable`** (`ProductoCategoriaId` y `DetalleCarritoId`) y **12 interfaces de repository**. Doce entidades tienen su repository (`extends JpaRepository<Entidad, TipoDelId>`); `DetalleBoleta` y `DetalleCarrito` se consultan a través de `Boleta` y `Carrito`, no con uno propio. `V9__catalogo_inicial.sql` terminó el catálogo (21 productos, 6 categorías y 63 URLs de imagen, sin tablas nuevas); la próxima migración es `V10`.
 
 ## Cómo se escribe una entidad
 
@@ -32,6 +39,7 @@ Cada una tiene su repository (`extends JpaRepository<Entidad, TipoDelId>`). Falt
 | `@Column(name = "...")` | A qué columna corresponde el atributo. **Todas llevan el nombre explícito** |
 | `@ManyToOne(fetch = LAZY)` + `@JoinColumn` | Relación hacia otra tabla; `LAZY` = se carga solo cuando se necesita |
 | `@JdbcTypeCode(SqlTypes.CHAR)` | Para `CHAR(1)` (el dígito verificador) |
+| `@Embeddable` + `@EmbeddedId` | Clave primaria compuesta: `ProductoCategoriaId` y `DetalleCarritoId` agrupan dos columnas |
 | Lombok (`@Getter`, `@Setter`...) | Genera los getters y setters |
 
 ## Cómo se lee el nombre de un método de repository

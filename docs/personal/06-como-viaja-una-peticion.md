@@ -18,7 +18,7 @@ Piensa en un edificio con **portería, recepción, oficina y archivo**:
 
 ```
 Navegador / Swagger
-   │  POST /api/usuarios   (JSON)
+   │  POST /api/v1/usuarios   (JSON)
    ▼
 1. CORS ............ ¿viene de un origen permitido?
 2. JwtAuthFilter ... ¿trae token? ¿es válido? ¿el usuario sigue activo?
@@ -49,7 +49,7 @@ Todos los errores salen con el mismo JSON (`ErrorResponse`).
 
 ## Ejemplo: registrar un usuario
 
-1. Llega `POST /api/usuarios` (ruta pública: pasa sin token).
+1. Llega `POST /api/v1/usuarios` (ruta pública: pasa sin token).
 2. El controller convierte el JSON en `UsuarioRequest` y valida (RUN con módulo 11, correo, clave).
 3. El service comprueba que el correo y el RUN no existan, hashea la clave con BCrypt, asigna el rol `CLIENTE` (el cliente **no** lo puede elegir), y guarda.
 4. Devuelve `UsuarioResponse` (sin clave) con `201` y `Location`.

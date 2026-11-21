@@ -79,6 +79,11 @@ public class SecurityConfig {
                         // (ANTES de /api/v1/usuarios/{id}; DELETE /me cae en la regla de administrador)
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/usuarios/me/desactivar").hasRole(ROL_CLIENTE)
 
+                        // Listado para los paneles: personal (admin y vendedor), solo lectura
+                        // (ANTES de /api/v1/usuarios/**, que es solo administrador)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/usuarios")
+                        .hasAnyRole(ROL_ADMINISTRADOR, ROL_VENDEDOR)
+
                         // El resto de /api/v1/usuarios (incluye desactivar y borrar vendedores): solo administrador
                         .requestMatchers("/api/v1/usuarios/**").hasRole(ROL_ADMINISTRADOR)
 

@@ -20,7 +20,7 @@ Un log es la **bitácora de un barco**: cada línea dice cuándo, quién y qué 
 | `DEBUG` | Detalle para desarrollar | `Buscando producto 5` |
 | `INFO` | Hechos normales importantes | `Boleta 120 creada` |
 | `WARN` | Algo raro, no un fallo | `Intento de login fallido` |
-| `ERROR` | Algo falló | `Error no controlado en /api/...` |
+| `ERROR` | Algo falló | `Error no controlado en /api/v1/...` |
 
 Al fijar un nivel se muestran ese y los mayores.
 
@@ -36,6 +36,8 @@ Al fijar un nivel se muestran ese y los mayores.
 | IntelliJ | Pestaña **Run** |
 | Terminal | La misma terminal |
 | MySQL en Docker | `docker compose logs -f db` |
+
+El servicio `backend` del compose está comentado: el log de la API sale de IntelliJ o de la terminal donde la arrancaste. `docker compose logs backend` solo funcionará cuando lo actives.
 
 Para buscar un error: `./mvnw spring-boot:run 2>&1 | grep -E "ERROR|WARN|Caused by"`.
 

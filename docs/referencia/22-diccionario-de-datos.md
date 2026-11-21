@@ -1,8 +1,8 @@
 # 22. Diccionario de datos
 
-Las 13 tablas de `V1__esquema_inicial.sql`, las 3 tablas puente de `V5` (`blog_imagen`, `producto_imagen`, `categoria_imagen`) y `contacto` (`V6`), columna por columna, con sus reglas. `V8` agrega `usuario.google_id` y permite `contrasenia NULL` para las cuentas solo-Google. **La base manda**: si una entidad no coincide con esto, `ddl-auto: validate` impide que la app arranque.
+Las 13 tablas de `V1__esquema_inicial.sql`, las 3 tablas puente de `V5` (`blog_imagen`, `producto_imagen`, `categoria_imagen`) y `contacto` (`V6`), columna por columna, con sus reglas. `V8` agrega `usuario.google_id` y permite `contrasenia NULL` para las cuentas solo-Google; `V9` inserta el catálogo inicial (21 productos, 6 categorías, 63 URLs de imagen) sin crear tablas. **La base manda**: si una entidad no coincide con esto, `ddl-auto: validate` impide que la app arranque.
 
-Estado de cada tabla en el código: ✅ tiene entidad y repository · ⏳ solo existe en la base.
+Estado de cada tabla en el código: ✅ tiene entidad y repository. **Las 17 tablas de negocio ya tienen entidad y repository** (20 nov); las marcas ⏳ que aparecen más abajo corresponden al momento en que se escribió esta referencia y se conservan como historial de la implementación. Detalle del catálogo en [30](30-catalogo-y-precios.md) y de carrito/boletas en [31](31-carrito-y-boletas.md).
 
 ## Mapa de relaciones
 

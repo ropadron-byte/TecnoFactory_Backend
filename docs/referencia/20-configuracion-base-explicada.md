@@ -1,6 +1,6 @@
 # 20. Configuración base explicada
 
-Lo que se dejó resuelto **una sola vez** antes de la segunda entidad (20 oct 2026), para que `Categoria`, `Producto` y las demás solo repitan la [receta de la guía 19](19-validacion-run-service-y-controller-explicados.md#13-la-receta-para-la-próxima-entidad). Todo está **comprobado**: 29 tests pasan, la app arranca, Swagger muestra "TecnoFactory API" con el botón **Authorize** y `POST /api/usuarios` devuelve 201.
+Lo que se dejó resuelto **una sola vez** antes de la segunda entidad (20 oct 2026), para que `Categoria`, `Producto` y las demás solo repitan la [receta de la guía 19](19-validacion-run-service-y-controller-explicados.md#13-la-receta-para-la-próxima-entidad). Entonces estaban **comprobados**: 29 tests pasaban, la app arrancaba, Swagger mostraba "TecnoFactory API" con el botón **Authorize** y `POST /api/v1/usuarios` devolvía 201. Hoy (20 nov) el conjunto es de **269 tests en 32 archivos** y todas las piezas siguen en uso.
 
 ## En palabras simples
 
@@ -31,7 +31,7 @@ Lo que se dejó resuelto **una sola vez** antes de la segunda entidad (20 oct 20
 
 ## 2. Los dos handlers
 
-`HttpMediaTypeNotSupportedException` (415) y `MissingServletRequestParameterException` (400). Antes caían en el handler genérico y salían como 500, que le dice al frontend que el fallo es del servidor cuando es de quien llama. El 415 tiene test (`postSinContentTypeJsonDevuelve415`). El de parámetro faltante **no tiene test todavía**: `Usuario` no tiene parámetros obligatorios; se prueba con el primer listado con filtro.
+`HttpMediaTypeNotSupportedException` (415) y `MissingServletRequestParameterException` (400). Antes caían en el handler genérico y salían como 500, que le dice al frontend que el fallo es del servidor cuando es de quien llama. El 415 tiene test (`postSinContentTypeJsonDevuelve415`). El handler de parámetro faltante **existe y devuelve 400 con el nombre del parámetro**, pero todavía **no tiene test dedicado**. En el código actual `GET /api/v1/productos?categoriaId=...` es un filtro opcional (`required = false`) y los `@RequestParam` de imágenes son partes `multipart` (van al handler de parte faltante), así que no hay una ruta que lo provoque de forma natural: queda como handler de respaldo y la prueba exigiría un parámetro obligatorio nuevo o invocarlo directamente.
 
 ## 3. Paginación
 
@@ -47,6 +47,8 @@ Lo que se dejó resuelto **una sola vez** antes de la segunda entidad (20 oct 20
 | `max-page-size: 100` | Si el cliente pide `?size=5000`, Spring lo recorta a 100 |
 
 Se fijó **antes** del primer listado porque después cambiar el contrato obliga a cambiar el frontend.
+
+Todos los controllers con `Pageable` llevan `@ParameterObject` (blogs, imágenes, contactos, productos y boletas, incluidos `/productos/ofertas` y los listados de boletas). Sin esa anotación Swagger no mostraba `page`, `size` ni `sort` como parámetros separados.
 
 ## 4. Zona horaria
 
@@ -80,7 +82,7 @@ Hoy no se nota (`fechaNacimiento` es solo fecha). Se nota con la primera `Boleta
 
 El navegador bloquea que el frontend (otro puerto) llame a la API. Son tres cambios:
 
-1. `config/CorsConfig.java`: un bean `CorsConfigurationSource` que permite los orígenes de `cors.allowed-origins`, los métodos `GET, POST, PUT, PATCH, DELETE, OPTIONS` y las cabeceras `Authorization` y `Content-Type`, solo para `/api/**`.
+1. `config/CorsConfig.java`: un bean `CorsConfigurationSource` que permite los orígenes de `cors.allowed-origins`, los métodos `GET, POST, PUT, PATCH, DELETE, OPTIONS` y las cabeceras `Authorization` y `Content-Type`, solo para `/api/v1/**`.
 2. `application.yaml`: `cors.allowed-origins: ${CORS_ORIGINS:http://localhost:5173}`. Si el frontend usa Create React App, agrega `,http://localhost:3000`.
 3. `SecurityConfig`: `.cors(Customizer.withDefaults())`. Spring Security debe aplicar CORS **antes** de sus filtros; encuentra solo el bean.
 
@@ -92,7 +94,7 @@ En producción se define `CORS_ORIGINS` con la URL real, **sin `*`**.
 ./mvnw test -Dtest="*Test"
 ```
 
-Esperado en ese momento: **29 tests, 0 fallos** (14 de RUN y request, 5 del service, 9 del controller y 1 de `PageResponse`). Con la seguridad del 20 oct (noche) son **56**: ver [21, sección 13](21-seguridad-jwt-y-roles-explicada.md#13-las-pruebas-de-seguridad). Luego arrancar la app, abrir `/swagger-ui/index.html` y repetir `POST /api/usuarios` (debe dar 201 con comuna y región).
+Esperado en ese momento: **29 tests, 0 fallos** (14 de RUN y request, 5 del service, 9 del controller y 1 de `PageResponse`). Con la seguridad del 20 oct (noche) son **56**: ver [21, sección 13](21-seguridad-jwt-y-roles-explicada.md#13-las-pruebas-de-seguridad). Hoy (20 nov) son **269 en 32 archivos**. Luego arrancar la app, abrir `/swagger-ui/index.html` y repetir `POST /api/v1/usuarios` (debe dar 201 con comuna y región).
 
 ## 8. Errores que aparecieron
 

@@ -41,19 +41,20 @@ Debe mostrar **solo** `SELECT, INSERT, UPDATE, DELETE` sobre `tecnofactory.*` (s
 - [ ] **HTTPS** (sin él, las claves y los tokens viajan en claro).
 - [ ] **Límite de intentos de login** (contra fuerza bruta).
 - [ ] Revisar que cada ruta nueva tenga su regla de rol: `SecurityConfig` termina en `anyRequest().denyAll()`.
-- [ ] Confirmar que `GET /api/imagenes/**` exige personal y que `/uploads/**` sigue público con `X-Content-Type-Options: nosniff` y `Content-Security-Policy: default-src 'none'`.
-- [ ] Confirmar que el blog público (incluido `/api/blogs/{id}`) **no** devuelve `autorCorreo`; el correo solo sale en `/api/blogs/gestion/{id}`.
+- [ ] Confirmar que `GET /api/v1/imagenes/**` exige personal y que `/uploads/**` sigue público con `X-Content-Type-Options: nosniff` y `Content-Security-Policy: default-src 'none'`.
+- [ ] Confirmar que el blog público (incluido `/api/v1/blogs/{id}`) **no** devuelve `autorCorreo`; el correo solo sale en `/api/v1/blogs/gestion/{id}`.
 - [ ] Decidir dónde guarda el frontend el token.
 
 ## Aplicación
 
 - [ ] `Dockerfile` del backend y compose de producción (fase 9).
-- [ ] `./mvnw test -Dtest="*Test"` en verde. *(11 nov: 249 tests, 0 fallos.)*
+- [ ] `./mvnw test -Dtest="*Test"` en verde. *(20 nov: 269 tests, 0 fallos.)*
 - [x] `contextLoads` en verde contra una base real (11 nov, MySQL 8.4).
 - [ ] Arranque con una clave de ejemplo: debe **fallar** con un mensaje que nombre la variable, sin imprimir el valor.
 - [ ] Arranque con `ADMIN_PASSWORD` de 7 caracteres o con más de 72 bytes: debe **fallar**.
 - [ ] `/actuator/health` responde `UP`.
 - [ ] Zona horaria `America/Santiago` verificada en fechas guardadas.
+- [ ] Recorrido manual del login en Swagger (Authorize, llamar a una ruta protegida y comprobar 200/401/403) — **pendiente**.
 
 ## Prueba final
 

@@ -74,8 +74,8 @@ public class CategoriaService {
 **Regla de rol** (ejemplo: lee cualquiera con sesión; escribe vendedor o administrador):
 
 ```java
-.requestMatchers(HttpMethod.GET, "/api/categorias/**").authenticated()
-.requestMatchers("/api/categorias/**").hasAnyRole("ADMINISTRADOR", "VENDEDOR")
+.requestMatchers(HttpMethod.GET, "/api/v1/categorias/**").authenticated()
+.requestMatchers("/api/v1/categorias/**").hasAnyRole("ADMINISTRADOR", "VENDEDOR")
 ```
 
 ## Antes de decir «terminé»

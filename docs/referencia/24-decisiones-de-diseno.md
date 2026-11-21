@@ -64,6 +64,11 @@ Formato: **Decisión · Motivo · Alternativa descartada · Consecuencia.**
 ### D15. MapStruct para convertir entre entidad y DTO
 - **Motivo:** genera el código en compilación (rápido y sin trucos en ejecución).
 
+### D37. El precio con descuento se calcula en un solo lugar
+- **Decisión:** `util/Precios.conDescuento(precio, descuento)` redondea a peso entero (CLP). Lo usan los mappers de `Producto`, `Carrito` y `Boleta`, y también `BoletaService` al totalizar.
+- **Motivo:** que la tienda, el carrito y la boleta muestren el mismo número; si cada mapper hiciera la cuenta por su lado, divergirían.
+- **Consecuencia:** el descuento se aplica al precio unitario antes de copiarlo al detalle, y el total de la línea es `precioConDescuento * cantidad`.
+
 ## Seguridad
 
 ### D16. Sin sesión de servidor: JWT sin estado (`STATELESS`)
@@ -81,8 +86,8 @@ Formato: **Decisión · Motivo · Alternativa descartada · Consecuencia.**
 - **Motivo:** si «el correo no existe» y «la clave es incorrecta» dieran mensajes distintos, un atacante podría descubrir qué correos están registrados.
 
 ### D20. Todo lo no listado queda denegado (`anyRequest().denyAll()`)
-- **Motivo:** si olvidas proteger una ruta nueva, queda cerrada y no abierta. Las rutas públicas se enumeran una por una (`/error`, `OPTIONS`, Swagger, health, login, registro, contacto, lectura de blogs y `/uploads/**`).
-- **Consecuencia:** agregar un endpoint exige agregar su regla en `SecurityConfig`; si no, responde 403 incluso con token. `GestionSeguridadTest` lo comprueba.
+- **Motivo:** si olvidas proteger una ruta nueva, queda cerrada y no abierta. Las rutas públicas se enumeran una por una: Swagger, `/actuator/health`, `/error`, `OPTIONS`, login (normal y Google), registro, envío de contacto, lectura de blogs, lectura de productos y categorías, y `/uploads/**`.
+- **Consecuencia:** agregar un endpoint exige agregar su regla en `SecurityConfig`; si no, responde 403 incluso con token. `GestionSeguridadTest` lo comprueba. El detalle por método y rol está en [08](../referencia/08-seguridad.md#control-de-acceso-por-rol-estado-actual).
 
 ### D21. El 401 y el 403 pasan por el mismo manejador de errores
 - **Motivo:** las reglas por ruta fallan en los filtros, antes del controller; `ManejadorErroresSeguridad` los reenvía al `GlobalExceptionHandler` para que el JSON sea idéntico.
@@ -91,18 +96,18 @@ Formato: **Decisión · Motivo · Alternativa descartada · Consecuencia.**
 - **Motivo:** una migración con una clave quedaría en Git para siempre. Todos los datos salen de variables `ADMIN_*`; la clave se guarda con BCrypt y se valida al arrancar (8 a 72 caracteres, máximo 72 bytes UTF-8). Los placeholders de `.env.example` se rechazan.
 
 ### D23. El registro público solo crea clientes
-- **Motivo:** nadie debe poder auto-asignarse un rol alto. Vendedores y administradores se crean desde una ruta de administrador (pendiente).
+- **Motivo:** nadie debe poder auto-asignarse un rol alto. Los vendedores se crean con `POST /api/v1/usuarios/vendedores` y los administradores por código al arrancar; ambas vías están implementadas.
 
 ### D24. La clave se limita a 72 caracteres y 72 bytes UTF-8
 - **Motivo:** BCrypt solo considera los primeros 72 bytes; permitir más daría una falsa sensación de seguridad. Se valida el largo en caracteres **y** en bytes para que un acento no haga que la clave se corte en silencio.
 
 ### D31. Dos contratos para blogs: público y gestión
-- **Motivo:** el detalle público (`GET /api/blogs/{id}`) no debe exponer el correo del autor. `BlogPublicoResponse` no incluye datos del autor; `BlogResponse` (gestión) sí los incluye y solo se sirve en `GET /api/blogs/gestion/{id}` a `ADMINISTRADOR` o `VENDEDOR`.
+- **Motivo:** el detalle público (`GET /api/v1/blogs/{id}`) no debe exponer el correo del autor. `BlogPublicoResponse` no incluye datos del autor; `BlogResponse` (gestión) sí los incluye y solo se sirve en `GET /api/v1/blogs/gestion/{id}` a `ADMINISTRADOR` o `VENDEDOR`.
 - **Descartado:** devolver siempre el mismo DTO y ocultar campos según el rol (más fácil de filtrar por error).
 - **Consecuencia:** dos DTOs y dos rutas que mantener; el listado público (`BlogResumenResponse`) tampoco incluye `autorNombre`.
 
 ### D32. Los metadatos de imágenes exigen personal; los archivos siguen públicos
-- **Motivo:** `GET /api/imagenes/**` revelaba ids de blogs ocultos y sus dueños. Los `<img>` no envían JWT, así que `/uploads/**` debe seguir abierto.
+- **Motivo:** `GET /api/v1/imagenes/**` revelaba ids de blogs ocultos y sus dueños. Los `<img>` no envían JWT, así que `/uploads/**` debe seguir abierto.
 - **Consecuencia:** el frontend público solo usa las URLs de `/uploads/**`; la gestión de imágenes requiere `ADMINISTRADOR` o `VENDEDOR`.
 
 ### D33. Cabeceras de seguridad en `/uploads/**`
@@ -111,7 +116,7 @@ Formato: **Decisión · Motivo · Alternativa descartada · Consecuencia.**
 
 ### D34. La revocación inmediata de tokens no se implementa
 - **Motivo:** hoy el token dura 1 hora y `JwtAuthFilter` consulta la base en cada petición, así que desactivar o borrar un usuario surte efecto de inmediato. Falta el caso de «cerrar sesión en un dispositivo» manteniendo la cuenta activa.
-- **Riesgo aceptado:** un token robado sirve hasta expirar. Mitigación actual: vida corta y HTTPS en producción. Alternativas futuras: lista de tokens anulados en Redis o *refresh tokens*.
+- **Riesgo aceptado:** un token robado sirve hasta expirar. Mitigación actual: vida corta (1 hora); HTTPS en producción sigue pendiente. Alternativas futuras: lista de tokens anulados en Redis o *refresh tokens*.
 
 ### D35. Imágenes huérfanas: documentadas, sin limpieza automática
 - **Motivo:** al borrar un blog o una imagen de la galería se quitan las relaciones, pero el archivo en disco puede quedar sin dueño. Un job de limpieza o una marca de fecha añaden complejidad y riesgo de borrar archivos en uso.
@@ -120,7 +125,7 @@ Formato: **Decisión · Motivo · Alternativa descartada · Consecuencia.**
 
 ### D36. Login con Google con ID token, no con redirección OAuth2
 - **Motivo:** la API es *stateless* y ya entrega un JWT propio. La redirección OAuth2 de Spring crea sesión con cookies, obliga a CORS con credenciales y mezcla dos formas de sesión. Además, vincular Google automáticamente por correo permitiría que alguien cree una cuenta de Google con el correo de otra persona y entre a la cuenta ajena.
-- **Decisión (11 nov):** React obtiene un **ID token** con Google Identity Services y lo envía a `POST /api/auth/google`. La API verifica firma (JWKS), `iss`, `aud`, `exp` y `email_verified`, y emite su propio JWT. Una cuenta nueva recibe **202** y un token temporal de 10 minutos; la cuenta se crea solo al completar el perfil. Una cuenta con contraseña responde **409** y se vincula únicamente con sesión iniciada (`/api/auth/google/vincular`, **204**).
+- **Decisión (11 nov):** React obtiene un **ID token** con Google Identity Services y lo envía a `POST /api/v1/auth/google`. La API verifica firma (JWKS), `iss`, `aud`, `exp` y `email_verified`, y emite su propio JWT. Una cuenta nueva recibe **202** y un token temporal de 10 minutos; la cuenta se crea solo al completar el perfil. Una cuenta con contraseña responde **409** y se vincula únicamente con sesión iniciada (`/api/v1/auth/google/vincular`, **204**).
 - **Consecuencia:** no se usa Client Secret; `GOOGLE_CLIENT_ID` es público pero obligatorio. El `registroToken` no sirve como `Bearer` (lleva `proposito=registro_google`). Ver [referencia 29](29-login-con-google-explicado.md).
 
 ## Configuración
@@ -149,10 +154,12 @@ Formato: **Decisión · Motivo · Alternativa descartada · Consecuencia.**
 
 | Tema | Opciones |
 | --- | --- |
-| Cómo se aplica `descuento` al precio | Sobre el total de la línea o sobre el precio unitario antes de copiarlo a `detalle_boleta` |
 | Dónde guarda React el token | `localStorage` (simple, expuesto a XSS) o cookie `HttpOnly` (más segura, exige ajustes de CORS y CSRF) |
-| Cómo se crean los vendedores | Ruta de administrador (decidido), forma exacta pendiente |
 | Revocación de tokens | Lista de tokens anulados (Redis) o *refresh tokens*; ver D34 |
+| Límite de intentos de login | Contador en memoria, Redis o regla en el proxy inverso (aún sin implementar) |
+| HTTPS | Terminar TLS en Nginx/Caddy o en el balanceador (aún sin configurar) |
+| Fecha de la tabla `contacto` | Definir si se registra automáticamente o la aporta el formulario |
+| Detalle por parámetro en `HandlerMethodValidationException` | Hoy el handler responde «Parámetros inválidos» sin `detalles`; ampliarlo para decir qué parámetro falló |
 | Limpieza de imágenes huérfanas | Job programado que compare disco y base, o dejarlo manual; ver D35 |
 | Unicidad de nombres de región y comuna | `V7` agrega los `UNIQUE`; si se cargan datos externos, decidir si el nombre o el código oficial es la clave |
 

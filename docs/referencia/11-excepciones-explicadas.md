@@ -1,6 +1,6 @@
 # 11. Excepciones explicadas
 
-Guía para entender, línea por línea, las cuatro clases del paquete `exception/` y cada error que la API puede devolver. Está pensada para leerse de arriba hacia abajo: primero los conceptos, luego las librerías, después cada archivo y al final cada error por separado.
+Guía para entender, línea por línea, las cuatro clases originales del paquete `exception/` y los errores que la API puede devolver. Está pensada para leerse de arriba hacia abajo: primero los conceptos, luego las librerías, después cada archivo y al final cada error por separado. El paquete tiene además `ArchivoNoValidoException` y `TokenGoogleInvalidoException`, agregadas después; sus handlers están resumidos en la [sección 8](#8-catálogo-de-errores-uno-por-uno).
 
 Archivos que se explican (ruta `src/main/java/com/factory/tecnofactory/exception/`):
 
@@ -11,7 +11,9 @@ Archivos que se explican (ruta `src/main/java/com/factory/tecnofactory/exception
 | `ErrorResponse.java` | Forma única del JSON de error | [6](#6-errorresponsejava) |
 | `GlobalExceptionHandler.java` | Atrapar las excepciones y convertirlas en `ErrorResponse` | [7](#7-globalexceptionhandlerjava) |
 
-> Estado (20 oct): los cuatro archivos **compilan y se probaron con un controller**: 400, 401, 403, 404, 405, 409 y 415 tienen test (`UsuarioControllerTest`, `AuthControllerTest`). Sin cubrir todavía: el 500 genérico y el 409 por el `UNIQUE` de la base. Con el login se agregaron los handlers 401 (secciones 8.12 y 8.13).
+> Estado (20 oct): los cuatro archivos **compilan y se probaron con un controller**: 400, 401, 403, 404, 405, 409 y 415 tienen test (`UsuarioControllerTest`, `AuthControllerTest`). Con el login se agregaron los handlers 401 (secciones 8.12 y 8.13).
+>
+> Estado actual (20 nov): `GlobalExceptionHandlerTest` cubre el mensaje del **413** (2 tests); el proyecto compila y los **269 tests en 32 archivos** pasan. El **500 genérico**, el **409 por violación `UNIQUE` de la base** y el 400 por parámetro faltante tienen handler, pero **no test directo**. Después del 20 oct se añadieron más handlers (archivos inválidos o demasiado grandes, orden inválido, parte faltante, token de Google, entre otros), por lo que los números de línea de los listados de esta guía corresponden a la versión original del archivo, no a la actual.
 
 ## En palabras simples
 
@@ -23,11 +25,11 @@ Piensa en la API como una **oficina de correos** y en el `GlobalExceptionHandler
 
 | Código | Cómo contárselo a alguien | Ejemplo en TecnoFactory |
 | --- | --- | --- |
-| **400** | «Tu pedido está mal escrito» | Falta el correo, el JSON está roto, `GET /api/usuarios/abc` |
+| **400** | «Tu pedido está mal escrito» | Falta el correo, el JSON está roto, `GET /api/v1/usuarios/abc` |
 | **401** | «No sé quién eres» | Sin token, token vencido, clave incorrecta |
-| **403** | «Sé quién eres, pero esa puerta no es para ti» | Un cliente intenta ver `/api/usuarios/1` |
+| **403** | «Sé quién eres, pero esa puerta no es para ti» | Un cliente intenta ver `/api/v1/usuarios/1` |
 | **404** | «Eso no existe» | Un usuario o una comuna con un id que no está |
-| **405** | «Esa ventanilla no atiende ese trámite» | `DELETE /api/usuarios` |
+| **405** | «Esa ventanilla no atiende ese trámite» | `DELETE /api/v1/usuarios` |
 | **409** | «Tu pedido es válido, pero choca con lo que ya hay» | Correo o RUN ya registrado |
 | **415** | «No leo ese tipo de documento» | `POST` con texto plano en vez de JSON |
 | **500** | «Se descompuso algo de nuestro lado» | Un error inesperado; el detalle va al log, **no** al cliente |
@@ -67,7 +69,7 @@ Con `GlobalExceptionHandler` **todos** los errores salen con el mismo formato, e
   "status": 404,
   "error": "Not Found",
   "mensaje": "Producto no encontrado con id 5",
-  "ruta": "/api/productos/5",
+  "ruta": "/api/v1/productos/5",
   "detalles": null
 }
 ```
@@ -310,7 +312,7 @@ Regla práctica: **4xx = el cliente puede corregirlo; 5xx = es un problema del s
 
 ```
 Cliente (React)
-   │  PUT /api/productos/999
+   │  PUT /api/v1/productos/999
    ▼
 Controller ──► Service ──► Repository ──► MySQL
                   │
@@ -481,7 +483,7 @@ if (!p.getActivo()) {
 | 8 | `status`: el número del código HTTP (`404`). `int` y no `Integer`: nunca es nulo |
 | 9 | `error`: el nombre del código en inglés (`Not Found`), que Spring entrega con `getReasonPhrase()` |
 | 10 | `mensaje`: explicación en español para el usuario |
-| 11 | `ruta`: la URL que se pidió (`/api/productos/5`), útil para depurar |
+| 11 | `ruta`: la URL que se pidió (`/api/v1/productos/5`), útil para depurar |
 | 12 | `detalles`: mapa **campo → mensaje**. Solo se llena en errores de validación; en el resto vale `null` |
 | 13 | Cierra el record (no necesita cuerpo) |
 
@@ -590,6 +592,20 @@ Resumen (las líneas son las de tu archivo):
 | [8.9](#89-handlermethodvalidationexception--400) | `HandlerMethodValidationException` | 400 | 77-80 |
 | [8.10](#810-accessdeniedexception--403) | `AccessDeniedException` | 403 | 82-85 |
 
+Las subsecciones 8.11 a 8.13 (`MethodArgumentTypeMismatchException`, `BadCredentialsException` y `AuthenticationException`) se agregaron después y no tenían número de línea en el resumen original.
+
+Además, el `GlobalExceptionHandler` actual atiende otros casos que aparecieron con el catálogo, las imágenes y el login con Google:
+
+| Excepción | HTTP | Cuándo |
+| --- | --- | --- |
+| `ArchivoNoValidoException` | 400 | El contenido o el `Content-Type` de una imagen no es válido ([18](../guias/18-subida-de-imagenes.md)) |
+| `MissingServletRequestPartException` | 400 | Falta la parte obligatoria (`archivo`) en una subida |
+| `MaxUploadSizeExceededException` | 413 | El archivo supera `spring.servlet.multipart.max-file-size` |
+| `PropertyReferenceException` (o envuelto en `InvalidDataAccessApiUsageException`) | 400 | `?sort=campoQueNoExiste` en un listado |
+| `HttpMediaTypeNotSupportedException` | 415 | `POST` sin `Content-Type: application/json` ([20, sección 2](20-configuracion-base-explicada.md#2-los-dos-handlers)) |
+| `MissingServletRequestParameterException` | 400 | Falta un `?parametro=` obligatorio (handler sin test dedicado) |
+| `TokenGoogleInvalidoException` | 401 | ID token de Google inválido o expirado ([29](29-login-con-google-explicado.md)) |
+
 ### 8.1 `RecursoNoEncontradoException` → 404
 
 ```java
@@ -611,7 +627,7 @@ Resumen (las líneas son las de tu archivo):
 
 ```json
 { "timestamp": "2026-10-17T10:15:30.123", "status": 404, "error": "Not Found",
-  "mensaje": "Producto no encontrado con id 999", "ruta": "/api/productos/999", "detalles": null }
+  "mensaje": "Producto no encontrado con id 999", "ruta": "/api/v1/productos/999", "detalles": null }
 ```
 
 - **Ojo:** el mensaje incluye el id que pidió el cliente, que ya conoce; no revela nada interno.
@@ -636,7 +652,7 @@ Resumen (las líneas son las de tu archivo):
 
 ```json
 { "timestamp": "...", "status": 409, "error": "Conflict",
-  "mensaje": "Stock insuficiente para Teclado Mecánico", "ruta": "/api/boletas", "detalles": null }
+  "mensaje": "Stock insuficiente para Teclado Mecánico", "ruta": "/api/v1/boletas", "detalles": null }
 ```
 
 ### 8.3 `MethodArgumentNotValidException` → 400
@@ -665,7 +681,7 @@ Resumen (las líneas son las de tu archivo):
 
 ```json
 { "timestamp": "...", "status": 400, "error": "Bad Request",
-  "mensaje": "Datos inválidos", "ruta": "/api/productos",
+  "mensaje": "Datos inválidos", "ruta": "/api/v1/productos",
   "detalles": { "nombre": "<mensaje de la regla>", "precio": "<mensaje de la regla>" } }
 ```
 
@@ -734,7 +750,7 @@ Resumen (las líneas son las de tu archivo):
 70  }
 ```
 
-- **Quién la lanza:** Spring, cuando la ruta existe pero ningún controller la atiende con ese método. Ejemplo: solo hay `GET /api/productos` y se envía `DELETE /api/productos`.
+- **Quién la lanza:** Spring, cuando la ruta existe pero ningún controller la atiende con ese método. Ejemplo: solo hay `GET /api/v1/productos` y se envía `DELETE /api/v1/productos`.
 - **Por qué 405:** distingue "no existe la ruta" (404) de "existe, pero no así".
 - **Nota:** la respuesta por defecto de Spring incluye una cabecera `Allow` con los métodos válidos; la de este handler no. No es necesaria para el frontend.
 
@@ -747,7 +763,7 @@ Resumen (las líneas son las de tu archivo):
 75  }
 ```
 
-- **Quién la lanza:** Spring MVC cuando la ruta no corresponde a ningún controller ni archivo estático (por ejemplo `/api/productoss`, un error de tipeo). También la provocan los navegadores al pedir `/favicon.ico`.
+- **Quién la lanza:** Spring MVC cuando la ruta no corresponde a ningún controller ni archivo estático (por ejemplo `/api/v1/productoss`, un error de tipeo). También la provocan los navegadores al pedir `/favicon.ico`.
 - **Por qué 404:** no hay nada en esa URL.
 - **Diferencia con 8.1:** 8.1 es "la ruta existe, pero el registro no"; aquí es "la ruta misma no existe". Ambos son 404, pero con mensaje distinto.
 
@@ -775,7 +791,7 @@ Resumen (las líneas son las de tu archivo):
 
 - **Quién la lanza:** Spring Security cuando un método protegido con seguridad por métodos (por ejemplo `@PreAuthorize("hasRole('ADMINISTRADOR')")`) lo invoca alguien sin el rol.
 - **Por qué 403:** sabemos quién eres, pero no puedes hacer esto.
-- **Actualización 20 oct:** `SecurityConfig` ya no deja todo abierto. Cuando un usuario con sesión pide una ruta que su rol no permite (por ejemplo un cliente en `/api/usuarios/1`), `ManejadorErroresSeguridad` reenvía la excepción a este handler y el cliente recibe 403 con el JSON de siempre.
+- **Actualización 20 oct:** `SecurityConfig` ya no deja todo abierto. Cuando un usuario con sesión pide una ruta que su rol no permite (por ejemplo un cliente en `/api/v1/usuarios/1`), `ManejadorErroresSeguridad` reenvía la excepción a este handler y el cliente recibe 403 con el JSON de siempre.
 - **El matiz 401/403, resuelto:** un visitante **sin token** recibe 401 (`AuthenticationException`, secciones 8.12 y 8.13) y un usuario **identificado sin permiso** recibe 403 (este handler). Son dos handlers distintos.
 - **Las reglas por ruta de `SecurityConfig`** (`.requestMatchers(...).hasRole(...)`) se resuelven en los filtros, antes de llegar a los controllers; por eso necesitan `ManejadorErroresSeguridad` para llegar a este handler ([21](21-seguridad-jwt-y-roles-explicada.md#9-manejadorerroresseguridadjava-y-los-dos-handlers-nuevos)).
 
@@ -788,11 +804,11 @@ public ResponseEntity<ErrorResponse> tipoDeParametroInvalido(MethodArgumentTypeM
 }
 ```
 
-- **Quién la lanza:** Spring cuando no puede convertir un valor de la URL al tipo del parámetro: por ejemplo `GET /api/usuarios/abc` con `@PathVariable Long id`.
+- **Quién la lanza:** Spring cuando no puede convertir un valor de la URL al tipo del parámetro: por ejemplo `GET /api/v1/usuarios/abc` con `@PathVariable Long id`.
 - **Por qué 400:** el cliente envió algo que no es un número. Sin este handler caería en el genérico `Exception` y saldría **500**, que sugiere un fallo del servidor cuando es un error del cliente.
 - **`ex.getName()`:** el nombre del parámetro (`id`), un texto del código sin datos sensibles. **No** se muestra el valor enviado.
 - **Cómo se descubrió:** al diseñar el `UsuarioController` (19 oct). Lo cubre el test `buscarConIdNoNumericoDevuelve400`.
-- **Casos parecidos pendientes** (hoy caen en el 500 genérico): `HttpMediaTypeNotSupportedException` (415: `POST` sin `Content-Type: application/json`) y `MissingServletRequestParameterException` (400: falta un `?parametro=`). Ver [Cambios recientes](../estado/cambios-recientes.md#configuración-base-antes-de-la-segunda-entidad).
+- **Casos parecidos, ya resueltos:** `HttpMediaTypeNotSupportedException` (415: `POST` sin `Content-Type: application/json`) tiene handler y test; `MissingServletRequestParameterException` (400: falta un `?parametro=`) tiene handler, pero todavía **no** tiene test dedicado. Ver [20, sección 2](20-configuracion-base-explicada.md#2-los-dos-handlers).
 
 ### 8.12 `BadCredentialsException` → 401
 
@@ -838,14 +854,14 @@ Ejemplo: si se lanza `RecursoNoEncontradoException`, Spring tiene dos candidatos
 
 `@RestControllerAdvice` solo actúa sobre excepciones lanzadas **dentro** de un controller (o de lo que este llama). No ve:
 
-| Situación | Quién responde | Cuándo se resuelve |
+| Situación | Quién responde | Estado hoy |
 | --- | --- | --- |
-| Petición sin token o con token inválido (401) | Spring Security (filtros) | Fase 4, en `SecurityConfig` |
-| Ruta bloqueada por rol (`requestMatchers(...)`) | Spring Security (filtros) | Fase 4 |
-| Excepción dentro de un filtro propio (por ejemplo `JwtAuthFilter`) | Spring Security o el contenedor | Fase 4: el filtro debe responder el error por sí mismo |
+| Petición sin token o con token inválido (401) | Spring Security (filtros); `ManejadorErroresSeguridad` reenvía al handler | Resuelto en `SecurityConfig` + `ManejadorErroresSeguridad` |
+| Ruta bloqueada por rol (`requestMatchers(...)`) | Spring Security (filtros); reenviado al handler | Resuelto (403 con el JSON de siempre) |
+| Excepción dentro de un filtro propio (por ejemplo `JwtAuthFilter`) | Spring Security o el contenedor | El filtro identifica, no rechaza; quien decide es `SecurityConfig` |
 | Errores anteriores a llegar a Spring MVC | La respuesta de error por defecto de Spring (`/error`) | Se controla con `server.error.*` (ver [04](04-perfiles-spring.md)) |
 
-**Antes del 18 oct**, con `SecurityConfig` vacío, Spring Security bloqueaba todas las rutas con 401 antes de que el handler intervenga. **Hoy** el `SecurityConfig` mínimo ya existe y deja las rutas abiertas, así que los errores de tus controllers sí saldrán formateados por el handler (ver [15](15-seguridad-codigo-explicado.md)).
+**Antes del 18 oct**, con `SecurityConfig` vacío, Spring Security bloqueaba todas las rutas con 401 antes de que el handler intervenga. **Hoy** `SecurityConfig` tiene reglas explícitas por método y ruta, con `anyRequest().denyAll()`, y `ManejadorErroresSeguridad` reenvía el 401 y el 403 al mismo `GlobalExceptionHandler`; el par 401/403 ya está resuelto (ver [8.10](#810-accessdeniedexception--403), [8.13](#813-authenticationexception--401) y [08](08-seguridad.md#control-de-acceso-por-rol-estado-actual)).
 
 ---
 
@@ -884,16 +900,16 @@ El mensaje es deliberadamente el mismo si falla el correo o la contraseña: sepa
 
 ## 12. Cómo probar cada error
 
-Requiere un controller y un `SecurityConfig` mínimo (ver [Cambios recientes](../estado/cambios-recientes.md#pendiente)). Los ejemplos suponen un `POST /api/categorias` y un `GET /api/categorias/{id}`; ajusta las rutas a las tuyas.
+Los ejemplos se ejecutan con la app arrancada (hay controllers y `SecurityConfig` con reglas explícitas; las rutas públicas y protegidas están en [08](08-seguridad.md#control-de-acceso-por-rol-estado-actual)). Suponen un `POST /api/v1/categorias` y un `GET /api/v1/categorias/{id}`; escribe `POST` con token de administrador, porque esa escritura ya no es pública. Ajusta las rutas a las tuyas.
 
 | Error | Petición de prueba | Resultado esperado |
 | --- | --- | --- |
-| 404 registro | `curl -i localhost:8080/api/categorias/999999` | 404 y `Categoria no encontrado con id 999999` |
-| 404 ruta | `curl -i localhost:8080/api/categoriass` | 404 y `Ruta no encontrada` |
-| 405 | `curl -i -X DELETE localhost:8080/api/categorias` (si no existe ese `DELETE`) | 405 |
-| 400 id mal escrito | `curl -i localhost:8080/api/usuarios/abc` | 400 y `El parámetro 'id' tiene un formato inválido` |
-| 400 JSON roto | `curl -i -X POST localhost:8080/api/categorias -H "Content-Type: application/json" -d '{"nombre":'` | 400 y `El cuerpo de la petición no es un JSON válido` |
-| 400 validación | `curl -i -X POST localhost:8080/api/categorias -H "Content-Type: application/json" -d '{"nombre":""}'` | 400 con `detalles` |
+| 404 registro | `curl -i localhost:8080/api/v1/categorias/999999` | 404 y `Categoria no encontrado con id 999999` |
+| 404 ruta | `curl -i localhost:8080/api/v1/categoriass` | 404 y `Ruta no encontrada` |
+| 405 | `curl -i -X DELETE localhost:8080/api/v1/categorias` (si no existe ese `DELETE`) | 405 |
+| 400 id mal escrito | `curl -i localhost:8080/api/v1/usuarios/abc` | 400 y `El parámetro 'id' tiene un formato inválido` |
+| 400 JSON roto | `curl -i -X POST localhost:8080/api/v1/categorias -H "Content-Type: application/json" -d '{"nombre":'` | 400 y `El cuerpo de la petición no es un JSON válido` |
+| 400 validación | `curl -i -X POST localhost:8080/api/v1/categorias -H "Content-Type: application/json" -d '{"nombre":""}'` | 400 con `detalles` |
 | 409 duplicado | Crear dos categorías con el mismo nombre | 409 (de tu service o de la base) |
 | 500 | Provocar un fallo a propósito en un método de prueba | 500 genérico y el detalle en el log |
 
@@ -911,8 +927,8 @@ Requiere un controller y un `SecurityConfig` mínimo (ver [Cambios recientes](..
 | Los handlers de los errores de Spring quedan después de `build` | Estética | Funciona igual (ver 9). Para legibilidad puedes agruparlos antes de `Exception.class` |
 | Handlers de 8.7 a 8.10 con `ex` sin usar | Ninguna | Spring lo exige en la firma si se quiere recibir la excepción; no es un error |
 | `detalles` es `null` salvo en 8.3 | Diseño | Intencional |
-| 8.10 devolvería 403 también a visitantes sin token | Diseño | A decidir en la fase 4 (ver 8.10) |
-| No se compiló ni probó | **Pendiente** | La revisión fue por lectura |
+| 8.10 devolvería 403 también a visitantes sin token | Resuelto | Un visitante sin token recibe 401 (8.13); un usuario con sesión sin permiso recibe 403 (8.10) |
+| No se compiló ni probó | **Resuelto** (11 nov) | El proyecto compila y los 269 tests en 32 archivos pasan; `GlobalExceptionHandlerTest` cubre los 2 mensajes del 413. El 500 y el 409 por `UNIQUE` siguen sin test directo |
 
 ---
 

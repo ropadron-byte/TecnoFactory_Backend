@@ -19,7 +19,7 @@ Spring lee `application.yaml` (base) y encima el del perfil activo (`local` o `p
 | `spring.jpa.open-in-view` | `false` | La conexión se suelta al salir del service |
 | `spring.jpa.properties.hibernate.jdbc.time_zone` | `America/Santiago` | Zona horaria con que Hibernate lee y escribe fechas |
 | `spring.jackson.time-zone` | `America/Santiago` | Zona horaria de las fechas en el JSON |
-| `spring.servlet.multipart.max-file-size` / `max-request-size` | `5MB` | Límite de subida de archivos (imágenes futuras) |
+| `spring.servlet.multipart.max-file-size` / `max-request-size` | `5MB` | Límite de subida de archivos (en uso en el panel de imágenes); si se supera, el handler responde 413 |
 | `spring.mail.*` | `localhost:1025` | Servidor de correo; apunta a un SMTP de pruebas (Mailpit) que aún no existe |
 | `spring.cache.type` | `redis` | Caché en Redis (**lo sobrescriben `local` y `prod` con `none`**) |
 | `spring.cache.redis.time-to-live` | `10m` | Cuánto vive un dato en caché |
@@ -28,6 +28,7 @@ Spring lee `application.yaml` (base) y encima el del perfil activo (`local` o `p
 | `google.client-id` | `${GOOGLE_CLIENT_ID}` | Client ID público de Google Cloud. **Obligatorio**: `ConfiguracionValidator` impide arrancar si falta o si quedó el placeholder. No se usa Client Secret |
 | `cors.allowed-origins` | `${CORS_ORIGINS:http://localhost:5173}` | Orígenes del frontend permitidos (lista separada por comas) |
 | `management.endpoints.web.exposure.include` | `health` | Único endpoint de Actuator publicado |
+| `app.uploads.directorio` | `${UPLOADS_DIR:./uploads}` | Carpeta donde se guardan las imágenes subidas y desde la que se sirve `/uploads/**` |
 
 ### La sintaxis `${VARIABLE:valor}`
 

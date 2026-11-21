@@ -11,7 +11,9 @@ Guía para entender, línea por línea, lo que completa el **primer flujo de pun
 | `UsuarioController.java` | `controller/` | La capa HTTP: recibe, valida, delega y responde | [7](#7-usuariocontrollerjava) |
 | `RunUtilTest`, `UsuarioServiceTest`, `UsuarioControllerTest` | `src/test/java/...` | Pruebas sin base de datos | [8](#8-las-pruebas) |
 
-> Estado (19 oct): **8.3, 9.1 y 9.2 confirmados por ti** (las pruebas pasaron y la app arrancó). Pendiente: **9.3**, probarlo a mano en Swagger contra tu MySQL, y el segundo arranque del administrador.
+> Estado (19 oct): **8.3, 9.1 y 9.2 confirmados por ti** (las pruebas pasaron y la app arrancó).
+>
+> Estado actual (11 nov): los pasos 8.3, 9.1 y 9.2 siguen vigentes y el patrón se extendió al resto del backend: catálogo, carrito, boletas, imágenes, contacto y login con Google; **269 tests en 32 archivos pasan**. Sigue pendiente **9.3**, probarlo a mano en Swagger contra MySQL, y el segundo arranque del administrador. Lo que antes era «pendiente» en las secciones 6.4 y 11 (password copiado por el mapper, 409 del `UNIQUE`, `open-in-view`) ya está resuelto o comprobado.
 
 ## En palabras simples
 
@@ -37,10 +39,10 @@ Un **restaurante** sirve para ver qué hace cada pieza:
 ## 1. El flujo completo
 
 ```
-POST /api/usuarios  (JSON)
+POST /api/v1/usuarios  (JSON)
    |
    v
-[ Spring Security ]   -> hoy todo abierto (permitAll)
+[ Spring Security ]   -> POST /api/v1/usuarios es público; el resto tiene reglas explícitas
    |
    v
 [ UsuarioController ] -> @Valid: reglas de campo (8.2) + RunValido (8.3)
@@ -68,7 +70,7 @@ UsuarioResponse (JSON, sin clave) + 201 + cabecera Location
 
 ## 2. El dígito verificador: el algoritmo (módulo 11)
 
-Hoy `UsuarioRequest` solo comprueba que `runDv` sea `0-9` o `K`. Falta comprobar que **corresponda** al RUN. Ejemplo con 12.345.678:
+`UsuarioRequest` comprueba con `@Pattern` que `runDv` sea `0-9` o `K` **y**, con `@RunValido` (módulo 11), que **corresponda** al RUN. Ejemplo con 12.345.678:
 
 1. Toma los dígitos **de derecha a izquierda** y multiplícalos por la secuencia `2, 3, 4, 5, 6, 7`, que se repite.
 2. Suma los resultados.
@@ -310,7 +312,7 @@ public class UsuarioService {
 
 `toResponse` lee `comuna.region.nombre`, y la región es `LAZY`. Hibernate solo puede cargarla **mientras la sesión está abierta**, es decir, dentro de la transacción. Si el service devolviera la entidad y el controller la mapeara después, saldría `LazyInitializationException`. Devolviendo el DTO ya armado, el problema desaparece.
 
-> **Ojo con `open-in-view`:** el diseño y los docs suponen `spring.jpa.open-in-view: false`, pero el `application.yaml` del ZIP del 19 oct decía `true`. Con `true` la sesión sigue abierta durante toda la petición y el error **se esconde**; con `false` se ve enseguida. Ver [Cambios recientes](../estado/cambios-recientes.md#pendiente).
+> **`open-in-view` (resuelto):** el `application.yaml` del ZIP del 19 oct decía `true`, con lo que la sesión seguía abierta durante toda la petición y el error se escondía. Hoy el archivo fija `spring.jpa.open-in-view: false`, así que un mapeo fuera del service falla enseguida. Ver [20](20-configuracion-base-explicada.md#1-resumen).
 
 ### 6.5 Dos aclaraciones de diseño
 
@@ -321,11 +323,11 @@ public class UsuarioService {
 
 ## 7. `UsuarioController.java`
 
-> **Actualización 20 oct:** el controller ganó `GET /api/usuarios/me` y `@SecurityRequirements` en el registro, y `buscarPorId` pasó a ser solo para administrador. La versión vigente y la explicación de la seguridad están en la [guía 21, sección 11](21-seguridad-jwt-y-roles-explicada.md#11-lo-que-cambió-en-usuariocontroller-y-usuarioservice). Lo explicado aquí (`@RestController`, `@Valid`, 201 con `Location`) sigue siendo válido.
+> **Actualización 20 oct:** el controller ganó `GET /api/v1/usuarios/me` y `@SecurityRequirements` en el registro, y `buscarPorId` pasó a ser solo para administrador. La versión vigente y la explicación de la seguridad están en la [guía 21, sección 11](21-seguridad-jwt-y-roles-explicada.md#11-lo-que-cambió-en-usuariocontroller-y-usuarioservice). Lo explicado aquí (`@RestController`, `@Valid`, 201 con `Location`) sigue siendo válido.
 
 ```java
 @RestController
-@RequestMapping("/api/usuarios")
+@RequestMapping("/api/v1/usuarios")
 @RequiredArgsConstructor
 @Tag(name = "Usuarios", description = "Registro y consulta de usuarios")
 public class UsuarioController {
@@ -354,15 +356,15 @@ public class UsuarioController {
 | Línea | Qué significa |
 | --- | --- |
 | `@RestController` | Controller cuyas respuestas se convierten **a JSON** (es `@Controller` + `@ResponseBody`) |
-| `@RequestMapping("/api/usuarios")` | Prefijo común de todas las rutas de la clase |
+| `@RequestMapping("/api/v1/usuarios")` | Prefijo común de todas las rutas de la clase |
 | `@RequiredArgsConstructor` + `private final UsuarioService` | Inyección por constructor, igual que en el service |
 | `@Tag` y `@Operation` | Solo **rotulan Swagger** (springdoc). No cambian el comportamiento |
-| `@PostMapping` | Responde a `POST /api/usuarios` |
+| `@PostMapping` | Responde a `POST /api/v1/usuarios` |
 | `@Valid` | Ejecuta las validaciones del Request (8.2 y 8.3) **antes** de entrar al método. Si fallan, el método ni se ejecuta y se lanza `MethodArgumentNotValidException` (el handler la convierte en 400) |
 | `@RequestBody` | Convierte el JSON de la petición en un `UsuarioRequest` (Jackson). Si el JSON está roto: `HttpMessageNotReadableException` (400) |
-| `ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")` | Arma la URL del recurso nuevo a partir de la petición actual: `http://.../api/usuarios/7` |
+| `ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")` | Arma la URL del recurso nuevo a partir de la petición actual: `http://.../api/v1/usuarios/7` |
 | `ResponseEntity.created(ubicacion).body(creado)` | Responde **201 Created** con la cabecera `Location` y el JSON. Es la convención REST para un recurso creado |
-| `@GetMapping("/{id}")` | Responde a `GET /api/usuarios/7` |
+| `@GetMapping("/{id}")` | Responde a `GET /api/v1/usuarios/7` |
 | `@PathVariable Long id` | Toma el `{id}` de la URL y lo convierte a `Long`. Si no es un número: `MethodArgumentTypeMismatchException` (400, ver [11, 8.11](11-excepciones-explicadas.md#811-methodargumenttypemismatchexception--400)) |
 | `return usuarioService.buscarPorId(id)` | Devuelve el DTO directamente; Spring responde **200** |
 
@@ -371,6 +373,8 @@ public class UsuarioController {
 ---
 
 ## 8. Las pruebas
+
+> Las listas de esta sección son los tests originales de cada archivo (19 oct), no un inventario actual. Hoy `UsuarioRequestTest` tiene 11 tests, `UsuarioServiceTest` 10 y `UsuarioControllerTest` 18; los nuevos cubren casos posteriores (baja de usuarios, vendedores, perfil, seguridad y paginación). El total del proyecto es 269 tests en 32 archivos (20 nov).
 
 ### 8.1 `RunUtilTest` (4 tests)
 
@@ -427,14 +431,14 @@ class UsuarioControllerTest {
 
 | Test | Esperado |
 | --- | --- |
-| Registro válido | 201, `Location: http://localhost/api/usuarios/7`, y **sin** `clave` ni `contrasenia` en el JSON |
+| Registro válido | 201, `Location: http://localhost/api/v1/usuarios/7`, y **sin** `clave` ni `contrasenia` en el JSON |
 | Dígito verificador incorrecto | 400 con `detalles.runDv`; el service **nunca** se llama |
 | JSON roto | 400 y "El cuerpo de la petición no es un JSON válido" |
 | Correo repetido | 409 con el mensaje de la excepción |
 | GET existente | 200 |
 | GET inexistente | 404 |
 | GET `/abc` | 400 y "El parámetro 'id' tiene un formato inválido" |
-| `DELETE /api/usuarios` | 405 |
+| `DELETE /api/v1/usuarios` | 405 |
 
 **Estos tests también cubren por primera vez el `GlobalExceptionHandler`**: era la prueba pendiente desde el 18 oct ([11, sección 12](11-excepciones-explicadas.md#12-cómo-probar-cada-error)).
 
@@ -443,10 +447,10 @@ class UsuarioControllerTest {
 ## 9. Comandos importantes
 
 ```bash
-# Las pruebas de hoy
-./mvnw test -Dtest="UsuarioRequestTest,RunUtilTest"      # 14 tests
-./mvnw test -Dtest=UsuarioServiceTest                    # 5 tests
-./mvnw test -Dtest=UsuarioControllerTest                 # 8 tests
+# Estado actual (20 nov): 269 tests en total
+./mvnw test -Dtest="UsuarioRequestTest,RunUtilTest"      # 15 tests (11 + 4)
+./mvnw test -Dtest=UsuarioServiceTest                    # 10 tests
+./mvnw test -Dtest=UsuarioControllerTest                 # 18 tests
 
 # Todas, sin la prueba que necesita la base (TecnoFactoryApplicationTests)
 ./mvnw test -Dtest="*Test"
@@ -455,7 +459,7 @@ class UsuarioControllerTest {
 Probar a mano (con la app arrancada y Swagger en `/swagger-ui/index.html`):
 
 ```bash
-curl -i -X POST localhost:8080/api/usuarios -H "Content-Type: application/json" -d '{
+curl -i -X POST localhost:8080/api/v1/usuarios -H "Content-Type: application/json" -d '{
   "run": 12345678, "runDv": "5", "nombre": "Ana", "apellidos": "Pérez",
   "correo": "ana@correo.cl", "clave": "Clave12345",
   "fechaNacimiento": "1990-05-20", "direccion": "Calle Falsa 123",
@@ -469,9 +473,9 @@ curl -i -X POST localhost:8080/api/usuarios -H "Content-Type: application/json" 
 | Mismo `run` con otro correo | 409 "El RUN ya está registrado" |
 | `"runDv": "9"` | 400 con `detalles.runDv` |
 | `"idComuna": 999999` | 404 "Comuna no encontrado con id 999999" |
-| `GET /api/usuarios/1` | 200 |
-| `GET /api/usuarios/999999` | 404 |
-| `GET /api/usuarios/abc` | 400 |
+| `GET /api/v1/usuarios/1` | 200 |
+| `GET /api/v1/usuarios/999999` | 404 |
+| `GET /api/v1/usuarios/abc` | 400 |
 | `SELECT contrasenia FROM usuario WHERE correo = 'ana@correo.cl';` | Empieza con `$2a$10$`, largo 60 |
 
 ---
@@ -483,7 +487,7 @@ curl -i -X POST localhost:8080/api/usuarios -H "Content-Type: application/json" 
 | Comentar `@RunValido` en `UsuarioRequest` y ejecutar los tests | Falla `digitoVerificadorQueNoCorrespondeAlRunEsInvalido`: nadie rechaza ya el `9` |
 | En `registrar`, cambiar `ROL_CLIENTE` por `ROL_ADMINISTRADOR` en la búsqueda del rol | Falla `registraUnClienteConLaClaveEncriptada`: es el error de seguridad que ningún cambio futuro debe introducir sin que se note |
 | Cambiar `passwordEncoder.encode(request.clave())` por `request.clave()` | Falla el `assertEquals("HASH", ...)` |
-| Comentar el handler de `MethodArgumentTypeMismatchException` | `GET /api/usuarios/abc` deja de dar 400 y pasa a 500 |
+| Comentar el handler de `MethodArgumentTypeMismatchException` | `GET /api/v1/usuarios/abc` deja de dar 400 y pasa a 500 |
 
 Devuelve cada cambio al terminar.
 
@@ -496,10 +500,10 @@ Devuelve cada cambio al terminar.
 | `RunUtilTest` y `UsuarioRequestTest` (14 tests) | **Verificado** por ti (19 oct) |
 | `UsuarioServiceTest` (5 tests) y arranque con el mapper inyectado | **Verificado** por ti (19 oct) |
 | `UsuarioControllerTest` (8 tests) y arranque | **Verificado** por ti (19 oct) |
-| `UsuarioMapperImpl.toEntity` no copia la contraseña | **Pendiente** (`grep -c "Contrasenia"` sobre el archivo generado debe dar `0`) |
-| Registro, 409, 404 y 400 contra **MySQL real**, desde Swagger | **Pendiente** (9.3) |
-| El `UNIQUE` de la base como segunda barrera (409 con `DataIntegrityViolationException`) | **Pendiente**: solo se prueba con dos peticiones simultáneas |
-| Que `toResponse` funcione **sin** `open-in-view` | **Pendiente**: depende de cambiar el `application.yaml` |
+| `UsuarioMapperImpl.toEntity` no copia la contraseña | **Verificado**: `grep -c "Contrasenia"` sobre el generado da `0` ([18, sección 11](18-dto-mapper-y-validaciones-explicados.md#11-qué-se-verificó-y-qué-no)) |
+| Registro, 409, 404 y 400 contra **MySQL real**, desde Swagger | **Pendiente** (9.3): es la comprobación manual que queda |
+| El `UNIQUE` de la base como segunda barrera (409 con `DataIntegrityViolationException`) | Handler `integridad` implementado, **sin test directo**; con MySQL real faltaría provocar dos peticiones simultáneas (9.3) |
+| Que `toResponse` funcione **sin** `open-in-view` | **Verificado** con mocks y con `open-in-view: false` ya configurado; queda la prueba con MySQL real (9.3) |
 
 ---
 
@@ -512,7 +516,7 @@ Devuelve cada cambio al terminar.
 | `POST` del test devuelve 401/403 | Falta `@Import(SecurityConfig.class)` y Spring Security usa su configuración por defecto | Importarla en el test |
 | `No qualifying bean of type '...UsuarioMapper'` al arrancar | MapStruct no generó la clase | Revisar el orden de los procesadores en el `pom.xml` ([18, 7.5](18-dto-mapper-y-validaciones-explicados.md#75-cómo-está-configurado-mapstruct-en-tu-pomxml)) |
 | `LazyInitializationException` al registrar | Se mapeó fuera del service, o `open-in-view` pasó a `false` y un código lee la relación fuera de la transacción | Mapear **dentro** del service |
-| `GET /api/usuarios/abc` da 500 | Falta el handler de `MethodArgumentTypeMismatchException` | Agregarlo ([11, 8.11](11-excepciones-explicadas.md#811-methodargumenttypemismatchexception--400)) |
+| `GET /api/v1/usuarios/abc` da 500 | Falta el handler de `MethodArgumentTypeMismatchException` | Agregarlo ([11, 8.11](11-excepciones-explicadas.md#811-methodargumenttypemismatchexception--400)) |
 | El test falla con `expected: <[runDv]> but was: <[]>` | El dato de prueba cumple la regla | Revisar el dígito: debe **no** corresponder al RUN |
 
 ---
@@ -540,6 +544,6 @@ Los errores (`404`, `409`, `400`) **no se repiten**: ya los resuelve `GlobalExce
 
 | Paso | Qué |
 | --- | --- |
-| **9.3** | Probar en Swagger contra MySQL real y comprobar la fila y el hash |
-| Configuración base | Lo que conviene dejar listo **antes** de la segunda entidad: ver [Cambios recientes](../estado/cambios-recientes.md#pendiente) y [10](10-pendientes-y-futuro.md) |
-| Primera "rebanada" | `Categoria` (DTOs, mapper, service, controller y pruebas) siguiendo la receta de la sección 13 |
+| **9.3** | Probar en Swagger contra MySQL real y comprobar la fila y el hash (sigue pendiente) |
+| Configuración base | Ya quedó lista antes de la segunda entidad: ver [20](20-configuracion-base-explicada.md) |
+| Primera "rebanada" | `Categoria` se implementó siguiendo la receta de la sección 13; después llegaron `Producto`, `Carrito` y `Boleta` ([30](../referencia/30-catalogo-y-precios.md), [31](../referencia/31-carrito-y-boletas.md)) |

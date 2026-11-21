@@ -1,6 +1,6 @@
 # Guía 01. El proyecto en una página
 
-> **En una frase:** TecnoFactory es una API REST (el «backend») de una tienda de tecnología. Guarda productos, usuarios y compras en MySQL, y la consume un frontend en React.
+> **En una frase:** TecnoFactory es una API REST (el «backend») de una tienda de tecnología. Guarda productos, usuarios y compras en MySQL, y la consume un frontend en React 19 + Vite. El catálogo se sincroniza desde la API y se guarda en `localStorage` como caché; blogs e imágenes se leen directamente de la API.
 
 ## La idea
 
@@ -50,6 +50,9 @@ Cualquier error --> GlobalExceptionHandler --> JSON uniforme (ErrorResponse)
 3. **Nunca se devuelve una entidad**: siempre un DTO.
 4. **El esquema lo manda Flyway (`V1`...)**, no las entidades.
 5. **Lo que no está permitido en `SecurityConfig` queda protegido.**
+6. **Toda ruta de la API empieza por `/api/v1/`** (excepto Swagger, `/actuator/health`, `/error` y `/uploads/**`).
+
+Ya están implementados el catálogo con paginación y ofertas, el carrito, las boletas, el panel de imágenes y el login con Google; las rutas y los roles vigentes están en [referencia 08](../referencia/08-seguridad.md#control-de-acceso-por-rol-estado-actual).
 
 ## Para saber más
 

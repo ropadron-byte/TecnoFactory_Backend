@@ -16,7 +16,7 @@ El plan completo por fases está en [10-pendientes-y-futuro.md](../referencia/10
 
 ### Siguiente paso (en este orden)
 
-- [x] **Confirmar un arranque completo** (`Found 4 JPA repository interfaces`, `Started ...`, Swagger y `/actuator/health`).
+- [x] **Confirmar un arranque completo** (`Found 12 JPA repository interfaces`, `Started ...`, Swagger y `/actuator/health`).
 - [x] **`camelCase` en `Usuario`** (`runDv`, `fechaNacimiento`), **`unique = false` en `run_dv`** e **`Integer id`** en `Region` y `Comuna`: comprobado contra tu repositorio el 19 oct.
 - [x] **`unique = true` en `Region` y `Comuna`**: se mantiene y ahora es real. La migración `V7__unicidad_region_comuna.sql` agrega los `UNIQUE` a `nombre_region` y `nombre_comuna`; los datos de `V2` no tienen duplicados (6 nov).
 - [x] **Paso 6: `UsuarioService`** y **paso 7: `AdministradorInicialRunner`**: el primer arranque creó al administrador.
@@ -28,11 +28,11 @@ El plan completo por fases está en [10-pendientes-y-futuro.md](../referencia/10
 - [x] **Paso 8.3: validar el dígito verificador** (módulo 11) con una validación personalizada de clase: **14 tests pasan** (19 oct). Ver [19](../referencia/19-validacion-run-service-y-controller-explicados.md).
 - [x] **Paso 9.1: `UsuarioService`**: registrar (hash, rol `CLIENTE`, unicidad de correo y RUN, comuna existente) y buscar por id, mapeando **dentro** de la transacción: **5 tests pasan** y la app arranca (19 oct).
 - [x] **Paso 9.2: `UsuarioController`** con `@Valid`, 201 con `Location`, más el handler de `MethodArgumentTypeMismatchException`: **8 tests pasan** y la app arranca (19 oct).
-- [ ] **Limpieza del 9.1:** quitar los comentarios `// NUEVO` que quedaron en `UsuarioService`.
-- [x] **Paso 9.3: probar en Swagger**: `POST /api/usuarios` devuelve 201 con comuna y región (20 oct). Es el **ejemplo para tu compañero**; falta ver todos los errores formateados desde Swagger con la seguridad nueva.
-- [ ] **Entidades y repositories restantes**: `Categoria`, `Producto`, `ImagenUrl`, `Carrito`, `DetalleCarrito`, `Boleta`, `DetalleBoleta`, `Blog` (mapeo en [06](../referencia/06-base-de-datos.md#mapeo-a-entidades-java)). Cuidado con `TEXT` (`blog.contenido`) y con la clave compuesta de `detalle_carrito`.
-- [ ] **Primera "rebanada" completa**: `Categoria` (DTOs, mapper, service, controller) probada en Swagger; después `Producto`.
-- [x] **Probar el `GlobalExceptionHandler`** con un controller: los 8 tests de `UsuarioControllerTest` cubren 400 (validación, JSON roto, id mal escrito), 404, 405 y 409 (19 oct). **Sin cubrir todavía:** 500 y `DataIntegrityViolationException` (409 por el `UNIQUE` de la base).
+- [ ] **Limpieza del 9.1:** quitar los comentarios `// NUEVO` que quedan en `UsuarioService` (sigue pendiente; comprobado el 20 nov).
+- [x] **Paso 9.3: probar en Swagger**: `POST /api/v1/usuarios` devuelve 201 con comuna y región (20 oct). Es el **ejemplo para tu compañero**; falta ver todos los errores formateados desde Swagger con la seguridad nueva.
+- [x] **Entidades y repositories restantes** (hecho): hoy hay **14 `@Entity` + 2 `@Embeddable`** y **12 repositories**. Las claves compuestas son `ProductoCategoriaId` y `DetalleCarritoId`. Ver [13](../referencia/13-entidades-explicadas.md) y [14](../referencia/14-repositories-explicados.md).
+- [x] **Primera "rebanada" completa**: `Categoria` y `Producto` tienen DTOs, mapper, service y controller (20 nov). Falta solo la comprobación manual en Swagger. Ver [30](../referencia/30-catalogo-y-precios.md).
+- [x] **Probar el `GlobalExceptionHandler`** con un controller: los 8 tests de `UsuarioControllerTest` cubren 400 (validación, JSON roto, id mal escrito), 404, 405 y 409 (19 oct). `GlobalExceptionHandlerTest` cubre el mensaje del 413 (2 tests, 20 nov). **Sin test directo:** el 500 genérico, el 409 por `DataIntegrityViolationException` y el 400 por parámetro faltante (corregido el 20 nov tras revisar el archivo).
 
 ### Configuración base antes de la segunda entidad
 
@@ -40,14 +40,14 @@ Lo que conviene dejar resuelto **una sola vez**, para que `Categoria`, `Producto
 
 - [x] **`spring.jpa.open-in-view: false`** (20 oct): el `application.yaml` del ZIP del 19 oct dice `true`, y los docs 04, 09 y 18 suponen `false`. Cambiarlo y volver a ejecutar los tests y la app: si algo lee una relación `LAZY` fuera del service, fallará ahora y no cuando haya 12 entidades.
 - [x] **Handlers que faltan** (20 oct) en `GlobalExceptionHandler`: `HttpMediaTypeNotSupportedException` (415: un `POST` sin `Content-Type: application/json` hoy sale como 500) y `MissingServletRequestParameterException` (400: falta un `?parametro=`). Los dos caen hoy en el handler genérico (500).
-- [x] **Convención de paginación** (20 oct): un `record PageResponse<T>` y un tamaño máximo de página, **antes** del primer endpoint que liste (`GET /api/categorias`, `GET /api/productos`). Después cuesta cambiar el contrato con el frontend.
+- [x] **Convención de paginación** (20 oct): un `record PageResponse<T>` y un tamaño máximo de página, **antes** del primer endpoint que liste (`GET /api/v1/categorias`, `GET /api/v1/productos`). Después cuesta cambiar el contrato con el frontend.
 - [x] **Zona horaria** (20 oct): `spring.jackson.time-zone` y `spring.jpa.properties.hibernate.jdbc.time_zone` en `America/Santiago` (o `UTC` y convertir en el frontend), antes de guardar la primera `Boleta` con fecha y hora.
 - [x] **`OpenApiConfig`** (20 oct; Swagger ya estaba desactivado en `prod`): título de la API y esquema de seguridad `bearer` para que Swagger tenga el botón **Authorize** cuando llegue el JWT; y desactivar Swagger en `prod`.
 - [x] **`CorsConfig`** hecha; **`WebConfig`** borrada por estar vacía (20 oct): CORS con el origen del frontend leído de una variable de entorno. Se necesita el día que el frontend llame a la API desde otro puerto.
 - [x] **Login con JWT (fase 4) antes de los controllers de `Producto`, `Carrito` y `Boleta`**: código aplicado el 20 oct (ver la sección siguiente); falta confirmar los tests y el flujo en Swagger. `Categoria` ya nace con reglas por rol.
 - [ ] **Un ejemplo de prueba de repository** con Testcontainers (ya está en el `pom.xml`), para consultas propias complejas (carrito, boleta). Una sola prueba sirve de plantilla.
 - [x] **Limpieza de las entidades y repositories** (6 nov): imports y bloque comentado de `Region`, `Comuna` y `RegionRepository`; `Optional<List<...>>` cambiado por `List<...>` en `RegionRepository` y `ComunaRepository`; Javadoc de `Categoria` actualizado.
-- [ ] **No hace falta ahora:** Redis y caché (`@Cacheable`), correo, subida de imágenes y el `Dockerfile` del backend. Los starters ya están en el `pom.xml`; se configuran el día que se usen.
+- [ ] **Sigue sin usarse:** Redis y caché (`@Cacheable`), correo y el `Dockerfile` del backend. Los starters ya están en el `pom.xml`; se configuran el día que se usen. La **subida de imágenes sí está implementada** (ver [guía 18](../guias/18-subida-de-imagenes.md)).
 
 ### Seguridad: login con JWT y roles (fase 4)
 
@@ -56,25 +56,26 @@ Guía completa: [21-seguridad-jwt-y-roles-explicada.md](../referencia/21-segurid
 - [x] **Paso 1: `JwtService`** (`generarToken`, `esValido`, `obtenerCorreo`, `obtenerRol`) y `JwtServiceTest` (6): **confirmado por ti** (20 oct).
 - [x] **Paso 2: `UserDetailsServiceImpl`** y su test (3): entregado y aplicado; seguiste con el paso siguiente.
 - [x] **Paso 3: `JwtAuthFilter`** y su test (6): entregado y aplicado; seguiste con el paso siguiente.
-- [ ] **Paso 4: `LoginRequest`, `AuthResponse`, `AuthService`, `AuthController`** (`POST /api/auth/login`), con `AuthServiceTest` (3) y `AuthControllerTest` (3): **aplicado en tu repo; falta confirmar** los tests.
-- [ ] **Paso 5: `SecurityConfig` nueva** (reglas por ruta, filtro conectado, 401 y 403 en JSON con `ManejadorErroresSeguridad`, sin `httpBasic`), `UsuarioController` con `/me`, `UsuarioService.buscarPorCorreo` y dos handlers (`BadCredentialsException`, `AuthenticationException`): **aplicado en tu repo; falta confirmar**.
+- [x] **Paso 4: `LoginRequest`, `AuthResponse`, `AuthService`, `AuthController`** (`POST /api/v1/auth/login`), con `AuthServiceTest` y `AuthControllerTest`: aplicado y confirmado dentro de la suite de 269 tests.
+- [x] **Paso 5: `SecurityConfig` nueva** (reglas por ruta, filtro conectado, 401 y 403 en JSON con `ManejadorErroresSeguridad`, sin `httpBasic`), `UsuarioController` con `/me`, `UsuarioService.buscarPorCorreo` y dos handlers (`BadCredentialsException`, `AuthenticationException`): aplicado y confirmado.
 - [x] **Confirmar los tests** (6 nov): `./mvnw test -Dtest="*Test"` da **204 tests, 0 fallos**. Falta comprobar que la app arranca con MySQL (`contextLoads`) y que no aparece el aviso `Using generated security password`.
-- [ ] **Probar el flujo en Swagger** ([21, sección 14](../referencia/21-seguridad-jwt-y-roles-explicada.md#14-cómo-probarlo-a-mano)): login del administrador, Authorize, `/me`, `/api/usuarios/1`, 401 sin token, 403 con un cliente.
-- [ ] **Usuarios con roles:** `GET /api/usuarios` paginado (administrador y vendedor, solo lectura), `PUT /api/usuarios/me` (editar el propio perfil) y una ruta de administrador para **crear vendedores** (el rol nunca viene del cliente).
-- [ ] **Reglas por rol de cada entidad nueva** (`Categoria`: administrador; `Producto` y órdenes: vendedor y administrador). Se agregan **antes** de `.anyRequest().denyAll()`.
+- [ ] **Probar el flujo en Swagger** ([21, sección 14](../referencia/21-seguridad-jwt-y-roles-explicada.md#14-cómo-probarlo-a-mano)): login del administrador, Authorize, `/me`, `/api/v1/usuarios/1`, 401 sin token, 403 con un cliente.
+- [x] **Usuarios con roles:** `PUT /api/v1/usuarios/me` y `POST /api/v1/usuarios/vendedores` están implementados (el rol nunca viene del cliente).
+- [x] **`GET /api/v1/usuarios` paginado** (administrador y vendedor, solo lectura): implementado el 20 nov con 4 tests.
+- [x] **Reglas por rol de cada entidad nueva**: `Categoria` (escritura: administrador), `Producto` (lectura pública, administración: personal), `Carrito` y `Boletas` (sesión), con `anular` solo para administrador. Todo antes de `.anyRequest().denyAll()`. Ver [21](../referencia/21-seguridad-jwt-y-roles-explicada.md).
 - [ ] **Límite de intentos de login** y **HTTPS** antes de un despliegue real.
 - [ ] **Confirmar la revisión del 3 nov** (ver la entrada del Historial): `./mvnw test` (cubierto por los 204 tests del 6 nov), arranque con `./scripts/dev.sh` y la prueba de paginación en Swagger. **No se pudo compilar** en el entorno de revisión.
-- [x] **`POST /api/imagenes/productos` no registraba la imagen en `imagen_url`**: resuelto el 3 nov (ver la entrada de las 03:10). Falta poder asignar imágenes a productos y categorías por id (sus controllers).
+- [x] **`POST /api/v1/imagenes/productos` no registraba la imagen en `imagen_url`**: resuelto el 3 nov. La asignación a productos y categorías ya se hace desde `ProductoRequest` e `imagenes` de `CategoriaRequest`, por **URL** (no por id de imagen). Ver [30](../referencia/30-catalogo-y-precios.md).
 - [ ] **Mover `JwtServiceTest` y `UserDetailsServiceImplTest`** a `src/test/.../security/` (hoy están en `service/`; `JwtServiceTest` declara el paquete `security` y compila igual, pero la carpeta no coincide).
 
 ### Login con Google (11 nov)
 
-- [x] **Backend completo**: `GoogleTokenVerifier` (JWKS, `iss`, `aud`, `exp`, `email_verified`), `GoogleAuthService` y endpoints `POST /api/auth/google`, `/google/completar` y `/google/vincular`.
+- [x] **Backend completo**: `GoogleTokenVerifier` (JWKS, `iss`, `aud`, `exp`, `email_verified`), `GoogleAuthService` y endpoints `POST /api/v1/auth/google`, `/google/completar` y `/google/vincular`.
 - [x] **Cuenta nueva**: responde **202** con un `registroToken` de 10 minutos; la cuenta se crea recién en `/completar` con **201**. El `registroToken` no sirve como `Bearer`.
 - [x] **Cuenta existente con contraseña**: **409**; se vincula solo después de un login normal con `/google/vincular` (**204**).
 - [x] **Base de datos**: `V8__google_auth.sql` agrega `usuario.google_id` único y permite `contrasenia NULL`.
 - [x] **Configuración**: `GOOGLE_CLIENT_ID` obligatoria en `.env`, `application.yaml`, `ConfiguracionValidator`, `dev.sh` y `dev.ps1`.
-- [x] **Tests**: `GoogleTokenVerifierTest` (5), `GoogleAuthServiceTest` (11), `JwtServiceTest` (8), `AuthControllerTest` (11) y `UserDetailsServiceImplTest` (4). Suite completa: **249 tests, 0 fallos**.
+- [x] **Tests**: `GoogleTokenVerifierTest` (5), `GoogleAuthServiceTest` (11), `JwtServiceTest` (8), `AuthControllerTest` (11) y `UserDetailsServiceImplTest` (4). Suite completa: **269 tests, 0 fallos**.
 - [x] **Confirmar el arranque** con `./scripts/dev.sh`: `contextLoads` en verde contra MySQL 8.4 el 11 nov y `V8` aplicada.
 - [ ] **Probar el flujo real** con el Client ID de Google Cloud: usuario nuevo 202→201, segundo login 200, cuenta con contraseña 409→login→vincular 204. Hace falta el navegador.
 - [ ] **Revisar la pantalla de consentimiento** en Google Cloud antes de publicar: nombre de la app, logo, dominio autorizado y política de privacidad.
@@ -83,10 +84,10 @@ Guía completa: [21-seguridad-jwt-y-roles-explicada.md](../referencia/21-segurid
 
 Guía: [19](../guias/19-formulario-de-contacto.md) · Referencia: [28](../referencia/28-contacto-explicado.md).
 
-- [x] **Confirmar el contacto** (6 nov): `ContactoServiceTest` (4) y `ContactoControllerTest` (10) pasan; el resto de la suite también. `GET /api/contactos/**` queda solo para `ADMINISTRADOR`.
+- [x] **Confirmar el contacto** (6 nov): `ContactoServiceTest` (4) y `ContactoControllerTest` (10) pasan; el resto de la suite también. `GET /api/v1/contactos/**` queda solo para `ADMINISTRADOR`.
 - [ ] **Probarlo en Swagger** (grupo **Contacto**): `POST` sin sesión → 201; `GET` sin sesión → 401; `GET` con cliente o vendedor → 403; `GET` con administrador → 200 ([manual 05](../personal/05-probar-la-api.md)).
-- [ ] **Límite de envíos por IP o captcha** antes de desplegar: `POST /api/contactos` es público y cualquiera puede llenar la tabla.
-- [ ] **Decidir si la tabla lleva fecha de envío** (`fecha_creacion`): en una migración nueva (`V8` en adelante).
+- [ ] **Límite de envíos por IP o captcha** antes de desplegar: `POST /api/v1/contactos` es público y cualquiera puede llenar la tabla.
+- [ ] **Decidir si la tabla lleva fecha de envío** (`fecha_creacion`): en una migración nueva (`V10` en adelante).
 
 ### Verificaciones pendientes
 
@@ -101,10 +102,10 @@ Guía: [19](../guias/19-formulario-de-contacto.md) · Referencia: [28](../refere
 - [x] **Administrador inicial**: se decidió el **18 oct** crearlo por código al arrancar (opción B de [08](../referencia/08-seguridad.md#administrador-inicial)) y descartar la plantilla `V4`.
 - [x] **Datos del administrador** (6 nov): **todos** vienen de variables `ADMIN_*` (`ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_RUN`, `ADMIN_RUN_DV`, `ADMIN_NOMBRE`, `ADMIN_APELLIDOS`, `ADMIN_FECHA_NACIMIENTO`, `ADMIN_DIRECCION`, `ADMIN_TELEFONO`, `ADMIN_COMUNA`). Si faltan los opcionales, se usan valores de relleno y se escribe un `WARN`. Un dato inválido o un placeholder impide arrancar.
 - [x] **401 frente a 403** (20 oct): resuelto. Sin token o con token inválido, **401** (`AuthenticationException`); con token pero sin el rol, **403** (`AccessDeniedException`). `ManejadorErroresSeguridad` los reenvía a `GlobalExceptionHandler`. Ver [21, sección 9](../referencia/21-seguridad-jwt-y-roles-explicada.md#9-manejadorerroresseguridadjava-y-los-dos-handlers-nuevos).
-- [x] **Quién ve `GET /api/usuarios/{id}`** (20 oct): solo el administrador; el perfil propio es `/api/usuarios/me`.
-- [ ] **Cómo se aplica el descuento** (0 a 100) sobre el `precio` y su copia en `detalle_boleta`.
+- [x] **Quién ve `GET /api/v1/usuarios/{id}`** (20 oct): solo el administrador; el perfil propio es `/api/v1/usuarios/me`.
+- [x] **Cómo se aplica el descuento** (0 a 100): `Precios.conDescuento` redondea al peso y se usa en productos, carrito y boletas. Ver [30](../referencia/30-catalogo-y-precios.md).
 - [ ] **Detalle por parámetro** en `HandlerMethodValidationException` (hoy solo dice "Parámetros inválidos").
-- [x] **Blogs ocultos en `GET /api/imagenes`** (6 nov): resuelto al exigir `ADMINISTRADOR` o `VENDEDOR` en `GET /api/imagenes/**`. Los archivos de `/uploads/**` siguen públicos para los `<img>`.
+- [x] **Blogs ocultos en `GET /api/v1/imagenes`** (6 nov): resuelto al exigir `ADMINISTRADOR` o `VENDEDOR` en `GET /api/v1/imagenes/**`. Los archivos de `/uploads/**` siguen públicos para los `<img>`.
 - [x] **Imágenes huérfanas** (6 nov): documentadas y pospuestas; no se crea job ni migración ([D35](../referencia/24-decisiones-de-diseno.md#d35-imágenes-huérfanas-documentadas-sin-limpieza-automática)).
 - [ ] **Revocación inmediata de tokens**: riesgo aceptado el 6 nov; el filtro consulta la base en cada petición, pero un token de una cuenta activa sirve hasta expirar ([D34](../referencia/24-decisiones-de-diseno.md#d34-la-revocación-inmediata-de-tokens-no-se-implementa)).
 
@@ -115,10 +116,10 @@ Guía: [19](../guias/19-formulario-de-contacto.md) · Referencia: [28](../refere
 - [ ] Si activas el log en archivo, agregar `logs/` y `*.log` a `.gitignore` (ver [12](../referencia/12-logs.md#8-guardar-el-log-en-un-archivo-opcional)).
 - [ ] Actualizar el diagrama de `Diagrama/`: **pospuesto** (es de Oracle Data Modeler y sus tipos de dato difieren de los de MySQL; la fuente de verdad es `V1`).
 - [x] No compartir el ZIP del proyecto con el `.env` ni `target/`: **tenido en cuenta**.
-- [x] Limpiar las entidades (6 nov): se quitaron el `import` sin usar y el bloque comentado de `Region.java` y `Comuna.java`, y las líneas comentadas de `RegionRepository.java`.
+- [x] Limpiar las entidades (6 nov): se quitaron el `import` sin usar y las líneas comentadas de `RegionRepository.java`. **Revisado el 20 nov:** siguen los bloques `CREATE TABLE` comentados al final de `Region.java` y `Comuna.java`, y `Optional<List<Usuario>> findAllByTipoUsuarioNombre` en `UsuarioRepository`.
+- [x] Borrar `docs/11-cambios-recientes.md` (copia antigua): **hecho**, ya no está en el repositorio (20 nov).
 - [x] Cambiar `Optional<List<...>>` por `List<...>` en `RegionRepository` y `ComunaRepository` (6 nov). `UsuarioRepository` se revisa cuando se toque.
-- [ ] Borrar `src/test/.../controller/UsuarioController.java` (copia sobrante del controller en la carpeta de tests).
-- [ ] Borrar `docs/11-cambios-recientes.md` (**sigue en tu repositorio el 19 oct**): es una copia antigua de este archivo y el README indica que no se crean copias numeradas.
+- [x] Borrar `src/test/.../controller/UsuarioController.java` (copia sobrante del controller): **hecho**, ya no está (20 nov).
 - [x] El `README.md` enlaza `02-docker-y-mysql.md` y `03-variables-y-claves.md`, que no venían en el ZIP revisado: **recuperados** y añadidos al paquete de documentación (18 oct).
 
 ---
@@ -126,20 +127,94 @@ Guía: [19](../guias/19-formulario-de-contacto.md) · Referencia: [28](../refere
 ## Historial
 
 
+### 20 nov 2026: catálogo, carrito, boletas y versión de la API
+
+El backend dejó de ser solo el esqueleto de usuarios: el catálogo, la compra y sus rutas
+ya están implementados y documentados. La API completa pasó a estar bajo `/api/v1`.
+
+- **Rutas versionadas:** los 9 controllers usan `/api/v1/...`. `SecurityConfig` mantiene
+  `anyRequest().denyAll()`, así que una ruta sin versión responde 401/403.
+- **Categorías:** `CategoriaController`, `CategoriaService`, `CategoriaMapper`,
+  `CategoriaRequest`/`CategoriaResponse` y `ProductoCategoriaRepository`. Lectura pública,
+  escritura solo de administrador, 409 al borrar una categoría con productos.
+- **Productos:** `ProductoController` y `ProductoService` con listado paginado, `ofertas`,
+  `admin`, `criticos`, baja lógica y reactivación. `ResolutorImagenes` evita duplicar URLs.
+- **Migración `V9__catalogo_inicial.sql`:** 21 productos, 6 categorías y 63 URLs de imagen.
+  No crea tablas: las 17 vienen de `V1`, `V5` y `V6`. Próxima migración: `V10`.
+- **Precios:** `Precios.conDescuento` aplica el porcentaje entero y redondea al peso;
+  `precioFinal` viaja en productos, carrito y boletas. Ver [30](../referencia/30-catalogo-y-precios.md).
+- **Carrito y boletas:** `CarritoController` (5 rutas sobre el carrito del correo autenticado)
+  y `BoletaController` (checkout, propias, todas, detalle y anular). El checkout valida stock,
+  lo descuenta, copia nombre y precio en cada detalle y vacía el carrito en una transacción;
+  anular devuelve el stock. Ver [31](../referencia/31-carrito-y-boletas.md).
+- **Usuarios:** `PUT /api/v1/usuarios/me`, `POST /api/v1/usuarios/vendedores` y el listado
+  paginado `GET /api/v1/usuarios` (20 nov) ya están implementados.
+- **Paginación:** `@ParameterObject` en todos los `Pageable`, incluidos productos y boletas.
+- **Tests:** la suite sigue en **269 `@Test` en 32 clases**. No hay tests propios de
+  Categoría, Producto, Carrito ni Boleta; `GlobalExceptionHandlerTest` cubre solo el mensaje
+  del 413. El 500 genérico y el 409 por `UNIQUE` están implementados, pero sin test directo.
+  Ver [guía 15](../guias/15-pruebas.md).
+- **Documentación:** README del backend y del frontend React, catálogo de endpoints
+  actualizado ([23](../referencia/23-catalogo-de-endpoints.md)), referencias 30 y 31,
+  guías de Flyway y hoja de ruta, y `/api/v1` en todas las guías. Explorer-E regeneró
+  sus datos y amplió los recorridos y explicaciones curadas.
+
+Pendiente de comprobación manual: el recorrido de login en Swagger, el flujo real de Google
+y los permisos sobre MySQL. Nada de esto se verificó en esta sesión de documentación.
+
+### 20 nov 2026: `GET /api/v1/usuarios` y el 405 del panel
+
+El panel llamaba a `GET /api/v1/usuarios?size=1000` y recibía **405**. No era un bloqueo de
+seguridad (un 401/403 habría venido de `SecurityConfig`): con el mismo token,
+`GET /api/v1/usuarios/1` devolvía 200. La petición llegaba al `DispatcherServlet`, pero no
+existía `@GetMapping` en la raíz de `UsuarioController` (solo `/{id}`, `/me` y `POST`).
+
+- **Código:** nuevo `GET /api/v1/usuarios` con `Pageable` (`@ParameterObject`) que devuelve
+  `PageResponse<UsuarioResponse>` desde `UsuarioService.listar`, y regla nueva en
+  `SecurityConfig`: `hasAnyRole("ADMINISTRADOR", "VENDEDOR")` **antes** de `/api/v1/usuarios/**`,
+  que sigue siendo solo de administrador para escrituras y bajas.
+- **Tests:** 4 nuevos en `UsuarioControllerTest` (admin 200 con paginación, vendedor 200,
+  cliente 403, sin token 401). `UsuarioControllerTest` pasa de 18 a 22; la suite completa
+  pasa de 265 a **269 tests, 0 fallos** con `set -a && . ./.env && set +a && ./mvnw test`.
+- **Documentación:** catálogo (ref 23), referencias 10 y 21, guías 15 y 16, personal 07 y
+  este changelog dejaron de marcar el listado como pendiente.
+- **Comprobado en vivo (20 nov):** el backend se reinició con `./mvnw spring-boot:run`. La
+  ruta devuelve **200** con tokens de administrador y de vendedor (se creó un vendedor temporal
+  y se borró después, sin dejar datos), **401** sin token y el cliente **403** en los tests.
+  `?size=1000` se recorta a `tamanio: 100` por el límite de página configurado. Sigue pendiente
+  solo el recorrido visual en navegador.
+
+### 20 nov 2026: login corregido en el frontend
+
+Al verificar el reporte «no inicio sesión y tengo las cosas bien puestas», el backend respondió
+**200** a `POST /api/v1/auth/login` con las credenciales del `.env`, pero el frontend llamaba a
+`POST /api/auth/login` (sin `/v1`). Esa ruta cae en `anyRequest().denyAll()` y devuelve 401 con
+«Se requiere un token válido», antes de comprobar correo o clave.
+
+- Se versionaron **todas** las rutas de los servicios del frontend (`authService`,
+  `usuariosApi`, `blogsApi`, `imagenesApi`) a `/api/v1/...`; también sus comentarios y los
+  tests que mockean `fetch`.
+- Verificación: frontend **23 archivos / 84 tests** en verde, `npm run lint` sin errores nuevos
+  (solo 2 avisos previos de Fast Refresh) y `npx vite build` correcto.
+- Sigue pendiente probar el flujo completo en navegador con el backend corriendo.
+- La afirmación anterior de que `GlobalExceptionHandlerTest` cubría el 500 y el 409 por
+  `UNIQUE` era incorrecta: el archivo solo tiene 2 tests del mensaje del 413. Quedó corregida
+  en el README, la guía 15 y las referencias 08, 10, 11 y 19.
+
 ### 11 nov 2026: login con Google
 
 Se agregó una segunda forma de entrar, sin romper el login con contraseña ni las reglas
 `fail-closed` de `SecurityConfig`.
 
 - **Flujo elegido:** React usa Google Identity Services, obtiene un **ID token** y lo envía a
-  `POST /api/auth/google`. La API lo verifica con `NimbusJwtDecoder` y las claves públicas de
+  `POST /api/v1/auth/google`. La API lo verifica con `NimbusJwtDecoder` y las claves públicas de
   Google (JWKS): firma, `iss`, `aud` contra `GOOGLE_CLIENT_ID`, `exp` y `email_verified`.
   No se usa redirección OAuth2 ni Client Secret.
 - **Cuenta nueva:** responde **202** con `requiereCompletarPerfil`, `registroToken` (10 min) y
-  los datos que Google ya entregó. La cuenta **no se crea** hasta `POST /api/auth/google/completar`,
+  los datos que Google ya entregó. La cuenta **no se crea** hasta `POST /api/v1/auth/google/completar`,
   que exige RUN, DV, fecha de nacimiento, dirección, teléfono y comuna y responde **201**.
 - **Cuenta con contraseña:** **no** se vincula automáticamente (evita el pre-registro con el
-  correo ajeno). Responde **409**; el flujo correcto es login normal + `POST /api/auth/google/vincular`
+  correo ajeno). Responde **409**; el flujo correcto es login normal + `POST /api/v1/auth/google/vincular`
   (**204**), que exige que el correo de Google coincida con la cuenta autenticada.
 - **Cuenta solo-Google:** `contrasenia = NULL` y `google_id` único. `UserDetailsServiceImpl`
   usa `""` para que el login con contraseña devuelva **401**.
@@ -150,7 +225,7 @@ Se agregó una segunda forma de entrar, sin romper el login con contraseña ni l
   actualizaron `.env.example`, `scripts/dev.sh` y `scripts/dev.ps1`.
 - **Tests:** `GoogleTokenVerifierTest` (5), `GoogleAuthServiceTest` (11), 2 casos nuevos en
   `JwtServiceTest`, 1 en `UserDetailsServiceImplTest` y 5 en `AuthControllerTest`.
-  **249 tests, 0 fallos**, más `contextLoads` en verde contra MySQL 8.4.
+  **269 tests, 0 fallos**, más `contextLoads` en verde contra MySQL 8.4.
 - **Documentación:** [referencia 29](../referencia/29-login-con-google-explicado.md), guía 11,
   guía 17 (React), catálogo de endpoints, diccionario, variables, YAML y seguridad.
 
@@ -159,9 +234,9 @@ login 200 y el 409→login→vincular→204. Ver la lista de arriba.
 
 ### 6 nov (tarde): baja de cuentas y `uploads/` fuera del contenedor
 
-- **Cliente:** solo `PATCH /api/usuarios/me/desactivar` (su propia cuenta; 204). **No puede borrarla**: sus compras (boletas) se resguardan; `DELETE /api/usuarios/me` da 403.
-- **Administrador:** `PATCH /api/usuarios/{id}/desactivar` y `DELETE /api/usuarios/{id}`, **solo sobre vendedores**. Un vendedor con blogs no se puede borrar (409): se desactiva.
-- `UsuarioService` recibe `BlogRepository` (nuevo `existsByUsuarioId`); `SecurityConfig` agrega las dos reglas de `/me` antes de `/api/usuarios/**`.
+- **Cliente:** solo `PATCH /api/v1/usuarios/me/desactivar` (su propia cuenta; 204). **No puede borrarla**: sus compras (boletas) se resguardan; `DELETE /api/v1/usuarios/me` da 403.
+- **Administrador:** `PATCH /api/v1/usuarios/{id}/desactivar` y `DELETE /api/v1/usuarios/{id}`, **solo sobre vendedores**. Un vendedor con blogs no se puede borrar (409): se desactiva.
+- `UsuarioService` recibe `BlogRepository` (nuevo `existsByUsuarioId`); `SecurityConfig` agrega las dos reglas de `/me` antes de `/api/v1/usuarios/**`.
 - Tests nuevos: `UsuarioServiceBajaTest` (7) y `UsuarioControllerBajaTest` (9). **Escritos pero sin ejecutar** (el entorno no pudo compilar): correr `./mvnw test -Dtest="*Test"`; el total esperado es 220.
 - **`uploads/` fuera del contenedor:** en el bloque `backend` de `docker-compose.yml` (aún comentado, falta el `Dockerfile`) se monta `${UPLOADS_HOST_DIR:-./uploads}:/app/uploads` con `UPLOADS_DIR=/app/uploads`; `.dockerignore` excluye `uploads/` de la imagen. Variable nueva `UPLOADS_HOST_DIR` en `.env.example`.
 
@@ -172,17 +247,17 @@ Sesión de correcciones acordada contigo: cerrar rutas por defecto, separar el c
 **Seguridad y rutas**
 
 - `SecurityConfig` ahora usa reglas explícitas por método y rol y termina en **`anyRequest().denyAll()`**. Se permiten `/error`, `OPTIONS /**`, Swagger, `health`, login, registro, contacto, lectura pública de blogs y `/uploads/**`.
-- `GET /api/imagenes/**` (metadatos y dueños) exige `ADMINISTRADOR` o `VENDEDOR`. `/uploads/**` sigue público porque un `<img>` no envía JWT.
-- `GET /api/contactos/**` queda **solo para `ADMINISTRADOR`**: lo exige `ContactoControllerTest` y la documentación. Se corrigió el resumen de Swagger, que decía «ADMINISTRADOR o VENDEDOR».
+- `GET /api/v1/imagenes/**` (metadatos y dueños) exige `ADMINISTRADOR` o `VENDEDOR`. `/uploads/**` sigue público porque un `<img>` no envía JWT.
+- `GET /api/v1/contactos/**` queda **solo para `ADMINISTRADOR`**: lo exige `ContactoControllerTest` y la documentación. Se corrigió el resumen de Swagger, que decía «ADMINISTRADOR o VENDEDOR».
 - `CabecerasUploadsFilter` agrega `X-Content-Type-Options: nosniff` y `Content-Security-Policy: default-src 'none'` a `/uploads/**`.
 
 **Blogs**
 
 - `BlogResponse` es el DTO de **gestión** (incluye `autorId`, `autorNombre`, `autorCorreo`).
-- `BlogPublicoResponse` es el DTO **público**: no expone datos del autor. `GET /api/blogs/{id}` lo devuelve.
-- `GET /api/blogs/gestion/{id}` devuelve `BlogResponse` y exige personal.
+- `BlogPublicoResponse` es el DTO **público**: no expone datos del autor. `GET /api/v1/blogs/{id}` lo devuelve.
+- `GET /api/v1/blogs/gestion/{id}` devuelve `BlogResponse` y exige personal.
 - `BlogResumenResponse` ya no incluye `autorNombre`.
-- Se corrigió el `Location` de `POST /api/blogs/{id}/imagenes/{idImagen}` a `/api/blogs/{id}/imagenes`.
+- Se corrigió el `Location` de `POST /api/v1/blogs/{id}/imagenes/{idImagen}` a `/api/v1/blogs/{id}/imagenes`.
 - El permiso se comprueba **antes** de buscar el blog en `actualizar`, `eliminar`, `asignarImagenPrincipal` y `cambiarVisibilidad`: un rol sin permiso recibe 403 sin filtrar si el id existe.
 
 **Configuración y arranque**
@@ -218,7 +293,7 @@ Sesión de correcciones acordada contigo: cerrar rutas por defecto, separar el c
 El código del contacto se escribió el 3 nov (pedido tuyo: convertir la tabla `CONTACTO` a MySQL con Flyway y crear entidad, mapper, DTOs y endpoints, con envío abierto a cualquier persona). Hoy se documentó y se integró en el resto de los documentos.
 
 - **Qué se agregó al código:** `V6__contacto.sql`, `Contacto`, `ContactoRepository`, `ContactoRequest`, `ContactoResponse`, `ContactoMapper`, `ContactoService`, `ContactoController`, dos reglas en `SecurityConfig`, y `ContactoServiceTest` (4) y `ContactoControllerTest` (10).
-- **Rutas:** `POST /api/contactos` público (201); `GET /api/contactos` y `GET /api/contactos/{id}` solo `ADMINISTRADOR`. No hay `PUT` ni `DELETE`.
+- **Rutas:** `POST /api/v1/contactos` público (201); `GET /api/v1/contactos` y `GET /api/v1/contactos/{id}` solo `ADMINISTRADOR`. No hay `PUT` ni `DELETE`.
 - **Documentos nuevos:** [guía 19](../guias/19-formulario-de-contacto.md) y [referencia 28](../referencia/28-contacto-explicado.md).
 - **Documentos actualizados:** [README](../../README.md) (índices y estado), [catálogo de endpoints](../referencia/23-catalogo-de-endpoints.md), [diccionario de datos](../referencia/22-diccionario-de-datos.md) (tabla `contacto`), reglas de acceso en la [referencia 21](../referencia/21-seguridad-jwt-y-roles-explicada.md), la [referencia 08](../referencia/08-seguridad.md) y la [guía 11](../guias/11-seguridad-y-login.md), [manual 05](../personal/05-probar-la-api.md) y [07](../personal/07-roles-y-permisos.md), [guía 15](../guias/15-pruebas.md) y [guía 16](../guias/16-hoja-de-ruta.md).
 - **No se tocó** la [referencia 24](../referencia/24-decisiones-de-diseno.md): las decisiones del contacto están en la sección 1 de la referencia 28. Si quieres numerarlas (`D37` en adelante), se pasan de ahí.
@@ -226,21 +301,21 @@ El código del contacto se escribió el 3 nov (pedido tuyo: convertir la tabla `
 
 ### 3 nov 2026 (03:10): subida de imágenes sin dueño
 
-Pedido tuyo: `POST /api/imagenes/productos` solo guardaba el archivo (no creaba fila en `imagen_url`, así que no había `id` para asignarla), y faltaba un endpoint general.
+Pedido tuyo: `POST /api/v1/imagenes/productos` solo guardaba el archivo (no creaba fila en `imagen_url`, así que no había `id` para asignarla), y faltaba un endpoint general.
 
-- **Nuevo `POST /api/imagenes`** (`multipart/form-data`, campo `archivo`; ADMINISTRADOR o VENDEDOR): guarda el archivo en `uploads/general/`, crea la fila en `imagen_url` **sin dueño** y responde **201** con `{ id, url, duenos: [] }` y el encabezado `Location`.
-- **Arreglado `POST /api/imagenes/productos`**: ahora hace lo mismo (carpeta `productos`) y también responde 201 con el `id`. Antes respondía 200 con solo `{ url }`; la `url` sigue ahí.
+- **Nuevo `POST /api/v1/imagenes`** (`multipart/form-data`, campo `archivo`; ADMINISTRADOR o VENDEDOR): guarda el archivo en `uploads/general/`, crea la fila en `imagen_url` **sin dueño** y responde **201** con `{ id, url, duenos: [] }` y el encabezado `Location`.
+- **Arreglado `POST /api/v1/imagenes/productos`**: ahora hace lo mismo (carpeta `productos`) y también responde 201 con el `id`. Antes respondía 200 con solo `{ url }`; la `url` sigue ahí.
 - **`ImagenService.subir(archivo, subcarpeta)`** (nuevo): si falla el INSERT, borra el archivo para no dejar huérfanos. `ImagenController` ya no usa `AlmacenamientoService` directamente.
 - **Carpeta `general`** agregada a las permitidas en `AlmacenamientoService`.
-- **Asignar por id** (ya existía): `POST /api/blogs/{id}/imagenes/{idImagen}` y `PUT /api/blogs/{id}/imagen-principal/{idImagen}`. Productos y categorías no tienen controller todavía, así que aún no se pueden asignar por API.
+- **Asignar por id** (ya existía): `POST /api/v1/blogs/{id}/imagenes/{idImagen}` y `PUT /api/v1/blogs/{id}/imagen-principal/{idImagen}`. Productos y categorías no tienen controller todavía, así que aún no se pueden asignar por API.
 - **Tests:** `ImagenServiceTest` (+2), `ImagenControllerTest` (+4 y 2 reescritos al nuevo contrato). **No se compilaron ni ejecutaron.**
-- **Se cierra** el pendiente «`POST /api/imagenes/productos` no registra la imagen».
+- **Se cierra** el pendiente «`POST /api/v1/imagenes/productos` no registra la imagen».
 
-Flujo para probar: `POST /api/imagenes` → copiar el `id` → `POST /api/blogs/{id}/imagenes/{idImagen}`; y `SELECT id_url, url FROM imagen_url;` debe mostrar la fila.
+Flujo para probar: `POST /api/v1/imagenes` → copiar el `id` → `POST /api/v1/blogs/{id}/imagenes/{idImagen}`; y `SELECT id_url, url FROM imagen_url;` debe mostrar la fila.
 
 ### 3 nov 2026: revisión del código (imágenes, errores, subida de archivos y secreto JWT)
 
-Se revisó el ZIP `src` completo a petición tuya (disparador: Swagger enviaba mal el `Pageable` de `GET /api/imagenes`). Hallazgos aplicados:
+Se revisó el ZIP `src` completo a petición tuya (disparador: Swagger enviaba mal el `Pageable` de `GET /api/v1/imagenes`). Hallazgos aplicados:
 
 | # | Qué | Archivos | Antes → ahora |
 | --- | --- | --- | --- |
@@ -263,7 +338,7 @@ Se revisó el ZIP `src` completo a petición tuya (disparador: Swagger enviaba m
 
 - `ArchivoNoValidoException` **extiende** `ReglaNegocioException`, así el código y los tests que ya atrapan la clase madre siguen igual; solo el handler nuevo la distingue (400 en vez de 409).
 - Solo se quitó el valor por defecto de `jwt.secret`. Los de la base (`root`/`root`, `localhost:3307`) siguen en `application.yaml`; `prod` ya no tiene ninguno y `local` pide `DB_PASSWORD`.
-- **No se aplicó** (queda en Pendiente): límite de intentos de login, el filtrado de blogs ocultos en `GET /api/imagenes` (es una decisión tuya, ver [24](../referencia/24-decisiones-de-diseno.md#decisiones-aún-abiertas)) y el archivo huérfano de `POST /api/imagenes/productos`.
+- **No se aplicó** (queda en Pendiente): límite de intentos de login, el filtrado de blogs ocultos en `GET /api/v1/imagenes` (es una decisión tuya, ver [24](../referencia/24-decisiones-de-diseno.md#decisiones-aún-abiertas)) y el archivo huérfano de `POST /api/v1/imagenes/productos`.
 
 **Documentación tocada:** `guias/10`, `guias/18`, `guias/03`, `referencia/08`, `referencia/23`, `referencia/24`, `referencia/26`, `personal/03`, `personal/05`, este archivo y el `README.md` (estado y regla 14).
 
@@ -274,7 +349,7 @@ Se revisó el ZIP `src` completo a petición tuya (disparador: Swagger enviaba m
 ./scripts/dev.sh                  # la app debe arrancar con JWT_SECRET del .env
 ```
 
-En Swagger: `GET /api/imagenes` debe mostrar `page`, `size` y `sort`; con `sort=string` responde 400. Subir un `.txt` renombrado a `.png` a `POST /api/imagenes/productos` responde 400.
+En Swagger: `GET /api/v1/imagenes` debe mostrar `page`, `size` y `sort`; con `sort=string` responde 400. Subir un `.txt` renombrado a `.png` a `POST /api/v1/imagenes/productos` responde 400.
 
 **Qué no se pudo verificar:** el ZIP no traía `pom.xml` y Maven Central estaba bloqueado, así que **no se compiló ni se ejecutó ningún test**. Solo se probó la lógica de `AlmacenamientoService` con un programa aparte (PNG, JPEG y WEBP válidos, y seis rechazos, incluido el `Content-Type` nulo). Lo demás se revisó leyéndolo. Dos puntos a mirar si algo no compila: el import `org.springdoc.core.annotations.ParameterObject` (en springdoc 1.x es `org.springdoc.api.annotations.ParameterObject`) y el constructor de `PropertyReferenceException` en `ImagenControllerTest`. **Corrección (3 nov, 02:55):** al compilar, `PropertyReferenceException` no estaba en `org.springframework.data.mapping`; en Spring Data 4 (Spring Boot 4) vive en `org.springframework.data.core` (igual que `TypeInformation`). Ya corregido en `GlobalExceptionHandler` y `ImagenControllerTest`.
 
@@ -311,23 +386,23 @@ Se escribió la fase 4 en cinco pasos. Detalle, analogía y código línea por l
 | 2 | `UserDetailsServiceImpl` y su test (3) | Aplicado |
 | 3 | `JwtAuthFilter` y su test (6) | Aplicado |
 | 4 | Login: `LoginRequest`, `AuthResponse`, `AuthService`, `AuthController` y 6 tests | Aplicado; falta confirmar |
-| 5 | `SecurityConfig` nueva, `ManejadorErroresSeguridad`, `/api/usuarios/me`, `buscarPorCorreo` y 2 handlers; `UsuarioControllerTest` pasa de 9 a 14 | Aplicado; falta confirmar |
+| 5 | `SecurityConfig` nueva, `ManejadorErroresSeguridad`, `/api/v1/usuarios/me`, `buscarPorCorreo` y 2 handlers; `UsuarioControllerTest` pasa de 9 a 14 | Aplicado; falta confirmar |
 
 **Reglas de acceso resultantes:**
 
 | Ruta | Quién entra |
 | --- | --- |
-| Swagger, `/actuator/health`, `POST /api/auth/login`, `POST /api/usuarios` | Todos |
-| `GET /api/usuarios/me` | Cualquiera con sesión |
-| Resto de `/api/usuarios/**` | Solo `ADMINISTRADOR` |
-| Todo lo demás | Cualquiera con token válido |
+| Swagger, `/actuator/health`, `POST /api/v1/auth/login`, `POST /api/v1/usuarios` | Todos |
+| `GET /api/v1/usuarios/me` | Cualquiera con sesión |
+| Resto de `/api/v1/usuarios/**` | Solo `ADMINISTRADOR` |
+| Todo lo demás | Cualquiera con token válido (estado del 20 oct; después se endureció a `anyRequest().denyAll()`) |
 
 **Decisiones:**
 
 | Decisión | Motivo |
 | --- | --- |
 | Correo inexistente, clave incorrecta y usuario desactivado dan el **mismo** 401 | Nadie puede averiguar qué correos están registrados |
-| `GET /api/usuarios/{id}` solo para administrador; el perfil propio es `/me` | Un cliente no debe leer a otros cambiando el id |
+| `GET /api/v1/usuarios/{id}` solo para administrador; el perfil propio es `/me` | Un cliente no debe leer a otros cambiando el id |
 | El filtro consulta la base en cada petición | Desactivar a un usuario o cambiarle el rol surte efecto al instante |
 | `JwtAuthFilter` sin `@Component` | Evita que `@WebMvcTest` lo cargue y falle por no encontrar `JwtService` |
 | `.anyRequest().authenticated()` al final | Una ruta olvidada queda protegida, no abierta |
@@ -349,7 +424,7 @@ Se escribió la fase 4 en cinco pasos. Detalle, analogía y código línea por l
 - Que desaparezca el aviso `Using generated security password`.
 - Que el código se ejecute: el entorno donde se escribió no podía compilar.
 
-**Lo que viene:** confirmar los 56 tests y el login; luego `GET /api/usuarios` y `PUT /api/usuarios/me`, y la primera rebanada completa con `Categoria` (con sus reglas por rol).
+**Lo que viene:** confirmar los 56 tests y el login; luego `GET /api/v1/usuarios` y `PUT /api/v1/usuarios/me`, y la primera rebanada completa con `Categoria` (con sus reglas por rol).
 
 ### 20 oct 2026: configuración base (pasos A a F) y revisión de integridad
 
@@ -365,7 +440,7 @@ Se dejó resuelta la configuración que `Categoria`, `Producto` y las demás her
 | F | `WebConfig` borrada | — |
 | — | `open-in-view: false` | Registro sigue devolviendo 201 con comuna y región |
 
-**Comprobado por ti (20 oct):** **29 tests sin fallos**, la app arranca, Swagger carga y `POST /api/usuarios` devuelve 201.
+**Comprobado por ti (20 oct):** **29 tests sin fallos**, la app arranca, Swagger carga y `POST /api/v1/usuarios` devuelve 201.
 
 **Hallazgos de la revisión del ZIP:**
 
@@ -377,14 +452,14 @@ Se dejó resuelta la configuración que `Categoria`, `Producto` y las demás her
 
 ### 19 oct 2026 (tarde): validación del RUN, service y controller (pasos 8.3, 9.1 y 9.2)
 
-Se completó el **primer flujo de punta a punta** de `Usuario`: `POST /api/usuarios` y `GET /api/usuarios/{id}`.
+Se completó el **primer flujo de punta a punta** de `Usuario`: `POST /api/v1/usuarios` y `GET /api/v1/usuarios/{id}`.
 
 | Paso | Qué se hizo | Resultado |
 | --- | --- | --- |
 | 8.3 | `RunUtil` (módulo 11), `@RunValido` y `RunValidoValidator`; dos tests nuevos en `UsuarioRequestTest` | **Pasa**: 14 tests (10 de `UsuarioRequestTest` + 4 de `RunUtilTest`). Confirma también el 8.2 |
 | 9.1 | `UsuarioService`: `registrar` y `buscarPorId`, con `UsuarioServiceTest` (Mockito, 5 tests) | **Pasa** y la app arranca con el mapper inyectado |
 | 9.2 | `UsuarioController` (`@Valid`, 201 con `Location`) y `UsuarioControllerTest` (`@WebMvcTest`, 8 tests) | **Pasa** y la app arranca |
-| — | `GlobalExceptionHandler`: handler nuevo de `MethodArgumentTypeMismatchException` (400) | Sin él, `GET /api/usuarios/abc` salía como 500. Cubierto por un test |
+| — | `GlobalExceptionHandler`: handler nuevo de `MethodArgumentTypeMismatchException` (400) | Sin él, `GET /api/v1/usuarios/abc` salía como 500. Cubierto por un test |
 
 **Qué se comprobó con las pruebas:** 27 tests sin base de datos (14 + 5 + 8). El controller es la **primera vez** que se prueba el `GlobalExceptionHandler`: 400 por campo (`detalles.runDv`), 400 por JSON roto, 404, 405 y 409.
 
@@ -842,7 +917,7 @@ Ejemplo de respuesta de validación:
   "status": 400,
   "error": "Bad Request",
   "mensaje": "Datos inválidos",
-  "ruta": "/api/productos",
+  "ruta": "/api/v1/productos",
   "detalles": { "nombre": "<mensaje de la validación>", "precio": "<mensaje de la validación>" }
 }
 ```
@@ -875,7 +950,7 @@ Puntos a tener en cuenta:
 | `POST` con un JSON roto | 400 con `ErrorResponse` |
 | `GET` a una ruta que no existe | 404 con `ErrorResponse` |
 | `DELETE` a una ruta que solo acepta `GET` | 405 con `ErrorResponse` |
-| `GET /api/productos/999999` (id inexistente) | 404 con el mensaje "Producto no encontrado con id 999999" |
+| `GET /api/v1/productos/999999` (id inexistente) | 404 con el mensaje "Producto no encontrado con id 999999" |
 | `POST` con un campo que no cumple `@Valid` | 400 con `detalles` por campo |
 
 ---

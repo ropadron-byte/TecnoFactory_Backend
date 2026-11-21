@@ -8,26 +8,39 @@ Base: `http://localhost:8080` · Formato: JSON · Autenticación: cabecera `Auth
 
 | Método | Ruta | Quién | Éxito |
 | --- | --- | --- | --- |
-| `POST` | `/api/auth/login` | Público | 200 |
-| `POST` | `/api/auth/google` | Público (ID token de Google) | 200 / 202 |
-| `POST` | `/api/auth/google/completar` | Público (token temporal) | 201 |
-| `POST` | `/api/auth/google/vincular` | Cualquier sesión | 204 |
-| `POST` | `/api/usuarios` | Público (registro) | 201 |
-| `GET` | `/api/usuarios/me` | Cualquier sesión | 200 |
-| `GET` | `/api/usuarios/{id}` | `ADMINISTRADOR` | 200 |
-| `PATCH` | `/api/usuarios/me/desactivar` | `CLIENTE` (su propia cuenta) | 204 |
-| `PATCH` | `/api/usuarios/{id}/desactivar` | `ADMINISTRADOR` (solo cuentas de vendedor) | 200 |
-| `DELETE` | `/api/usuarios/{id}` | `ADMINISTRADOR` (solo cuentas de vendedor) | 204 |
-| `POST` | `/api/contactos` | **Público** (formulario de contacto) | 201 |
-| `GET` | `/api/contactos` | `ADMINISTRADOR` | 200 |
-| `GET` | `/api/contactos/{id}` | `ADMINISTRADOR` | 200 |
-| `GET` | `/api/blogs` | Público | 200 |
-| `GET` | `/api/blogs/{id}` | Público (solo blogs visibles) | 200 |
-| `GET` | `/api/blogs/{id}/imagen` · `/imagenes` | Público | 200 / 204 |
-| `GET` | `/api/blogs/gestion` · `/gestion/{id}` | `ADMINISTRADOR` o `VENDEDOR` | 200 |
-| `POST/PUT/PATCH/DELETE` | `/api/blogs/**` | `ADMINISTRADOR` o `VENDEDOR` | 200 / 201 / 204 |
-| `GET` | `/api/imagenes` · `/api/imagenes/{id}` | `ADMINISTRADOR` o `VENDEDOR` | 200 |
-| `POST/PUT/DELETE` | `/api/imagenes/**` | `ADMINISTRADOR` o `VENDEDOR` | 200 / 201 / 204 |
+| `POST` | `/api/v1/auth/login` | Público | 200 |
+| `POST` | `/api/v1/auth/google` | Público (ID token de Google) | 200 / 202 |
+| `POST` | `/api/v1/auth/google/completar` | Público (token temporal) | 201 |
+| `POST` | `/api/v1/auth/google/vincular` | Cualquier sesión | 204 |
+| `POST` | `/api/v1/usuarios` | Público (registro) | 201 |
+| `GET` | `/api/v1/usuarios` | `ADMINISTRADOR` o `VENDEDOR` (solo lectura) | 200 |
+| `GET` | `/api/v1/usuarios/me` | Cualquier sesión | 200 |
+| `PUT` | `/api/v1/usuarios/me` | Cualquier sesión (propio perfil) | 200 |
+| `POST` | `/api/v1/usuarios/vendedores` | `ADMINISTRADOR` | 201 |
+| `GET` | `/api/v1/usuarios/{id}` | `ADMINISTRADOR` | 200 |
+| `PATCH` | `/api/v1/usuarios/me/desactivar` | `CLIENTE` (su propia cuenta) | 204 |
+| `PATCH` | `/api/v1/usuarios/{id}/desactivar` | `ADMINISTRADOR` (solo cuentas de vendedor) | 200 |
+| `DELETE` | `/api/v1/usuarios/{id}` | `ADMINISTRADOR` (solo cuentas de vendedor) | 204 |
+| `POST` | `/api/v1/contactos` | **Público** (formulario de contacto) | 201 |
+| `GET` | `/api/v1/contactos` | `ADMINISTRADOR` | 200 |
+| `GET` | `/api/v1/contactos/{id}` | `ADMINISTRADOR` | 200 |
+| `GET` | `/api/v1/blogs` | Público | 200 |
+| `GET` | `/api/v1/blogs/{id}` | Público (solo blogs visibles) | 200 |
+| `GET` | `/api/v1/blogs/{id}/imagen` · `/imagenes` | Público | 200 / 204 |
+| `GET` | `/api/v1/blogs/gestion` · `/gestion/{id}` | `ADMINISTRADOR` o `VENDEDOR` | 200 |
+| `POST/PUT/PATCH/DELETE` | `/api/v1/blogs/**` | `ADMINISTRADOR` o `VENDEDOR` | 200 / 201 / 204 |
+| `GET` | `/api/v1/imagenes` · `/api/v1/imagenes/{id}` | `ADMINISTRADOR` o `VENDEDOR` | 200 |
+| `POST/PUT/DELETE` | `/api/v1/imagenes/**` | `ADMINISTRADOR` o `VENDEDOR` | 200 / 201 / 204 |
+| `GET` | `/api/v1/categorias`, `/api/v1/categorias/{id}` | Público | 200 |
+| `POST/PUT/DELETE` | `/api/v1/categorias/**` | `ADMINISTRADOR` | 200 / 201 / 204 |
+| `GET` | `/api/v1/productos`, `/api/v1/productos/ofertas`, `/api/v1/productos/{id}` | Público | 200 |
+| `GET` | `/api/v1/productos/admin`, `/api/v1/productos/criticos` | `ADMINISTRADOR` o `VENDEDOR` | 200 |
+| `POST/PUT/PATCH/DELETE` | `/api/v1/productos/**` | `ADMINISTRADOR` | 200 / 201 / 204 |
+| `GET/POST/PUT/DELETE` | `/api/v1/carrito/**` | Cualquier sesión (carrito propio) | 200 / 204 |
+| `POST` | `/api/v1/boletas/checkout` | Cualquier sesión | 201 |
+| `GET` | `/api/v1/boletas/mias`, `/api/v1/boletas/{id}` | Cualquier sesión (propias) | 200 |
+| `GET` | `/api/v1/boletas` | `ADMINISTRADOR` o `VENDEDOR` | 200 |
+| `PATCH` | `/api/v1/boletas/{id}/anular` | `ADMINISTRADOR` | 200 |
 | `GET` | `/uploads/**` | Público | 200 |
 | `GET` | `/actuator/health` | Público | 200 |
 | `GET` | `/swagger-ui/index.html`, `/v3/api-docs` | Público, **solo en local** | 200 |
@@ -37,7 +50,7 @@ Base: `http://localhost:8080` · Formato: JSON · Autenticación: cabecera `Auth
 
 ---
 
-## `POST /api/auth/login`
+## `POST /api/v1/auth/login`
 
 Cambia correo y clave por un token.
 
@@ -67,7 +80,7 @@ El token dura **1 hora** (`jwt.expiration-ms: 3600000`).
 
 ---
 
-## `POST /api/auth/google`
+## `POST /api/v1/auth/google`
 
 Recibe el **ID token** que Google Identity Services entrega en el navegador y lo verifica
 (firma, emisor, audiencia y `email_verified`). No usa redirección OAuth2 ni Client Secret.
@@ -98,13 +111,13 @@ Recibe el **ID token** que Google Identity Services entrega en el navegador y lo
 | --- | --- |
 | 400 | Falta `credential` |
 | 401 | Token de Google inválido, expirado, de otro Client ID, correo no verificado **o cuenta desactivada** |
-| 409 | El correo ya existe con contraseña: hay que iniciar sesión y usar `/api/auth/google/vincular`; o ya está vinculado a otra cuenta de Google |
+| 409 | El correo ya existe con contraseña: hay que iniciar sesión y usar `/api/v1/auth/google/vincular`; o ya está vinculado a otra cuenta de Google |
 
-El `registroToken` dura **10 minutos**, solo sirve para `/api/auth/google/completar` y **no vale como `Bearer`**.
+El `registroToken` dura **10 minutos**, solo sirve para `/api/v1/auth/google/completar` y **no vale como `Bearer`**.
 
 ---
 
-## `POST /api/auth/google/completar`
+## `POST /api/v1/auth/google/completar`
 
 Crea la cuenta `CLIENTE` con los datos que Google no entrega. El correo y el `google_id`
 salen del token temporal, no del cuerpo.
@@ -124,7 +137,7 @@ salen del token temporal, no del cuerpo.
 
 | Campo | Regla |
 | --- | --- |
-| `registroToken` | Obligatorio, emitido por `/api/auth/google` y vigente |
+| `registroToken` | Obligatorio, emitido por `/api/v1/auth/google` y vigente |
 | `run` / `runDv` | Mismas reglas que el registro normal (módulo 11, `@RunValido`) |
 | `nombre`, `apellidos`, `direccion` | Obligatorios, máx. 255 |
 | `fechaNacimiento` | Obligatoria, anterior a hoy |
@@ -143,7 +156,7 @@ La cuenta queda con `contrasenia = NULL`: solo puede entrar con Google.
 
 ---
 
-## `POST /api/auth/google/vincular`
+## `POST /api/v1/auth/google/vincular`
 
 Vincula Google a la cuenta con la que ya se inició sesión **con contraseña**.
 Exige `Authorization: Bearer <token>`; el correo de Google debe coincidir con el de la cuenta.
@@ -164,7 +177,7 @@ Exige `Authorization: Bearer <token>`; el correo de Google debe coincidir con el
 
 ---
 
-## `POST /api/usuarios` (registro)
+## `POST /api/v1/usuarios` (registro)
 
 Crea un usuario. **Siempre con rol `CLIENTE`**: el cuerpo no tiene campo de rol, de activo ni de id.
 
@@ -192,7 +205,7 @@ Crea un usuario. **Siempre con rol `CLIENTE`**: el cuerpo no tiene campo de rol,
 | `telefono` | Obligatorio, 8 a 14 dígitos, `+` opcional |
 | `idComuna` | Obligatorio, debe existir |
 
-**Devuelve 201** con la cabecera `Location: /api/usuarios/{id}` y:
+**Devuelve 201** con la cabecera `Location: /api/v1/usuarios/{id}` y:
 
 ```json
 {
@@ -217,14 +230,29 @@ Ejemplo de 400:
 ```json
 {
   "timestamp": "2026-10-21T12:00:00", "status": 400, "error": "Bad Request",
-  "mensaje": "Datos inválidos", "ruta": "/api/usuarios",
+  "mensaje": "Datos inválidos", "ruta": "/api/v1/usuarios",
   "detalles": { "runDv": "El dígito verificador no corresponde al RUN", "clave": "La clave debe tener entre 8 y 72 caracteres" }
 }
 ```
 
 ---
 
-## `GET /api/usuarios/me`
+## `GET /api/v1/usuarios`
+
+Listado paginado de cuentas para los paneles. **`ADMINISTRADOR` y `VENDEDOR`, solo lectura**;
+un `CLIENTE` recibe 403 y sin sesión 401. Acepta `page`, `size` y `sort` y devuelve un
+`PageResponse<UsuarioResponse>` (sin claves).
+
+| Código | Cuándo |
+| --- | --- |
+| 200 | `{ "contenido": [...], "pagina": 0, "tamanio": 20, "totalElementos": ..., "totalPaginas": ... }` |
+| 400 | `sort` nombra un campo que no existe |
+| 401 | Sin sesión |
+| 403 | Con sesión de `CLIENTE` |
+
+---
+
+## `GET /api/v1/usuarios/me`
 
 El perfil de **quien tiene la sesión**. Cualquier rol. No recibe id: lo toma del token (y de la base).
 
@@ -236,14 +264,14 @@ El perfil de **quien tiene la sesión**. Cualquier rol. No recibe id: lo toma de
 
 ---
 
-## `GET /api/usuarios/{id}`
+## `GET /api/v1/usuarios/{id}`
 
 Cualquier usuario por id. **Solo `ADMINISTRADOR`.**
 
 | Código | Cuándo |
 | --- | --- |
 | 200 | `UsuarioResponse` |
-| 400 | El id no es un número (`/api/usuarios/abc`) |
+| 400 | El id no es un número (`/api/v1/usuarios/abc`) |
 | 401 | Sin sesión |
 | 403 | Con sesión, pero no es administrador |
 | 404 | No existe ese usuario |
@@ -254,22 +282,22 @@ Cualquier usuario por id. **Solo `ADMINISTRADOR`.**
 
 | Ruta | Quién | Qué hace |
 | --- | --- | --- |
-| `PATCH /api/usuarios/me/desactivar` | `CLIENTE` | Pone `activo = false` en **su** cuenta. Pierde el acceso al instante (el rol y el estado salen de la base en cada petición); los datos se conservan. 204. |
-| `PATCH /api/usuarios/{id}/desactivar` | `ADMINISTRADOR` | Desactiva a un **vendedor**. Devuelve el `UsuarioResponse` con `activo: false`. |
-| `DELETE /api/usuarios/{id}` | `ADMINISTRADOR` | Borra a un **vendedor**. 204. |
+| `PATCH /api/v1/usuarios/me/desactivar` | `CLIENTE` | Pone `activo = false` en **su** cuenta. Pierde el acceso al instante (el rol y el estado salen de la base en cada petición); los datos se conservan. 204. |
+| `PATCH /api/v1/usuarios/{id}/desactivar` | `ADMINISTRADOR` | Desactiva a un **vendedor**. Devuelve el `UsuarioResponse` con `activo: false`. |
+| `DELETE /api/v1/usuarios/{id}` | `ADMINISTRADOR` | Borra a un **vendedor**. 204. |
 
 Reglas: el cliente **solo puede desactivar** su cuenta, nunca borrarla (sus boletas deben conservarse; para el «derecho al olvido» la vía futura es anonimizar los datos, no borrar la fila). El correo sale del token, no de la URL; el administrador solo puede gestionar **vendedores**, nunca clientes ni otros administradores.
 
 | Código | Cuándo |
 | --- | --- |
 | 401 | Sin sesión |
-| 403 | El rol no corresponde (por ejemplo, un cliente llamando a `DELETE /api/usuarios/{id}` o `/me`) |
+| 403 | El rol no corresponde (por ejemplo, un cliente llamando a `DELETE /api/v1/usuarios/{id}` o `/me`) |
 | 404 | No existe el usuario |
 | 409 | La cuenta de `{id}` no es de vendedor; el vendedor tiene **blogs** (hay que desactivarlo, no borrarlo) |
 
 ---
 
-## `POST /api/contactos` (formulario de contacto)
+## `POST /api/v1/contactos` (formulario de contacto)
 
 Guarda el mensaje de **cualquier persona**, sin iniciar sesión. Es una ruta pública a propósito: un visitante no tiene cuenta ni token.
 
@@ -287,7 +315,7 @@ Guarda el mensaje de **cualquier persona**, sin iniciar sesión. Es una ruta pú
 
 Los espacios al inicio y al final se quitan antes de guardar. El cuerpo no tiene `id`: lo genera la base.
 
-**Devuelve 201** con la cabecera `Location: /api/contactos/{id}` y:
+**Devuelve 201** con la cabecera `Location: /api/v1/contactos/{id}` y:
 
 ```json
 { "id": 1, "nombre": "Ana", "correo": "ana@correo.cl", "comentario": "Hola, quiero más información" }
@@ -300,11 +328,11 @@ Los espacios al inicio y al final se quitan antes de guardar. El cuerpo no tiene
 
 ---
 
-## `GET /api/contactos` y `GET /api/contactos/{id}`
+## `GET /api/v1/contactos` y `GET /api/v1/contactos/{id}`
 
 Leer lo que llegó. **Solo `ADMINISTRADOR`**: cada mensaje trae el correo y el comentario de una persona.
 
-`GET /api/contactos` es **paginado** (`?page=`, `?size=`, `?sort=`; ver [Paginación](#paginación)) y devuelve un `PageResponse` de contactos. `GET /api/contactos/{id}` devuelve un contacto con la misma forma que el 201 de arriba.
+`GET /api/v1/contactos` es **paginado** (`?page=`, `?size=`, `?sort=`; ver [Paginación](#paginación)) y devuelve un `PageResponse` de contactos. `GET /api/v1/contactos/{id}` devuelve un contacto con la misma forma que el 201 de arriba.
 
 | Código | Cuándo |
 | --- | --- |
@@ -320,7 +348,7 @@ Aún **no existen** `PUT` ni `DELETE` de contactos. Detalle en la [referencia 28
 
 ## Blogs
 
-### `GET /api/blogs` (público)
+### `GET /api/v1/blogs` (público)
 
 Página de blogs **visibles** con la forma `BlogResumenResponse`:
 
@@ -330,7 +358,7 @@ Página de blogs **visibles** con la forma `BlogResumenResponse`:
 
 **No incluye** contenido, galería ni datos del autor.
 
-### `GET /api/blogs/{id}` (público)
+### `GET /api/v1/blogs/{id}` (público)
 
 Devuelve un `BlogPublicoResponse`:
 
@@ -345,18 +373,18 @@ Devuelve un `BlogPublicoResponse`:
 **No incluye** `autorId`, `autorNombre` ni `autorCorreo`: el correo del autor nunca se publica.
 Un blog desactivado responde **404** salvo para `ADMINISTRADOR` o `VENDEDOR`.
 
-### `GET /api/blogs/{id}/imagen` y `/api/blogs/{id}/imagenes` (público)
+### `GET /api/v1/blogs/{id}/imagen` y `/api/v1/blogs/{id}/imagenes` (público)
 
 La portada y la galería. La portada responde **204** si el blog no tiene imagen principal.
 
-### `GET /api/blogs/gestion` y `/api/blogs/gestion/{id}` (personal)
+### `GET /api/v1/blogs/gestion` y `/api/v1/blogs/gestion/{id}` (personal)
 
 - `/gestion` pagina **todos** los blogs, también los desactivados: `BlogGestionResponse`
   (`id`, `titulo`, `visible`, `fechaCreacion`, `autorNombre`, `imagenPrincipal`).
 - `/gestion/{id}` devuelve un `BlogResponse` **con** `autorId`, `autorNombre` y `autorCorreo`.
   Es el único contrato que expone el correo del autor.
 
-### `POST /api/blogs`, `PUT /api/blogs/{id}` y cambios de estado (personal)
+### `POST /api/v1/blogs`, `PUT /api/v1/blogs/{id}` y cambios de estado (personal)
 
 `BlogRequest`:
 
@@ -366,14 +394,14 @@ La portada y la galería. La portada responde **204** si el blog no tiene imagen
 
 | Ruta | Efecto |
 | --- | --- |
-| `POST /api/blogs` | Crea; **201** con `Location: /api/blogs/{id}` |
-| `PUT /api/blogs/{id}` | Reemplaza título y contenido; `visible` e `idImagenPrincipal` son opcionales |
-| `PATCH /api/blogs/{id}/activar` · `/desactivar` | Cambia la visibilidad |
-| `DELETE /api/blogs/{id}` | **204**. No borra las imágenes, solo sus relaciones |
-| `POST /api/blogs/{id}/imagenes` (`multipart`, campo `archivo`) | Sube y agrega; **201** |
-| `POST /api/blogs/{id}/imagenes/{idImagen}` | Agrega una existente; **201** con `Location: /api/blogs/{id}/imagenes` |
-| `PUT /api/blogs/{id}/imagen-principal/{idImagen}` | Cambia la portada |
-| `DELETE /api/blogs/{id}/imagenes/{idImagen}` | Quita de la galería sin borrar la imagen |
+| `POST /api/v1/blogs` | Crea; **201** con `Location: /api/v1/blogs/{id}` |
+| `PUT /api/v1/blogs/{id}` | Reemplaza título y contenido; `visible` e `idImagenPrincipal` son opcionales |
+| `PATCH /api/v1/blogs/{id}/activar` · `/desactivar` | Cambia la visibilidad |
+| `DELETE /api/v1/blogs/{id}` | **204**. No borra las imágenes, solo sus relaciones |
+| `POST /api/v1/blogs/{id}/imagenes` (`multipart`, campo `archivo`) | Sube y agrega; **201** |
+| `POST /api/v1/blogs/{id}/imagenes/{idImagen}` | Agrega una existente; **201** con `Location: /api/v1/blogs/{id}/imagenes` |
+| `PUT /api/v1/blogs/{id}/imagen-principal/{idImagen}` | Cambia la portada |
+| `DELETE /api/v1/blogs/{id}/imagenes/{idImagen}` | Quita de la galería sin borrar la imagen |
 
 Todas las rutas de escritura exigen `ADMINISTRADOR` o `VENDEDOR`.
 
@@ -381,7 +409,7 @@ Todas las rutas de escritura exigen `ADMINISTRADOR` o `VENDEDOR`.
 
 ## Imágenes
 
-### `GET /api/imagenes` y `GET /api/imagenes/{id}` (personal)
+### `GET /api/v1/imagenes` y `GET /api/v1/imagenes/{id}` (personal)
 
 Listado paginado y detalle de `ImagenResponse`, con sus dueños (`BLOG`, `PRODUCTO`,
 `CATEGORIA`). **Ya no son públicas**: revelaban ids de blogs ocultos. Exigen
@@ -391,12 +419,12 @@ Listado paginado y detalle de `ImagenResponse`, con sus dueños (`BLOG`, `PRODUC
 
 | Ruta | Efecto |
 | --- | --- |
-| `POST /api/imagenes` (`multipart`, campo `archivo`) | Sube sin dueño; **201** con `Location: /api/imagenes/{id}` |
-| `POST /api/imagenes/productos` | Igual, guardando en `uploads/productos` |
-| `PUT /api/imagenes/{id}` | Reemplaza el archivo conservando el id y sus relaciones |
-| `DELETE /api/imagenes/{id}` | **204**; **409** si todavía tiene dueños |
-| `DELETE /api/imagenes/{id}/duenos` | Desacopla de todos sus dueños |
-| `DELETE /api/imagenes/{id}/duenos/{tipo}/{idDueno}` | Desacopla de un dueño |
+| `POST /api/v1/imagenes` (`multipart`, campo `archivo`) | Sube sin dueño; **201** con `Location: /api/v1/imagenes/{id}` |
+| `POST /api/v1/imagenes/productos` | Igual, guardando en `uploads/productos` |
+| `PUT /api/v1/imagenes/{id}` | Reemplaza el archivo conservando el id y sus relaciones |
+| `DELETE /api/v1/imagenes/{id}` | **204**; **409** si todavía tiene dueños |
+| `DELETE /api/v1/imagenes/{id}/duenos` | Desacopla de todos sus dueños |
+| `DELETE /api/v1/imagenes/{id}/duenos/{tipo}/{idDueno}` | Desacopla de un dueño |
 
 Solo se aceptan **JPG, PNG y WEBP** de hasta **5 MB** (el mensaje de error lee el límite
 de `spring.servlet.multipart.max-file-size`).
@@ -409,17 +437,65 @@ el navegador no interprete una subida como HTML o script.
 
 ---
 
+## Catálogo: categorías y productos
+
+La lectura del catálogo es **pública**; las escrituras son solo de `ADMINISTRADOR`. Hay
+detalle completo (DTOs, reglas de negocio, precio final y Catálogo inicial `V9`) en la
+[referencia 30](30-catalogo-y-precios.md).
+
+| Ruta | Quién | Qué hace |
+| --- | --- | --- |
+| `GET /api/v1/categorias` | Público | Lista ordenada por nombre con `cantidadProductos` (sin paginar) |
+| `GET /api/v1/categorias/{id}` | Público | Detalle; 404 si no existe |
+| `POST /api/v1/categorias` | Administrador | 201 con `Location` |
+| `PUT /api/v1/categorias/{id}` | Administrador | Edita nombre, descripción e imágenes |
+| `DELETE /api/v1/categorias/{id}` | Administrador | 204; **409** si tiene productos |
+| `GET /api/v1/productos?categoriaId=` | Público | Página de productos activos |
+| `GET /api/v1/productos/ofertas` | Público | Página de activos con descuento |
+| `GET /api/v1/productos/{id}` | Público | Detalle; un desactivado da 404 al público |
+| `GET /api/v1/productos/admin` | Admin / Vendedor | Todos, incluidos desactivados |
+| `GET /api/v1/productos/criticos` | Admin / Vendedor | Stock crítico (lista, sin paginar) |
+| `POST /api/v1/productos` | Administrador | 201 con `Location` |
+| `PUT /api/v1/productos/{id}` | Administrador | Edición |
+| `DELETE /api/v1/productos/{id}` | Administrador | 204, **baja lógica** (`activo = false`) |
+| `PATCH /api/v1/productos/{id}/activar` | Administrador | Reactiva el producto |
+
+`ProductoResponse` incluye `precio` y `precioFinal`. El descuento lo aplica el backend
+(`Precios.conDescuento`, redondeo al peso): el frontend solo lo muestra.
+
+## Carrito y boletas
+
+Todas exigen sesión. El carrito se identifica por el correo del token, no por un id de la URL.
+El checkout valida stock, descuenta existencias, copia nombre y precio en la boleta y vacía
+el carrito en una sola transacción. Detalle en la [referencia 31](31-carrito-y-boletas.md).
+
+| Ruta | Quién | Qué hace |
+| --- | --- | --- |
+| `GET /api/v1/carrito` | Cualquier sesión | Ver el carrito (se crea si no existe) |
+| `POST /api/v1/carrito/items` | Cualquier sesión | Agregar; si ya está, suma la cantidad |
+| `PUT /api/v1/carrito/items/{idProducto}` | Cualquier sesión | Cambiar cantidad (`cantidad >= 1`) |
+| `DELETE /api/v1/carrito/items/{idProducto}` | Cualquier sesión | Quitar un producto |
+| `DELETE /api/v1/carrito` | Cualquier sesión | Vaciar (204) |
+| `POST /api/v1/boletas/checkout` | Cualquier sesión | Comprar: 201 + `Location` |
+| `GET /api/v1/boletas/mias` | Cualquier sesión | Mis boletas, paginadas |
+| `GET /api/v1/boletas` | Admin / Vendedor | Todas, paginadas |
+| `GET /api/v1/boletas/{id}` | Cualquier sesión | Detalle; ajena = 404 para un cliente |
+| `PATCH /api/v1/boletas/{id}/anular` | Administrador | Anula y devuelve el stock |
+
+Errores típicos: **409** por carrito vacío, producto desactivado, stock insuficiente o boleta
+ya anulada; **403** si un cliente pide todas las boletas o intenta anular.
+
 ## Formato de todos los errores
 
 ```json
-{ "timestamp": "...", "status": 409, "error": "Conflict", "mensaje": "...", "ruta": "/api/usuarios", "detalles": null }
+{ "timestamp": "...", "status": 409, "error": "Conflict", "mensaje": "...", "ruta": "/api/v1/usuarios", "detalles": null }
 ```
 
 `detalles` solo lleva contenido en los errores de validación (`campo → mensaje`). Detalle de cada código en la [guía 10](../guias/10-errores-de-la-api.md).
 
 ## Paginación
 
-Ya existen varios listados paginados (`GET /api/blogs`, `/api/blogs/gestion`, `/api/imagenes` y `/api/contactos`). La forma es la misma en todos:
+Ya existen varios listados paginados: `GET /api/v1/blogs`, `/api/v1/blogs/gestion`, `/api/v1/imagenes`, `/api/v1/contactos`, `/api/v1/productos` (y `/ofertas`, `/admin`), `/api/v1/boletas` (y `/mias`). La forma es la misma en todos:
 
 | Parámetro | Efecto |
 | --- | --- |
@@ -427,7 +503,7 @@ Ya existen varios listados paginados (`GET /api/blogs`, `/api/blogs/gestion`, `/
 | `?size=20` | Tamaño (por defecto 20, **máximo 100**) |
 | `?sort=nombre,asc` | Orden |
 
-En **Swagger** esos tres parámetros aparecen como campos separados gracias a `@ParameterObject` en el `Pageable` del controller (3 nov). Sin esa anotación, Swagger muestra un solo cuadro JSON y lo envía mal (`?pageable={...}`). **Todo `Pageable` nuevo debe llevarla.**
+En **Swagger** esos tres parámetros aparecen como campos separados gracias a `@ParameterObject` en el `Pageable` del controller (3 nov, extendido a productos y boletas el 20 nov). Sin esa anotación, Swagger muestra un solo cuadro JSON y lo envía mal (`?pageable={...}`). **Todo `Pageable` nuevo debe llevarla.**
 
 Si `sort` nombra un campo que no existe (`?sort=string`), la API responde **400** «No se puede ordenar por 'string'» (antes salía 500).
 
@@ -437,15 +513,13 @@ Respuesta (`PageResponse`):
 { "contenido": [ ... ], "pagina": 0, "tamanio": 20, "totalElementos": 135, "totalPaginas": 7 }
 ```
 
-## Rutas que vendrán
+## Estado de rutas que antes eran futuras
 
-| Ruta | Quién | Cuándo |
-| --- | --- | --- |
-| `GET /api/usuarios` (listado paginado) | `ADMINISTRADOR` y `VENDEDOR` (solo lectura) | Pendiente |
-| `PUT /api/usuarios/me` | Cualquier sesión (solo el propio perfil) | Pendiente |
-| `POST /api/usuarios/vendedores` (nombre provisional) | `ADMINISTRADOR` | Pendiente |
-| `/api/categorias`, `/api/productos` | Lectura: sesión; escritura: `ADMINISTRADOR` y `VENDEDOR` | Con cada entidad |
+Ya están implementadas y documentadas arriba: `GET /api/v1/usuarios` (listado paginado,
+20 nov), `PUT /api/v1/usuarios/me`, `POST /api/v1/usuarios/vendedores`, `/api/v1/categorias`,
+`/api/v1/productos`, `/api/v1/carrito` y `/api/v1/boletas`. No queda ninguna de estas rutas
+pendiente.
 
 ## Para saber más
 
-[Referencia 19: registro, service y controller](19-validacion-run-service-y-controller-explicados.md) · [Referencia 21: login y roles](21-seguridad-jwt-y-roles-explicada.md) · [Referencia 28: contacto](28-contacto-explicado.md) · [Guía 17: usarlo desde React](../guias/17-integracion-con-react.md)
+[Referencia 19: registro, service y controller](19-validacion-run-service-y-controller-explicados.md) · [Referencia 21: login y roles](21-seguridad-jwt-y-roles-explicada.md) · [Referencia 28: contacto](28-contacto-explicado.md) · [Referencia 30: catálogo y precios](30-catalogo-y-precios.md) · [Referencia 31: carrito y boletas](31-carrito-y-boletas.md) · [Guía 17: usarlo desde React](../guias/17-integracion-con-react.md)

@@ -58,7 +58,7 @@ TecnoFactory/
     ├── main/
     │   ├── java/com/factory/tecnofactory/
     │   │   ├── TecnoFactoryApplication.java
-    │   │   ├── config/        # AdministradorInicialRunner, CorsConfig, OpenApiConfig
+    │   │   ├── config/        # AdministradorInicialRunner, CorsConfig, OpenApiConfig, WebConfig, CabecerasUploadsFilter, ConfiguracionValidator
     │   │   ├── controller/    # endpoints REST
     │   │   ├── dto/           # entrada y salida de la API
     │   │   ├── entity/        # modelo de datos (tablas)
@@ -79,7 +79,9 @@ TecnoFactory/
     │           ├── V4__blog_fecha_creacion.sql
     │           ├── V5__imagen_portada_y_galeria.sql
     │           ├── V6__contacto.sql
-    │           └── V7__unicidad_region_comuna.sql
+    │           ├── V7__unicidad_region_comuna.sql
+    │           ├── V8__google_auth.sql
+    │           └── V9__catalogo_inicial.sql   # 21 productos, 6 categorías, 63 URLs; sin tablas nuevas
     └── test/
 ```
 
@@ -89,10 +91,10 @@ Estado actual:
 | --- | --- |
 | `exception` | **Escrito**: `RecursoNoEncontradoException`, `ReglaNegocioException`, `ErrorResponse` y `GlobalExceptionHandler` (ver [Cambios recientes](../estado/cambios-recientes.md)) |
 | `security` | **Escrito** (20 oct): `JwtService`, `JwtAuthFilter`, `UserDetailsServiceImpl`, `SecurityConfig` con reglas por rol y `ManejadorErroresSeguridad`. Ver [21](21-seguridad-jwt-y-roles-explicada.md) |
-| `config` | `AdministradorInicialRunner`, `CorsConfig` y `OpenApiConfig` escritas (`WebConfig` se borró por estar vacía) |
-| `entity`, `repository` | 4 de 12 entidades y sus 4 repositories |
-| `dto`, `mapper`, `validation` | `Usuario` completo (Request, Response, mapper, validación del RUN), `LoginRequest`, `AuthResponse` y `PageResponse` |
-| `service`, `controller` | `Usuario` y login (`UsuarioService`, `AuthService`, `UsuarioController`, `AuthController`) |
+| `config` | `AdministradorInicialRunner`, `CorsConfig`, `OpenApiConfig`, `WebConfig` (sirve `/uploads/**`), `CabecerasUploadsFilter` y `ConfiguracionValidator` |
+| `entity`, `repository` | **14 `@Entity` + 2 `@Embeddable`** (`ProductoCategoriaId`, `DetalleCarritoId`): `TipoUsuario`, `Region`, `Comuna`, `Usuario`, `Categoria`, `Producto`, `ProductoCategoria`, `ImagenUrl`, `Blog`, `Boleta`, `DetalleBoleta`, `Carrito`, `DetalleCarrito` y `Contacto`. **12 repositories** (uno por entidad con id propio, excepto los dos detalles, que se consultan desde su agregado). `V9` completó el catálogo; la próxima migración es `V10` |
+| `dto`, `mapper`, `validation` | DTOs y mappers de usuarios, login/Google, blogs, imágenes, contacto, catálogo, carrito y boletas; validación del RUN y de claves |
+| `service`, `controller` | Usuarios, auth/Google, blogs, imágenes, contacto, categorías, productos, carrito y boletas; **9 controllers** bajo `/api/v1` (`AuthController`, `UsuarioController`, `ContactoController`, `BlogController`, `ImagenController`, `CategoriaController`, `ProductoController`, `CarritoController` y `BoletaController`) |
 
 > En Java, cada clase `public` va en **su propio archivo** con el mismo nombre (`ErrorResponse.java` contiene solo `ErrorResponse`).
 

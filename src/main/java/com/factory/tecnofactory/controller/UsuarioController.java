@@ -1,5 +1,6 @@
 package com.factory.tecnofactory.controller;
 
+import com.factory.tecnofactory.dto.PageResponse;
 import com.factory.tecnofactory.dto.PerfilRequest;
 import com.factory.tecnofactory.dto.UsuarioRequest;
 import com.factory.tecnofactory.dto.UsuarioResponse;
@@ -9,6 +10,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -46,6 +49,12 @@ public class UsuarioController {
                 .buildAndExpand(creado.id())
                 .toUri();
         return ResponseEntity.created(ubicacion).body(creado);
+    }
+
+    @GetMapping
+    @Operation(summary = "Listar usuarios (administrador o vendedor, solo lectura)")
+    public PageResponse<UsuarioResponse> listar(@ParameterObject Pageable pageable) {
+        return usuarioService.listar(pageable);
     }
 
     @GetMapping("/me")

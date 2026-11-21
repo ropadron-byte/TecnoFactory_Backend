@@ -500,13 +500,13 @@ Una vez que `V1` o `V2` se aplicaron en alguna base compartida o de producción,
 Para cambiar el esquema, crea un archivo nuevo en `src/main/resources/db/migration/`:
 
 ```
-V3__agregar_columna_x.sql
-V4__crear_tabla_y.sql
+V10__agregar_columna_x.sql
+V11__crear_tabla_y.sql
 ```
 
 Reglas del nombre: `V` + número + **dos guiones bajos** + descripción con guiones bajos + `.sql`.
 
-`V1` y `V2` ya existen; el próximo archivo es **`V3`**. Mientras `V1` y `V2` solo existan en tu máquina de desarrollo, sí puedes editarlas: haz `docker compose down -v` y vuelve a arrancar para recrearlas desde cero. Cuando estén en producción, ya no.
+`V1` a `V9` ya existen (`V9` es el catálogo inicial); el próximo archivo es **`V10`**. Mientras una migración solo exista en tu máquina de desarrollo, puedes editarla: haz `docker compose down -v` y vuelve a arrancar para recrear todo desde cero. Cuando esté en producción, ya no.
 
 ---
 

@@ -28,4 +28,4 @@ Este manual es **tuyo**: está organizado por lo que quieres hacer, no por tema 
 
 ## Estado en una línea
 
-El esqueleto de la API está hecho (usuarios, errores, seguridad con JWT y roles, login con Google, configuración). Los 249 tests pasan (11 nov) y `contextLoads` arranca contra MySQL 8.4; falta el login en Swagger y empezar con `Categoria` como primera entidad completa.
+La API está completa: usuarios, errores, seguridad con JWT y roles, login con Google, configuración y catálogo (14 entidades, 2 claves `@Embeddable` y 12 repositories; `V9` cargó 21 productos, 6 categorías y 63 URLs de imagen sin crear tablas). Ya funcionan categorías, productos, carrito, boletas, blogs, imágenes y contacto. Los 269 tests pasan (20 nov) y `contextLoads` arranca contra MySQL 8.4; siguen pendientes el recorrido manual del login en Swagger y el límite de intentos (rate limiting). Redis y correo aún no se usan.

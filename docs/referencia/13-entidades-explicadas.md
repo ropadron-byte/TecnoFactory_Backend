@@ -1,6 +1,8 @@
 # 13. Entidades explicadas
 
-Guía para entender, línea por línea, las cuatro entidades que existen hoy en `entity/`. Está pensada para leerse de arriba hacia abajo: primero los conceptos, luego un glosario de cada anotación, después cada archivo y al final las observaciones sobre el código actual.
+Guía para entender, línea por línea, las **cuatro entidades originales** de `entity/`. Está pensada para leerse de arriba hacia abajo: primero los conceptos, luego un glosario de cada anotación, después cada archivo y al final las observaciones sobre el código actual.
+
+> **Estado actual (20 nov):** el proyecto tiene **14 `@Entity` + 2 `@Embeddable`**. Las otras diez entidades (`Categoria`, `Producto`, `ProductoCategoria`, `ImagenUrl`, `Blog`, `Boleta`, `DetalleBoleta`, `Carrito`, `DetalleCarrito` y `Contacto`) y las claves compuestas `ProductoCategoriaId` / `DetalleCarritoId` se explican en [30 · Catálogo y precios](30-catalogo-y-precios.md), [31 · Carrito y boletas](31-carrito-y-boletas.md) y el [diccionario de datos](22-diccionario-de-datos.md). El recorrido línea por línea de esta referencia sigue siendo válido para las cuatro primeras.
 
 Archivos que se explican (ruta `src/main/java/com/factory/tecnofactory/entity/`):
 
@@ -11,7 +13,7 @@ Archivos que se explican (ruta `src/main/java/com/factory/tecnofactory/entity/`)
 | `Comuna.java` | `comuna` | Primera relación `@ManyToOne` (hacia `Region`) | [5](#5-comunajava) |
 | `Usuario.java` | `usuario` | `CHAR(1)`, fecha, booleano con valor inicial y **dos** relaciones | [6](#6-usuariojava) |
 
-> Estado: las cuatro entidades **pasaron la validación de Hibernate** (`ddl-auto: validate`) contra tu MySQL 8.4. Se vio en el log del 18 oct: `Initialized JPA EntityManagerFactory for persistence unit 'default'`. Eso incluye `Usuario` con su `CHAR(1)`. Las observaciones de la [sección 7](#7-observaciones-sobre-el-código-actual) son mejoras y riesgos futuros, no errores de arranque.
+> Estado: las cuatro entidades **pasaron la validación de Hibernate** (`ddl-auto: validate`) contra tu MySQL 8.4. Eso incluye `Usuario` con su `CHAR(1)`. Las observaciones de la [sección 7](#7-observaciones-sobre-el-código-actual) son mejoras y riesgos futuros, no errores de arranque.
 
 ---
 
@@ -439,7 +441,7 @@ Estado **revisado el 19 oct 2026 contra los archivos de tu repositorio**:
 | # | Observación | Estado |
 | --- | --- | --- |
 | [7.1](#71-run_dv-con-unique--true) | `run_dv` con `unique = true` | ✅ **Resuelto**: ahora dice `unique = false` |
-| [7.2](#72-unique--true-en-nombres-de-region-y-comuna) | `unique = true` en los nombres de `Region` y `Comuna` | ⏳ **Pendiente**: ambos siguen con `unique = true` |
+| [7.2](#72-unique--true-en-nombres-de-region-y-comuna) | `unique = true` en los nombres de `Region` y `Comuna` | ✅ **Resuelto**: `V7__unicidad_region_comuna.sql` creó los `UNIQUE` reales en la base |
 | [7.3](#73-nombres-con-guion-bajo-en-java) | Guion bajo en `run_dv` y `fecha_nacimiento` | ✅ **Resuelto**: `runDv` y `fechaNacimiento` |
 | [7.4](#74-int-frente-a-integer) | `int id` en `Region` y `Comuna` | ✅ **Resuelto**: `Integer id` |
 | [7.5](#75-limpieza) | Imports sobrantes y SQL comentado | ⏳ **Pendiente** en `Region` y `Comuna`; en `Usuario` quedan líneas en blanco |
@@ -463,16 +465,14 @@ Por qué importaba:
 
 ### 7.2 `unique = true` en nombres de `Region` y `Comuna`
 
-**Estado: ⏳ pendiente.** `Region.java` y `Comuna.java` siguen con `unique = true` (comprobado el 19 oct).
-
-`nombre_region` y `nombre_comuna` **no** son `UNIQUE` en `V1`. Es el mismo caso que 7.1: no rompe nada hoy, pero la entidad no refleja la base. Déjalos así:
+**Estado: ✅ resuelto (6 nov).** `Region.java` y `Comuna.java` declaran `unique = true` y la migración `V7__unicidad_region_comuna.sql` agregó los `UNIQUE` (`uk_region_nombre`, `uk_comuna_nombre`) que `V1` no tenía. Ahora entidad y base coinciden:
 
 ```java
-@Column(name = "nombre_region", nullable = false)
-@Column(name = "nombre_comuna", nullable = false)
+@Column(name = "nombre_region", nullable = false, unique = true)
+@Column(name = "nombre_comuna", nullable = false, unique = true)
 ```
 
-Si en el futuro quieres que sean únicos, se hace con una migración nueva (`V4__...`), no solo en la entidad.
+`V7` comprueba primero que no haya duplicados: los datos de `V2` (16 regiones y 346 comunas) no los tienen. Ver [05 · Flyway](05-flyway-y-migraciones.md).
 
 ### 7.3 Nombres con guion bajo en Java
 
@@ -514,11 +514,13 @@ La columna sigue siendo la misma (`name = "..."` no cambia). Se aplicó antes de
 | `Usuario.java` | Líneas en blanco de más |
 | `RegionRepository.java` | Tres líneas comentadas que sobraron de `UsuarioRepository` |
 
+**Actualizado el 20 nov:** las líneas comentadas de `RegionRepository` ya se quitaron; siguen el `import jakarta.validation.constraints.Min` sin usar y el bloque `CREATE TABLE` comentado al final de `Region.java`, y el bloque comentado de `Comuna.java`. También queda `Optional<List<Usuario>> findAllByTipoUsuarioNombre` en `UsuarioRepository`, que conviene revisar.
+
 IntelliJ marca los `import` sin usar en gris; `Ctrl+Alt+O` los quita.
 
 ---
 
-## 8. Cómo se relacionan las cuatro
+## 8. Cómo se relacionan las cuatro originales
 
 ```
    region (1) <------- (N) comuna (1) <------- (N) usuario (N) -------> (1) tipo_usuario

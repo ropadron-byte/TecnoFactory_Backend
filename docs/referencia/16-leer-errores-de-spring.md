@@ -53,7 +53,7 @@ Spring arranca en etapas. La **última línea sana** antes del error indica en q
 | Orden | Etapa | Línea sana que verás | Si falla aquí, revisa |
 | --- | --- | --- | --- |
 | 1 | Perfil | `The following 1 profile is active: "local"` | Que `SPRING_PROFILES_ACTIVE` esté definido |
-| 2 | Repositories (escaneo) | `Found 4 JPA repository interfaces` | Que existan las interfaces |
+| 2 | Repositories (escaneo) | `Found 12 JPA repository interfaces` (en el log de oct de 2026 aparecía `4`; hoy hay 12) | Que existan las interfaces |
 | 3 | Conexión a la base | `HikariPool-1 - Start completed` | `DB_URL`, `DB_USER`, `DB_PASSWORD`; que MySQL esté `healthy` |
 | 4 | Flyway | `Successfully applied N migrations` o `up to date` | Las migraciones `V1__`, `V2__`... |
 | 5 | **Hibernate y entidades** | `Initialized JPA EntityManagerFactory for persistence unit 'default'` | Las **entidades** (`@Table`, `@Column`, tipos): errores `Schema-validation` |
@@ -74,7 +74,7 @@ Con solo mirar dónde se cortó, ya sabes en qué carpeta buscar.
 
 | Línea | Nivel | Qué es |
 | --- | --- | --- |
-| `Spring Data Redis - Could not safely identify store assignment for repository candidate ...` | `INFO` | Spring prueba cada repository con JPA y con Redis; avisa que no es de Redis. Termina asignándolo a JPA. Se repite 4 veces |
+| `Spring Data Redis - Could not safely identify store assignment for repository candidate ...` | `INFO` | Spring prueba cada repository con JPA y con Redis; avisa que no es de Redis. Termina asignándolo a JPA. Se repite por cada interfaz (4 veces en el log original de oct, 12 en el estado actual) |
 | `Multiple Spring Data modules found, entering strict repository configuration mode` | `INFO` | Aviso de que hay JPA y Redis en el proyecto |
 | `No LoadTimeWeaver setup: ignoring JPA class transformer` | `INFO` | Mejora opcional de Hibernate que no se usa |
 | `HHH000489: No JTA platform available` | `INFO` | JTA son transacciones distribuidas; no se usan |

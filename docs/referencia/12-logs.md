@@ -94,7 +94,7 @@ docker compose logs backend | grep ERROR
 Cuando ocurre un error 500 aparece algo así (el formato puede variar levemente según la versión):
 
 ```
-2026-10-17T10:15:30.123-03:00 ERROR 12345 --- [nio-8080-exec-1] c.f.t.exception.GlobalExceptionHandler : Error no controlado en /api/productos
+2026-10-17T10:15:30.123-03:00 ERROR 12345 --- [nio-8080-exec-1] c.f.t.exception.GlobalExceptionHandler : Error no controlado en /api/v1/productos
 java.lang.NullPointerException: Cannot invoke "String.length()" because "nombre" is null
     at com.factory.tecnofactory.service.ProductoService.crear(ProductoService.java:42)
     at com.factory.tecnofactory.controller.ProductoController.crear(ProductoController.java:28)
@@ -109,7 +109,7 @@ java.lang.NullPointerException: Cannot invoke "String.length()" because "nombre"
 | `---` | Separador fijo |
 | `[nio-8080-exec-1]` | Hilo que atendía la petición |
 | `c.f.t.exception.GlobalExceptionHandler` | **Logger**: la clase que escribió el mensaje, con los paquetes abreviados |
-| `Error no controlado en /api/productos` | El mensaje (el `{}` se reemplazó por la ruta) |
+| `Error no controlado en /api/v1/productos` | El mensaje (el `{}` se reemplazó por la ruta) |
 | `java.lang.NullPointerException: ...` | El tipo de error y su causa |
 | `at ...ProductoService.crear(ProductoService.java:42)` | El *stack trace*: la lista de llamadas hasta el fallo |
 
@@ -127,7 +127,7 @@ Cada mensaje tiene un nivel que indica su importancia. De menor a mayor:
 | `DEBUG` | Información para el desarrollador | `Buscando producto 5` |
 | `INFO` | Hechos normales importantes | `Boleta 120 creada` |
 | `WARN` | Algo raro que no es un fallo, pero conviene vigilar | `Stock crítico en Teclado Mecánico` |
-| `ERROR` | Algo falló | `Error no controlado en /api/productos` |
+| `ERROR` | Algo falló | `Error no controlado en /api/v1/productos` |
 
 **Al fijar un nivel se muestra ese nivel y todos los mayores.** Con `INFO` se ven `INFO`, `WARN` y `ERROR`; los `DEBUG` quedan ocultos. Por defecto Spring Boot muestra desde `INFO`.
 
@@ -220,7 +220,7 @@ Un log puede copiarse a otro servidor, pegarse en un chat o subirse a Git por er
 
 ## 7. El log del `GlobalExceptionHandler`
 
-Solo un handler escribe en el log: el genérico (línea 52 de tu archivo).
+En el paquete `exception/` solo un handler escribe en el log: el genérico (`generico`, en `GlobalExceptionHandler`).
 
 ```java
 50  @ExceptionHandler(Exception.class)

@@ -21,7 +21,7 @@ El starter se usa **solo** por sus clases de verificación de JWT (`NimbusJwtDec
 | `security/GoogleTokenVerifier` | Verifica el ID token con las claves públicas (JWKS) de Google |
 | `security/JwtService` | Emite el JWT propio y el **token temporal de registro** |
 | `service/GoogleAuthService` | Decide entre entrar, pedir perfil o rechazar |
-| `controller/AuthController` | Expone `/api/auth/google`, `/completar` y `/vincular` |
+| `controller/AuthController` | Expone `/api/v1/auth/google`, `/completar` y `/vincular` |
 | `dto/GoogleLoginRequest` | `{ "credential": "..." }` |
 | `dto/GooglePerfilPendienteResponse` | Respuesta 202 con `registroToken` y datos de Google |
 | `dto/GoogleCompletarRequest` | RUN, DV, fecha, dirección, teléfono y comuna |
@@ -33,7 +33,7 @@ El starter se usa **solo** por sus clases de verificación de JWT (`NimbusJwtDec
 ```
 React                        API
   │  Google Identity Services
-  │  ── ID token (JWT de Google) ──▶ POST /api/auth/google { credential }
+  │  ── ID token (JWT de Google) ──▶ POST /api/v1/auth/google { credential }
   │                                   GoogleTokenVerifier
   │                                     ├ firma con JWKS de Google
   │                                     ├ iss = accounts.google.com
@@ -47,7 +47,7 @@ React                        API
   │                                     └ correo nuevo ──────────▶ 202 + registroToken
   │
   │  ◀── 202 { registroToken, correo, nombre, apellidos }
-  │  POST /api/auth/google/completar { registroToken, run, runDv, ... }
+  │  POST /api/v1/auth/google/completar { registroToken, run, runDv, ... }
   │  ◀── 201 + JWT propio (cuenta CLIENTE, contrasenia = NULL)
 ```
 
@@ -126,15 +126,15 @@ El correo **nunca** se recibe en el cuerpo: sale del token firmado por Google, a
 
 | Endpoint | Código | Significado |
 | --- | --- | --- |
-| `POST /api/auth/google` | 200 | Cuenta vinculada: devuelve JWT |
+| `POST /api/v1/auth/google` | 200 | Cuenta vinculada: devuelve JWT |
 | | 202 | Falta completar perfil: devuelve `registroToken` |
 | | 401 | ID token inválido, expirado, de otro Client ID, correo no verificado o cuenta desactivada |
 | | 409 | Correo con contraseña o cuenta de Google ya vinculada |
-| `POST /api/auth/google/completar` | 201 | Cuenta creada: devuelve JWT |
+| `POST /api/v1/auth/google/completar` | 201 | Cuenta creada: devuelve JWT |
 | | 401 | `registroToken` inválido o expirado |
 | | 404 | Comuna inexistente |
 | | 409 | Correo, RUN o cuenta de Google ya registrados |
-| `POST /api/auth/google/vincular` | 204 | Vinculado |
+| `POST /api/v1/auth/google/vincular` | 204 | Vinculado |
 | | 401 | Sin sesión o ID token inválido |
 | | 409 | Correo distinto o cuenta de Google ya vinculada |
 
@@ -186,7 +186,7 @@ Cubren, entre otros:
 
 ```bash
 # 1. Token de Google: cópialo desde el navegador (consola) o desde el botón de prueba
-curl -X POST http://localhost:8080/api/auth/google \
+curl -X POST http://localhost:8080/api/v1/auth/google \
   -H "Content-Type: application/json" \
   -d '{"credential":"<ID_TOKEN>"}'
 ```

@@ -2,7 +2,7 @@
 
 El formulario de contacto, pieza por pieza: migración, entidad, repository, DTOs, mapper, service, controller, regla de seguridad y pruebas. Es la **receta de la [referencia 19](19-validacion-run-service-y-controller-explicados.md#13-la-receta-para-la-próxima-entidad)** aplicada a una entidad **pública y sin relaciones**, así que sirve de ejemplo de la versión más corta de la receta.
 
-> **Estado:** código escrito el 3 nov 2026. **No se compiló ni se ejecutó** (el ZIP no traía `pom.xml`): falta `./mvnw test` y probarlo en Swagger.
+> **Estado:** código escrito el 3 nov 2026 y cubierto por 14 pruebas (`ContactoServiceTest` y `ContactoControllerTest`); la suite completa está en verde (269 tests, 20 nov). Sigue pendiente el recorrido manual en Swagger.
 
 ## Índice
 
@@ -28,8 +28,8 @@ El formulario de contacto, pieza por pieza: migración, entidad, repository, DTO
 
 | Decisión | Motivo |
 | --- | --- |
-| `POST /api/contactos` es **público** | Es el requisito: un visitante no tiene cuenta ni token |
-| La **lectura** es solo de `ADMINISTRADOR` | Cada mensaje trae el correo y el comentario de una persona; si cualquiera con sesión pudiera listarlos, un cliente leería los datos de otros (mismo criterio que `GET /api/usuarios/{id}`, [referencia 21](21-seguridad-jwt-y-roles-explicada.md#101-las-reglas-en-una-tabla)) |
+| `POST /api/v1/contactos` es **público** | Es el requisito: un visitante no tiene cuenta ni token |
+| La **lectura** es solo de `ADMINISTRADOR` | Cada mensaje trae el correo y el comentario de una persona; si cualquiera con sesión pudiera listarlos, un cliente leería los datos de otros (mismo criterio que `GET /api/v1/usuarios/{id}`, [referencia 21](21-seguridad-jwt-y-roles-explicada.md#101-las-reglas-en-una-tabla)) |
 | No hay `PUT` ni `DELETE` | No se pidieron; se agregan cuando el panel los necesite |
 | `id_contacto` es `BIGINT AUTO_INCREMENT` | Igual que el resto de las tablas con id propio; el script original no generaba el id |
 | La tabla **no** tiene fecha de envío | El script original no la traía; se puede agregar (ver sección 13) |
@@ -195,7 +195,7 @@ Se mapea **dentro** de la transacción, como en el resto de los services.
 
 ```java
 @RestController
-@RequestMapping("/api/contactos")
+@RequestMapping("/api/v1/contactos")
 @Tag(name = "Contacto", ...)
 public class ContactoController {
 
@@ -214,10 +214,10 @@ public class ContactoController {
 | Pieza | Qué hace |
 | --- | --- |
 | `@Valid` | Ejecuta las validaciones del DTO; si falla, 400 antes de entrar al método |
-| `ResponseEntity.created(ubicacion)` | **201** con `Location: /api/contactos/{id}` |
+| `ResponseEntity.created(ubicacion)` | **201** con `Location: /api/v1/contactos/{id}` |
 | `@SecurityRequirements` (vacío) | Quita el candado de Swagger **solo** en el `POST` público |
 | `@ParameterObject` | Imprescindible en todo `Pageable` ([regla de oro 14](../../README.md#reglas-de-oro)): Swagger muestra `page`, `size` y `sort` |
-| `@PathVariable Long id` | `/api/contactos/abc` → 400 (lo maneja el handler de tipo incorrecto) |
+| `@PathVariable Long id` | `/api/v1/contactos/abc` → 400 (lo maneja el handler de tipo incorrecto) |
 
 Sin lógica de negocio: valida, delega y responde.
 
@@ -225,18 +225,18 @@ Sin lógica de negocio: valida, delega y responde.
 
 ```java
 // Contacto: cualquier persona puede enviar; solo el administrador lee
-.requestMatchers(HttpMethod.POST, "/api/contactos").permitAll()
-.requestMatchers("/api/contactos/**").hasRole(ROL_ADMINISTRADOR)
+.requestMatchers(HttpMethod.POST, "/api/v1/contactos").permitAll()
+.requestMatchers("/api/v1/contactos/**").hasRole(ROL_ADMINISTRADOR)
 ```
 
 Van **antes** de `anyRequest().denyAll()`, junto al resto de reglas de `/api`. Las dos cubren solo contacto: el resto de rutas conserva su propia regla.
 
 | Petición | Regla que coincide | Resultado |
 | --- | --- | --- |
-| `POST /api/contactos` | La primera (`permitAll`) | Entra cualquiera |
-| `GET /api/contactos` | La segunda (`/**` también cubre la ruta base) | Solo administrador |
-| `GET /api/contactos/7` | La segunda | Solo administrador |
-| `PUT /api/contactos/7` o `DELETE` | La segunda | Solo administrador (y el endpoint no existe: 405) |
+| `POST /api/v1/contactos` | La primera (`permitAll`) | Entra cualquiera |
+| `GET /api/v1/contactos` | La segunda (`/**` también cubre la ruta base) | Solo administrador |
+| `GET /api/v1/contactos/7` | La segunda | Solo administrador |
+| `PUT /api/v1/contactos/7` o `DELETE` | La segunda | Solo administrador (y el endpoint no existe: 405) |
 
 **El orden importa:** la primera regla que coincide gana. Si se invirtieran, el `POST` público caería en la regla de administrador y el formulario daría 401.
 
@@ -256,13 +256,13 @@ Los dos usan el mismo estilo del proyecto: `MockitoExtension` para el service y 
 ## 12. Cómo probarlo a mano
 
 1. Levanta el proyecto (`./scripts/dev.sh`): Flyway aplica `V6` (en el log: `Migrating schema ... to version "6 - contacto"`).
-2. En Swagger, grupo **Contacto**, `POST /api/contactos` → *Try it out* con:
+2. En Swagger, grupo **Contacto**, `POST /api/v1/contactos` → *Try it out* con:
    ```json
    { "nombre": "Ana", "correo": "ana@correo.cl", "comentario": "Hola, quiero más información" }
    ```
    Esperado: **201**, cuerpo con `id` y encabezado `Location`.
 3. En la base: `SELECT * FROM contacto;` muestra la fila.
-4. `GET /api/contactos` **sin** Authorize → **401**.
+4. `GET /api/v1/contactos` **sin** Authorize → **401**.
 5. Inicia sesión como administrador, Authorize, y repite → **200** con la lista.
 6. Prueba los errores: correo `no-es-correo` → 400 con `detalles.correo`; comentario vacío → 400.
 
@@ -271,10 +271,10 @@ Los dos usan el mismo estilo del proyecto: `MockitoExtension` para el service y 
 | Tema | Detalle |
 | --- | --- |
 | **Spam** | Es una ruta pública sin límite: cualquiera puede enviar miles de mensajes. Antes de desplegar, agrega límite de peticiones por IP (junto con el del login, ya pendiente) o un captcha. El tope de 500 caracteres solo limita el tamaño de cada mensaje |
-| **Fecha de envío** | Para saber cuándo llegó cada mensaje: `ALTER TABLE contacto ADD COLUMN fecha_creacion DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6);` en una `V7` (o en `V6` si aún no se aplicó), el atributo en la entidad y el campo en `ContactoResponse`. Es el mismo patrón de `V4` en `blog` |
-| **Leído / respondido** | Una columna `leido BOOLEAN` y un `PUT /api/contactos/{id}/leido` solo para administrador |
-| **Borrar** | `DELETE /api/contactos/{id}` para administrador (la tabla no tiene claves foráneas, se puede borrar de verdad) |
-| **Lectura para el vendedor** | Una línea en `SecurityConfig`: `.requestMatchers(HttpMethod.GET, "/api/contactos/**").hasAnyRole("ADMINISTRADOR", "VENDEDOR")` **antes** de la regla de administrador |
+| **Fecha de envío** | Para saber cuándo llegó cada mensaje: `ALTER TABLE contacto ADD COLUMN fecha_creacion DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6);` en una migración nueva (`V10`: `V1`–`V9` ya existen y una migración aplicada no se edita), el atributo en la entidad y el campo en `ContactoResponse`. Es el mismo patrón de `V4` en `blog` |
+| **Leído / respondido** | Una columna `leido BOOLEAN` y un `PUT /api/v1/contactos/{id}/leido` solo para administrador |
+| **Borrar** | `DELETE /api/v1/contactos/{id}` para administrador (la tabla no tiene claves foráneas, se puede borrar de verdad) |
+| **Lectura para el vendedor** | Una línea en `SecurityConfig`: `.requestMatchers(HttpMethod.GET, "/api/v1/contactos/**").hasAnyRole("ADMINISTRADOR", "VENDEDOR")` **antes** de la regla de administrador |
 | **Aviso por correo** | Los starters de correo ya están en el `pom.xml`; falta configurarlo y enviar el aviso desde el service |
 | **Texto con HTML** | El comentario se guarda tal cual. La API devuelve JSON (no interpreta HTML), pero el frontend debe mostrarlo **como texto** (`{comentario}` en React, nunca `dangerouslySetInnerHTML`) |
 

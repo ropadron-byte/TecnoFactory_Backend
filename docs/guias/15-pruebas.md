@@ -14,14 +14,15 @@ Una prueba es como un **simulacro de incendio**: se hace en un entorno controlad
 | **De service** (Mockito) | La lógica de negocio | Repositories falsos (`@Mock`) | `UsuarioServiceTest`, `AuthServiceTest` |
 | **De controller** (`@WebMvcTest` + `MockMvc`) | HTTP: códigos, JSON, validaciones, seguridad | Service falso (`@MockitoBean`) | `UsuarioControllerTest`, `AuthControllerTest` |
 
-## Los 249 tests (más `contextLoads`)
+## Los 269 tests (incluido `contextLoads`)
 
 | Archivo | Tests |
 | --- | --- |
-| `UsuarioRequestTest` | 10 |
+| `UsuarioRequestTest` | 11 |
 | `RunUtilTest` | 4 |
 | `PageResponseTest` | 1 |
-| `UsuarioServiceTest` | 6 |
+| `PerfilRequestTest` | 5 |
+| `UsuarioServiceTest` | 10 |
 | `UsuarioServiceVendedorTest` | 3 |
 | `UsuarioServiceBajaTest` | 7 |
 | `AuthServiceTest` | 3 |
@@ -31,7 +32,7 @@ Una prueba es como un **simulacro de incendio**: se hace en un entorno controlad
 | `GoogleTokenVerifierTest` | 5 |
 | `JwtAuthFilterTest` | 6 |
 | `AuthControllerTest` | 11 |
-| `UsuarioControllerTest` | 14 |
+| `UsuarioControllerTest` | 22 |
 | `UsuarioControllerBajaTest` | 9 |
 | `BlogServiceTest` | 14 |
 | `BlogServiceGestionTest` | 12 |
@@ -42,14 +43,14 @@ Una prueba es como un **simulacro de incendio**: se hace en un entorno controlad
 | `AlmacenamientoServiceTest` | 10 |
 | `ContactoServiceTest` | 4 |
 | `ContactoControllerTest` | 10 |
-| `GestionSeguridadTest` | 15 |
+| `GestionSeguridadTest` | 16 |
 | `AdministradorInicialRunnerTest` | 6 |
 | `ConfiguracionValidatorTest` | 7 |
 | `ValidadorClavesTest` | 4 |
 | `CabecerasUploadsFilterTest` | 2 |
 | `GlobalExceptionHandlerTest` | 2 |
 
-`GestionSeguridadTest` es la prueba de la política «todo lo no listado queda cerrado» (`denyAll`): reglas por rol, `/api/imagenes/**` y cabeceras de `/uploads/**`. Estado al 11 nov 2026: **249 tests, 0 fallos**, más `contextLoads` en verde contra MySQL 8.4. Contacto: [referencia 28, sección 11](../referencia/28-contacto-explicado.md#11-las-pruebas).
+`GestionSeguridadTest` es la prueba de la política «todo lo no listado queda cerrado» (`denyAll`): reglas por rol, `/api/v1/imagenes/**` y cabeceras de `/uploads/**`. Estado al 20 nov 2026: **269 tests, 0 fallos**, incluido `contextLoads` en verde contra MySQL 8.4. Los 4 tests nuevos de `UsuarioControllerTest` cubren el listado: administrador 200, vendedor 200, cliente 403 y sin token 401. No hay tests propios de Categoría, Producto, Carrito ni Boleta. Contacto: [referencia 28, sección 11](../referencia/28-contacto-explicado.md#11-las-pruebas).
 
 `TecnoFactoryApplicationTests` (`contextLoads`) arranca **toda** la app y necesita la base: por eso se ejecutan los demás con `-Dtest="*Test"`.
 
@@ -61,7 +62,7 @@ Una prueba es como un **simulacro de incendio**: se hace en un entorno controlad
 ./mvnw test -Dtest="UsuarioRequestTest,RunUtilTest"
 ```
 
-Resultado esperado: `Tests run: 249, Failures: 0, Errors: 0` y `BUILD SUCCESS`.
+Resultado esperado: `Tests run: 269, Failures: 0, Errors: 0` y `BUILD SUCCESS`.
 
 ## El vocabulario
 
@@ -82,7 +83,7 @@ Resultado esperado: `Tests run: 249, Failures: 0, Errors: 0` y `BUILD SUCCESS`.
 3. **Cada `@WebMvcTest` necesita** `@Import(SecurityConfig.class)` y un `@MockitoBean` de `UsuarioService`, `JwtService` y `UserDetailsService`.
 4. **Un test que nunca falla no sirve**: rompe el código a propósito y comprueba que el test lo detecta (los «experimentos» de la referencia).
 5. **Las carpetas de test** deben reflejar el paquete: `JwtAuthFilterTest` ya está en `security/`; `JwtServiceTest` y `UserDetailsServiceImplTest` siguen en `service/` y conviene moverlos a `security/`.
-6. **Aún sin cubrir:** el 500 genérico, el 409 por el `UNIQUE` de la base y el parámetro faltante.
+6. **Errores: implementados no es lo mismo que probados.** `GlobalExceptionHandler` ya responde el 500 genérico (`generico`), el 409 por `UNIQUE` de la base (`integridad`) y el 400 por parámetro faltante (`parametroFaltante`). `GlobalExceptionHandlerTest` comprueba el mensaje del **413** con la configuración; los 409 de regla de negocio se ven en `UsuarioControllerTest` e `ImagenServiceTest`. El 500 genérico, el 409 por `UNIQUE` y el parámetro faltante siguen **sin un test directo** en la suite actual.
 
 ## Para saber más
 

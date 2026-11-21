@@ -113,9 +113,11 @@ Detalle de cada caso en [17, sección 10](17-administrador-inicial-explicado.md#
 | La app no arranca: `WeakKeyException` | `JWT_SECRET` mide menos de 32 caracteres | Alargar el secreto en el `.env` |
 | La app no arranca por el bean `handlerExceptionResolver` | El `@Qualifier` de `SecurityConfig` no coincide | Debe ser exactamente `handlerExceptionResolver` |
 | `UsuarioControllerTest` falla con `No qualifying bean of type '...JwtService'` | `SecurityConfig` necesita `JwtService` y `UserDetailsService`; el test no los simula | Agregar un `@MockitoBean` de cada uno |
-| `401` en `/api/usuarios/me` con un token recién emitido | La cabecera lleva `Bearer` dos veces (Swagger ya lo agrega) o el token venció (1 hora) | En Swagger pegar **solo** el token; si venció, iniciar sesión otra vez |
-| `403` a un cliente en `GET /api/usuarios/7` | Es lo esperado: solo el administrador | Usar `/api/usuarios/me` |
-| `/api/usuarios/me` da 403 a un cliente | La regla de `/me` está **después** de `/api/usuarios/**` | Reordenar: lo más específico va primero ([21, 10.3](21-seguridad-jwt-y-roles-explicada.md#103-el-orden-de-las-reglas-importa)) |
+| `401` en `/api/v1/usuarios/me` con un token recién emitido | La cabecera lleva `Bearer` dos veces (Swagger ya lo agrega) o el token venció (1 hora) | En Swagger pegar **solo** el token; si venció, iniciar sesión otra vez |
+| `403` a un cliente en `GET /api/v1/usuarios/7` | Es lo esperado: solo el administrador | Usar `/api/v1/usuarios/me` |
+| `403` a un cliente en `GET /api/v1/usuarios` | El listado es solo de personal (admin o vendedor) | Usar `/api/v1/usuarios/me` |
+| `405` en `GET /api/v1/usuarios` | No existe el `@GetMapping` raíz; con el mismo token `/usuarios/1` da 200, así que no es seguridad | Implementar el listado con `Pageable` |
+| `/api/v1/usuarios/me` da 403 a un cliente | La regla de `/me` está **después** de `/api/v1/usuarios/**` | Reordenar: lo más específico va primero ([21, 10.3](21-seguridad-jwt-y-roles-explicada.md#103-el-orden-de-las-reglas-importa)) |
 | El login falla con el mismo 401 sin importar qué se escriba | Es a propósito: correo inexistente, clave incorrecta y usuario desactivado dan el mismo mensaje | Revisar el correo, la clave y `activo` en la base |
 | Una propiedad del YAML «no hace nada» y no hay error | Nombre mal escrito (`Jackson:`, `jpa.time_zone`): Spring la ignora en silencio | Comprobar el nombre exacto de la propiedad ([04](04-perfiles-spring.md#en-palabras-simples-cuatro-ajustes-de-applicationyaml)) |
 

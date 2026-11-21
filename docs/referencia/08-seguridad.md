@@ -28,17 +28,17 @@ Una regla de oro: **lo que no está permitido explícitamente, queda protegido**
 | Swagger y `api-docs` apagados en prod | `application-prod.yaml` | Hecho |
 | Errores sin mensaje, rastro ni detalle de validación en prod | `application-prod.yaml` | Hecho |
 | Actuator publica solo `health`, sin detalles | `application-prod.yaml` | Hecho |
-| Formato uniforme de errores de la API (`ErrorResponse`); el error 500 no revela detalles internos | `exception/GlobalExceptionHandler` | **Probado** con controller (20 oct): 400, 401, 403, 404, 405, 409 y 415; faltan 500 y el 409 de la base (ver [Cambios recientes](../estado/cambios-recientes.md#cobertura-de-los-errores-de-spring)) |
+| Formato uniforme de errores de la API (`ErrorResponse`); el error 500 no revela detalles internos | `exception/GlobalExceptionHandler` | **Probado** con controller (20 oct): 400, 401, 403, 404, 405, 409 y 415; `GlobalExceptionHandlerTest` cubre el mensaje del 413. El 500 genérico, el 409 por `UNIQUE` de la base y el 400 por parámetro faltante tienen handler, pero **no test directo** |
 | Secretos fuera del código, en `.env` | `.env` | Hecho (verificar `.gitignore`) |
 | Contraseñas guardadas con BCrypt (`PasswordEncoder`): al registrar y al crear al administrador | `security/SecurityConfig`, `UsuarioService` | **En uso** (20 oct); el login compara contra el hash |
 | CSRF desactivado y sin sesiones (`STATELESS`), como corresponde a una API con tokens | `security/SecurityConfig` | Escrito |
 | Rutas explícitas por método y rol; **cualquier ruta sin regla queda denegada** (`anyRequest().denyAll()`) | `security/SecurityConfig` | Escrito y probado (6 nov) |
 | Validación de claves al arrancar: `ADMIN_PASSWORD` de 8 a 72 caracteres / 72 bytes UTF-8; placeholders de `.env.example` rechazados | `ValidadorClaves`, `ConfiguracionValidator`, `AdministradorInicialRunner` | Escrito y probado (6 nov) |
-| El detalle público de un blog **no expone** datos del autor; el correo solo aparece en `/api/blogs/gestion/{id}` | `BlogPublicoResponse`, `BlogService` | Escrito y probado (6 nov) |
-| Los metadatos de imágenes (`GET /api/imagenes/**`) exigen personal; `/uploads/**` sigue público para los `<img>` | `security/SecurityConfig` | Escrito y probado (6 nov) |
+| El detalle público de un blog **no expone** datos del autor; el correo solo aparece en `/api/v1/blogs/gestion/{id}` | `BlogPublicoResponse`, `BlogService` | Escrito y probado (6 nov) |
+| Los metadatos de imágenes (`GET /api/v1/imagenes/**`) exigen personal; `/uploads/**` sigue público para los `<img>` | `security/SecurityConfig` | Escrito y probado (6 nov) |
 | `/uploads/**` responde con `X-Content-Type-Options: nosniff` y `Content-Security-Policy: default-src 'none'` | `CabecerasUploadsFilter` | Escrito y probado (6 nov) |
 | Login con JWT: correo y clave contra la base, token firmado de 1 hora | `AuthService`, `JwtService` | Escrito (20 oct); `JwtService` confirmado |
-| Login con Google: ID token verificado (firma JWKS, `iss`, `aud`, `exp`, `email_verified`); cuentas nuevas completan perfil; cuentas con contraseña se vinculan solo con sesión | `GoogleTokenVerifier`, `GoogleAuthService`, `AuthController` | Escrito (11 nov); 249 tests en verde |
+| Login con Google: ID token verificado (firma JWKS, `iss`, `aud`, `exp`, `email_verified`); cuentas nuevas completan perfil; cuentas con contraseña se vinculan solo con sesión | `GoogleTokenVerifier`, `GoogleAuthService`, `AuthController` | Escrito (11 nov); 269 tests en verde al 20 nov |
 | `google_id` único y `contrasenia` opcional para cuentas solo-Google | `V8__google_auth.sql`, `Usuario` | Escrito (11 nov) |
 | Filtro que lee `Authorization: Bearer ...` y consulta la base en cada petición (un usuario desactivado pierde el acceso al instante) | `security/JwtAuthFilter` | Escrito (20 oct) |
 | 401 y 403 con el mismo JSON que los demás errores | `ManejadorErroresSeguridad` + `GlobalExceptionHandler` | Escrito (20 oct) |
@@ -53,8 +53,8 @@ Una regla de oro: **lo que no está permitido explícitamente, queda protegido**
 
 | Pendiente | Riesgo mientras no exista |
 | --- | --- |
-| **Confirmar el flujo de login en Swagger**: el arranque con MySQL ya está probado y los 249 tests pasan (11 nov) ([21, sección 14](21-seguridad-jwt-y-roles-explicada.md#14-cómo-probarlo-a-mano)) | Reglas escritas pero sin comprobar a mano |
-| **Reglas por rol del resto de la API**: lista de usuarios (administrador y vendedor), editar el propio perfil, crear vendedores, catálogo, órdenes | Hoy solo hay dos niveles: administrador y «cualquiera con sesión» |
+| **Confirmar el flujo de login en Swagger**: el arranque con MySQL ya está probado y los 269 tests pasan (20 nov) ([21, sección 14](21-seguridad-jwt-y-roles-explicada.md#14-cómo-probarlo-a-mano)) | Reglas escritas pero sin comprobar a mano |
+| **Comprobar a mano las reglas ya escritas** del resto de la API (catálogo, carrito, boletas, perfil y creación de vendedores) con MySQL real | Están implementadas y cubiertas por tests; falta la prueba manual en Swagger |
 | **Límite de intentos de login** | Fuerza bruta contra cuentas |
 | **Token no revocable** (sin *refresh token* ni lista de bloqueo) | Un token robado sirve hasta que expira (1 hora); desactivar al usuario sí lo bloquea de inmediato |
 | **Confirmar el administrador inicial**: falta un segundo arranque sin duplicar (la fila y la clave fuera del log ya están verificadas) | Si algo falla, nadie podría gestionar el catálogo. Comandos en [17, sección 8](17-administrador-inicial-explicado.md#8-comandos-importantes) |
@@ -62,37 +62,24 @@ Una regla de oro: **lo que no está permitido explícitamente, queda protegido**
 | **Dónde guarda el frontend el token** | En `localStorage` lo podría leer un script malicioso (XSS) |
 | **Validación de subida de archivos** | Subida de archivos maliciosos |
 
-## Diseño previsto del control de acceso
+## Control de acceso por rol (estado actual)
 
-**Hoy en `SecurityConfig` (6 nov):**
+Reglas vigentes en `SecurityConfig` (completadas el 6 nov y ampliadas con catálogo, carrito y boletas):
 
 | Ruta | Acceso |
 | --- | --- |
 | Swagger, `/v3/api-docs/**` (solo `local`), `/actuator/health`, `/error`, `OPTIONS /**` | Público |
-| `POST /api/auth/login`, `POST /api/auth/google`, `POST /api/auth/google/completar`, `POST /api/usuarios` (registro) y `POST /api/contactos` | Público |
-| `POST /api/auth/google/vincular` | Cualquiera con sesión (iniciada con contraseña) |
-| `GET /api/contactos` y `GET /api/contactos/{id}` | Solo `ADMINISTRADOR` |
-| `GET /api/usuarios/me` | Cualquiera con sesión |
-| Resto de `/api/usuarios/**` | Solo `ADMINISTRADOR` |
-| `GET /api/blogs/gestion/**` | `ADMINISTRADOR` o `VENDEDOR` |
-| `GET /api/blogs`, `/api/blogs/{id}`, `/api/blogs/{id}/imagen`, `/api/blogs/{id}/imagenes` | Público |
-| `POST/PUT/PATCH/DELETE /api/blogs/**` | `ADMINISTRADOR` o `VENDEDOR` |
-| `GET /api/imagenes/**` | `ADMINISTRADOR` o `VENDEDOR` |
-| `GET /uploads/**` | Público |
-| `POST/PUT/DELETE /api/imagenes/**` | `ADMINISTRADOR` o `VENDEDOR` |
+| `POST /api/v1/auth/login`, `POST /api/v1/auth/google`, `POST /api/v1/auth/google/completar`, `POST /api/v1/usuarios` (registro) y `POST /api/v1/contactos` | Público |
+| `GET /api/v1/blogs`, `/api/v1/blogs/{id}`, `/api/v1/blogs/{id}/imagen`, `/api/v1/blogs/{id}/imagenes` | Público |
+| `GET /api/v1/productos`, `/api/v1/productos/ofertas`, `/api/v1/productos/{id}`, `GET /api/v1/categorias`, `/api/v1/categorias/{id}` | Público (la tienda se ve sin sesión) |
+| `GET /uploads/**` | Público (para los `<img>`; los metadatos no) |
+| `POST /api/v1/auth/google/vincular`; `GET` y `PUT /api/v1/usuarios/me`; `/api/v1/carrito/**`; comprar, ver las propias y ver el detalle de `/api/v1/boletas/**` | Cualquiera con sesión |
+| `PATCH /api/v1/usuarios/me/desactivar` | Solo `CLIENTE` (baja de su propia cuenta) |
+| `GET /api/v1/contactos/**`, resto de `/api/v1/usuarios/**` (incluye lista, crear vendedores y borrar usuarios) | Solo `ADMINISTRADOR` |
+| `GET /api/v1/boletas` (todas) y `PATCH /api/v1/boletas/{id}/anular` | Solo `ADMINISTRADOR` |
+| Gestión de blogs (`/api/v1/blogs/gestion/**` y escrituras), gestión de imágenes (`/api/v1/imagenes/**`), `GET /api/v1/productos/admin` y `/api/v1/productos/criticos` | `ADMINISTRADOR` o `VENDEDOR` |
+| Escrituras de `/api/v1/productos/**` y `/api/v1/categorias/**` | Solo `ADMINISTRADOR` |
 | Cualquier otra ruta | **Denegada** (`denyAll`) |
-
-**Previsto al llegar cada entidad:**
-
-| Ruta | Acceso |
-| --- | --- |
-| `GET /api/productos/**`, `GET /api/categorias/**` | Público (la tienda se ve sin sesión) |
-| `POST/PUT/DELETE` de productos y stock | `VENDEDOR` y `ADMINISTRADOR` |
-| `POST/PUT/DELETE` de categorías | `ADMINISTRADOR` |
-| Órdenes (ver ventas) | `VENDEDOR` y `ADMINISTRADOR` |
-| `GET /api/usuarios` (lista) | `ADMINISTRADOR` y `VENDEDOR` (solo lectura) |
-| Editar o desactivar a otros usuarios, crear vendedores, reportes | `ADMINISTRADOR` |
-| Carrito y boletas propias | Usuario autenticado, solo lo suyo |
 
 Los roles vienen de la tabla `tipo_usuario` (`ADMINISTRADOR`, `VENDEDOR`, `CLIENTE`). `UserDetailsServiceImpl` agrega el prefijo `ROLE_` al convertirlos. Los tokens JWT se firman con `JWT_SECRET` (mínimo 32 bytes) y duran 1 hora (`jwt.expiration-ms`). El login con Google añade una segunda forma de autenticarse, pero **emite el mismo JWT propio**: los roles y las reglas de `SecurityConfig` no cambian. Ver [29](29-login-con-google-explicado.md).
 
@@ -163,9 +150,9 @@ Debe mostrar tu correo, el rol `ADMINISTRADOR`, un prefijo `$2y$10$` o `$2b$10$`
 
 - **Cuidado con el símbolo `$`** del hash en la terminal: va siempre entre comillas simples o dentro de un archivo. No lo pegues dentro de un comando con comillas dobles, porque el shell lo interpreta como variable.
 - **No edites `V4` una vez aplicada** (Flyway fallará con `checksum mismatch`). Si te equivocaste y aún es desarrollo, recrea la base con `down -v`.
-- **El RUN del administrador** no se valida en la base. El dígito verificador solo se comprueba en el servicio para los registros nuevos (fase 4). `11111111-1` es un RUN con dígito válido, pero conviene usar el tuyo o uno claramente de prueba.
-- **No hay carrito** para el administrador todavía; se creará cuando exista el servicio de carrito (fase 5).
-- La comprobación de que se puede **iniciar sesión** con esa clave solo es posible cuando exista el login (fase 4).
+- **El RUN del administrador** no se valida en la base; se crea por código, fuera del `UsuarioRequest`. Para los registros nuevos el dígito verificador sí se comprueba con `@RunValido` (módulo 11, [guía 19](19-validacion-run-service-y-controller-explicados.md)). `11111111-1` es un RUN con dígito válido, pero conviene usar el tuyo o uno claramente de prueba.
+- El carrito ya existe: cualquier usuario con sesión, incluido el administrador, usa el suyo en `/api/v1/carrito/**`.
+- El login ya existe y compara la clave con el hash BCrypt. Queda confirmarlo a mano en Swagger contra MySQL real.
 - La migración se probó en una base de pruebas (MariaDB 10.11) con un hash generado con Python; el comando de Docker/`htpasswd` no se ejecutó en esa prueba.
 
 ---

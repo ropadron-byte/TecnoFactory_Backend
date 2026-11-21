@@ -14,32 +14,37 @@
 | --- | --- |
 | Registro público (siempre como `CLIENTE`) | Hecho |
 | Login con JWT | Hecho |
-| `GET /api/usuarios/me` (cualquier sesión) | Hecho |
-| `GET /api/usuarios/{id}` (solo administrador) | Hecho |
-| `POST /api/contactos` (cualquier persona, sin sesión) | Hecho |
-| `GET /api/contactos` y `/{id}` (solo administrador) | Hecho |
-| `GET /api/usuarios` listado (administrador y vendedor, lectura) | **Pendiente** |
-| `PUT /api/usuarios/me` (editar el propio perfil) | **Pendiente** |
-| Crear vendedores (solo administrador) | **Pendiente** |
-| Productos, stock y ventas con reglas por rol | **Pendiente** (con cada entidad) |
+| `GET /api/v1/usuarios/me` (cualquier sesión) | Hecho |
+| `GET /api/v1/usuarios/{id}` (solo administrador) | Hecho |
+| `POST /api/v1/contactos` (cualquier persona, sin sesión) | Hecho |
+| `GET /api/v1/contactos` y `/{id}` (solo administrador) | Hecho |
+| `GET /api/v1/usuarios` listado (administrador y vendedor, lectura) | Hecho (20 nov) |
+| `PUT /api/v1/usuarios/me` (editar el propio perfil) | Hecho |
+| `POST /api/v1/usuarios/vendedores` (crear vendedores, solo administrador) | Hecho |
+| `PATCH /api/v1/usuarios/me/desactivar` (solo cliente) | Hecho |
+| Productos y categorías: lectura pública, escritura solo de `ADMINISTRADOR` | Hecho |
+| Carrito y boletas: cualquier sesión; `GET /api/v1/boletas` y anular (`PATCH /.../anular`) son de personal/administrador | Hecho |
+| Gestión de blogs e imágenes (`ADMINISTRADOR` o `VENDEDOR`) | Hecho |
 
 ## Cómo se aplican las reglas
 
 En `SecurityConfig`, de arriba hacia abajo, **la primera que coincide gana**:
 
-1. Rutas públicas (Swagger, `/actuator/health`, `/error`, `OPTIONS`, login, registro, `POST /api/contactos`, lectura de blogs y `/uploads/**`).
-2. `GET /api/usuarios/me` → cualquiera con sesión.
-3. `/api/usuarios/**` → `hasRole("ADMINISTRADOR")`.
-4. `GET /api/blogs/gestion/**` y `GET /api/imagenes/**` → `ADMINISTRADOR` o `VENDEDOR`.
-5. `anyRequest().denyAll()` → **todo lo demás queda cerrado**, incluso con token.
+1. Rutas públicas (Swagger, `/actuator/health`, `/error`, `OPTIONS`, login, registro, `POST /api/v1/contactos`, lectura de blogs, `GET /api/v1/productos`, `/api/v1/productos/ofertas`, `/api/v1/productos/{id}`, `/api/v1/categorias` y `/{id}`, y `/uploads/**`).
+2. `GET` y `PUT /api/v1/usuarios/me` → cualquiera con sesión; `PATCH /api/v1/usuarios/me/desactivar` → solo `CLIENTE`.
+3. `GET /api/v1/usuarios` (raíz, sin id) → `hasAnyRole("ADMINISTRADOR", "VENDEDOR")`, solo lectura; va antes de la regla siguiente.
+4. `/api/v1/usuarios/**` (incluye `/vendedores`) → `hasRole("ADMINISTRADOR")`.
+5. Blogs de gestión, imágenes y sus escrituras (`POST`/`PUT`/`DELETE`) → `ADMINISTRADOR` o `VENDEDOR`; escrituras de productos y categorías → solo `ADMINISTRADOR`.
+6. Carrito → cualquier sesión. Boletas: comprar, ver las propias y el detalle → cualquier sesión; `GET /api/v1/boletas` → personal; `PATCH /api/v1/boletas/{id}/anular` → `ADMINISTRADOR`.
+7. `anyRequest().denyAll()` → **todo lo demás queda cerrado**, incluso con token.
 
 Para sumar al vendedor a una ruta de **lectura**:
 
 ```java
-.requestMatchers(HttpMethod.GET, "/api/usuarios").hasAnyRole("ADMINISTRADOR", "VENDEDOR")
+.requestMatchers(HttpMethod.GET, "/api/v1/usuarios").hasAnyRole("ADMINISTRADOR", "VENDEDOR")
 ```
 
-Va **antes** de la línea general `/api/usuarios/**`.
+Va **antes** de la línea general `/api/v1/usuarios/**`.
 
 ## Reglas más finas (no caben en una ruta)
 

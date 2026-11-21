@@ -6,7 +6,7 @@ La documentación tiene **tres lugares**, según lo que necesites:
 | --- | --- |
 | **Hacer algo** (levantar, agregar una entidad, arreglar un fallo) | [`docs/personal/`](docs/personal/00-empieza-aqui.md): manual por tareas |
 | **Entender un tema rápido**, con analogías | [`docs/guias/`](docs/guias/01-el-proyecto-en-una-pagina.md): 19 guías cortas |
-| **Todo el detalle**, línea por línea | [`docs/referencia/`](docs/referencia/): 29 documentos técnicos |
+| **Todo el detalle**, línea por línea | [`docs/referencia/`](docs/referencia/): 31 documentos técnicos |
 | **Saber qué cambió y qué falta** | [`docs/estado/cambios-recientes.md`](docs/estado/cambios-recientes.md) |
 
 **Primera vez:** empieza por [Empieza aquí](docs/personal/00-empieza-aqui.md).
@@ -36,7 +36,6 @@ El lanzador levanta MySQL en el puerto **3307** (deja libre el 3306 para otro My
 | 08 | [Antes de desplegar](docs/personal/08-antes-de-desplegar.md) |
 | 09 | [Reglas y trampas](docs/personal/09-reglas-y-trampas.md) |
 | 10 | [Preguntas frecuentes](docs/personal/10-preguntas-frecuentes.md) |
-| 11 | [Subir y ver imágenes](docs/personal/11-subir-y-ver-imagenes.md) |
 
 ## Guías rápidas (un tema, una página)
 
@@ -92,46 +91,55 @@ El lanzador levanta MySQL en el puerto **3307** (deja libre el 3306 para otro My
 | 24 | [Decisiones de diseño](docs/referencia/24-decisiones-de-diseno.md) | 36 decisiones con su motivo, la alternativa descartada y su consecuencia |
 | 25 | [Glosario](docs/referencia/25-glosario.md) | Las palabras del proyecto, explicadas sin jerga |
 | 26 | [Configuración YAML explicada](docs/referencia/26-configuracion-yaml-explicada.md) | Cada propiedad de `application`, `local` y `prod`, y las observaciones para desplegar |
-| 27 | [Subida de imágenes explicada](docs/referencia/27-subida-de-imagenes-explicada.md) | La subida de imágenes línea por línea: validación del contenido, carpetas y registro en `imagen_url` |
 | 28 | [Contacto explicado](docs/referencia/28-contacto-explicado.md) | El formulario de contacto pieza por pieza: migración `V6`, entidad, DTOs, mapper, service, controller, regla de seguridad y pruebas |
 | 29 | [Login con Google explicado](docs/referencia/29-login-con-google-explicado.md) | ID token de Google, verificación JWKS, token temporal de registro, completar perfil, vinculación y configuración de Google Cloud |
+| 30 | [Catálogo y precios](docs/referencia/30-catalogo-y-precios.md) | Categorías, productos, ofertas, stock crítico y cálculo del precio final |
+| 31 | [Carrito y boletas](docs/referencia/31-carrito-y-boletas.md) | Carrito por usuario, checkout, descuento de stock, boletas y anulación |
 
 
 **Archivo vivo:** [Cambios recientes](docs/estado/cambios-recientes.md) reúne lo que falta y lo que ya se hizo, sesión por sesión.
 
-## Estado del proyecto (oct-nov 2026)
+## Estado del proyecto (nov 2026)
 
 | Pieza | Estado |
 | --- | --- |
 | MySQL 8.4 en Docker con volumen y tres usuarios | Funcionando |
-| Flyway aplicando `V1` con `tecnofactory_migrator` | Probado en perfil `prod` (con el `V1` original) |
+| Flyway con `tecnofactory_migrator` | `V1` probado en perfil `prod`; la cadena `V1`–`V9` se aplica en local |
 | La app arrancando como `tecnofactory_app` (solo DML) | Probado en perfil `prod` |
 | `V1` con las 13 tablas y 15 claves foráneas | **Aplicada en MySQL 8.4** (Flyway, 18 oct) |
 | `V2` con 3 roles, 16 regiones y 346 comunas | **Aplicada en MySQL 8.4** |
-| `V3` con categorías base | **Aplicada en MySQL 8.4** (Flyway quedó en la versión 3) |
+| `V3` con categorías base | **Aplicada en MySQL 8.4** (fue la versión 3 de la historia; hoy Flyway llega a `V9`) |
 | `V4` a `V8` | **Escritas**: fecha del blog, portada/galería de imágenes, tabla `contacto`, unicidad de región/comuna y `google_id`/contraseña opcional. `V8` **aplicada en local** el 11 nov. `V7` exige revisar duplicados antes de aplicarla en una base existente |
+| `V9__catalogo_inicial.sql` | **Aplicada**: 21 productos, 6 categorías (agrega `Audio` y `Smartphones`) y 63 URLs de imagen; no crea tablas. Es la última versión; la próxima migración es `V10` |
 | `application-local.yaml` | Corregido |
-| Manejo de errores (`exception/`) | **Probado** con controllers: 400, 401, 403, 404, 405, 409, 415 y (3 nov) 413 y los 400 de `sort` inválido, falta de `archivo` y archivo no válido. Faltan 500 y 409 por el `UNIQUE` de la base. Ver [11](docs/referencia/11-excepciones-explicadas.md) y [10](docs/guias/10-errores-de-la-api.md) |
-| Entidades | **4 de 12** (`TipoUsuario`, `Region`, `Comuna`, `Usuario`); **validan** contra MySQL 8.4. Ver [13](docs/referencia/13-entidades-explicadas.md) |
-| Repositories | **4** (uno por entidad); errores de nombres corregidos. Arranque completo **confirmado** (log del 18 oct). Ver [14](docs/referencia/14-repositories-explicados.md) |
-| `SecurityConfig` y `PasswordEncoder` (BCrypt) | **Reescrito el 6 nov**: reglas explícitas por método y rol y **`anyRequest().denyAll()`**. Públicas: Swagger, `health`, `/error`, `OPTIONS`, login, registro, contacto (solo POST), lectura de blogs y `/uploads/**`. `GET /api/imagenes/**` y `/api/blogs/gestion/**` exigen personal. Probado con `GestionSeguridadTest`. Ver [21](docs/referencia/21-seguridad-jwt-y-roles-explicada.md) (la [15](docs/referencia/15-seguridad-codigo-explicado.md) explica la primera versión) |
-| JWT (`JwtService`, `JwtAuthFilter`, `UserDetailsServiceImpl`), login (`AuthService`, `AuthController`) y errores 401/403 en JSON (`ManejadorErroresSeguridad`) | **Escritos y aplicados** (20 oct). La suite completa pasa (249 tests el 11 nov); falta confirmar el flujo de login en Swagger. Ver [21](docs/referencia/21-seguridad-jwt-y-roles-explicada.md) |
-| Login con Google (`GoogleTokenVerifier`, `GoogleAuthService`, `/api/auth/google/**`) | **Escrito y probado el 11 nov** (249 tests). Cuenta nueva → 202 y perfil obligatorio → 201; cuenta existente → 200; cuenta con contraseña → 409 y vinculación con sesión → 204. Ver [29](docs/referencia/29-login-con-google-explicado.md) y [guía 17](docs/guias/17-integracion-con-react.md#login-con-google) |
+| Manejo de errores (`exception/`) | **Probado** con controllers: 400, 401, 403, 404, 405, 409, 415 y (3 nov) 413 y los 400 de `sort` inválido, falta de `archivo` y archivo no válido. `GlobalExceptionHandlerTest` cubre el mensaje del **413** (2 tests); el 500 genérico y el 409 por `UNIQUE` tienen handler, pero **no test directo** (20 nov). Ver [11](docs/referencia/11-excepciones-explicadas.md) y [10](docs/guias/10-errores-de-la-api.md) |
+| Entidades | **14 `@Entity` + 2 `@Embeddable`**: `TipoUsuario`, `Region`, `Comuna`, `Usuario`, `Categoria`, `Producto`, `ProductoCategoria`, `ImagenUrl`, `Blog`, `Boleta`, `DetalleBoleta`, `Carrito`, `DetalleCarrito`, `Contacto`; claves compuestas `ProductoCategoriaId` y `DetalleCarritoId`. Las cuatro originales validan contra MySQL 8.4. Ver [13](docs/referencia/13-entidades-explicadas.md) |
+| Repositories | **12 interfaces** (uno por entidad con id propio); errores de nombres corregidos. Arranque completo **confirmado**. Ver [14](docs/referencia/14-repositories-explicados.md) |
+| `SecurityConfig` y `PasswordEncoder` (BCrypt) | **Reescrito el 6 nov y ampliado con el catálogo**: reglas explícitas por método y rol sobre `/api/v1/**` y **`anyRequest().denyAll()`**. Públicas: Swagger, `health`, `/error`, `OPTIONS`, login, registro, contacto (solo POST), lectura de blogs, lectura de `/api/v1/productos` y `/api/v1/categorias`, y `/uploads/**`. Exigen personal: blogs de gestión, imágenes, carrito/boletas y el listado `GET /api/v1/usuarios` (administrador y vendedor, solo lectura). Probado con `GestionSeguridadTest`. Ver [21](docs/referencia/21-seguridad-jwt-y-roles-explicada.md) |
+| JWT (`JwtService`, `JwtAuthFilter`, `UserDetailsServiceImpl`), login (`AuthService`, `AuthController`) y errores 401/403 en JSON (`ManejadorErroresSeguridad`) | **Escritos y aplicados** (20 oct). La suite completa pasa (269 tests, 20 nov); el flujo de login en Swagger está pendiente de confirmación manual. Ver [21](docs/referencia/21-seguridad-jwt-y-roles-explicada.md) |
+| Login con Google (`GoogleTokenVerifier`, `GoogleAuthService`, `/api/v1/auth/google/**`) | **Escrito el 11 nov y probado con la suite actual** (269 tests). Cuenta nueva → 202 y perfil obligatorio → 201; cuenta existente → 200; cuenta con contraseña → 409 y vinculación con sesión → 204. Ver [29](docs/referencia/29-login-con-google-explicado.md) y [guía 17](docs/guias/17-integracion-con-react.md#login-con-google) |
 | Administrador inicial | **Se crea por código al arrancar** (no con una migración) desde variables `ADMIN_*`, con validaciones de clave y datos. Verificado el 18 oct; validaciones y tests, el 6 nov. Ver [17](docs/referencia/17-administrador-inicial-explicado.md) |
-| Services | `UsuarioService` (administrador inicial, `registrar`, `buscarPorId`, `buscarPorCorreo`) y `AuthService` (login). Ver [19](docs/referencia/19-validacion-run-service-y-controller-explicados.md) y [21](docs/referencia/21-seguridad-jwt-y-roles-explicada.md) |
+| Services | `UsuarioService`, `AuthService`, `GoogleAuthService`, `BlogService`, `ImagenService`, `AlmacenamientoService`, `CategoriaService`, `ProductoService` (con `ResolutorImagenes`), `CarritoService` y `BoletaService`. Ver [19](docs/referencia/19-validacion-run-service-y-controller-explicados.md) y [21](docs/referencia/21-seguridad-jwt-y-roles-explicada.md) |
 | DTOs y mapper de `Usuario` | `UsuarioResponse`, `UsuarioRequest` y `UsuarioMapper` **confirmados** (10 tests de `UsuarioRequestTest`), con validación del dígito verificador (módulo 11, `RunUtilTest`). Ver [18](docs/referencia/18-dto-mapper-y-validaciones-explicados.md) y [19](docs/referencia/19-validacion-run-service-y-controller-explicados.md) |
-| Controllers | `UsuarioController` (`POST /api/usuarios`, `GET /api/usuarios/me`, `GET /api/usuarios/{id}`) y `AuthController` (`POST /api/auth/login`). El registro se probó en Swagger contra MySQL (201, 20 oct); el login, pendiente de confirmar |
-| Configuración base | `open-in-view: false`, handlers 415 y 400, `PageResponse`, zona horaria, `OpenApiConfig` y CORS: **29 tests** y arranque confirmados (20 oct). Ver [20](docs/referencia/20-configuracion-base-explicada.md) |
-| Blogs e imágenes (`BlogController`, `ImagenController`, `AlmacenamientoService`) | **Revisados el 6 nov**: el detalle público usa `BlogPublicoResponse` (sin datos del autor) y la gestión (`/api/blogs/gestion/{id}`) usa `BlogResponse` con `autorCorreo`. `GET /api/imagenes/**` exige personal; `/uploads/**` sigue público con cabeceras `nosniff` y CSP. Tests en verde. Ver [cambios recientes](docs/estado/cambios-recientes.md) y [guía 18](docs/guias/18-subida-de-imagenes.md) |
-| Formulario de contacto (`V6`, `Contacto`, `ContactoController`) | **Escrito el 3 nov y probado el 6 nov**: `POST /api/contactos` **público** y lectura (`GET /api/contactos` y `/{id}`) solo para `ADMINISTRADOR`. 14 tests en verde. Falta un límite de envíos contra spam. Ver [guía 19](docs/guias/19-formulario-de-contacto.md) y [referencia 28](docs/referencia/28-contacto-explicado.md) |
+| Controllers | **9 controllers** bajo `/api/v1`: `AuthController`, `UsuarioController`, `ContactoController`, `BlogController`, `ImagenController`, `CategoriaController`, `ProductoController`, `CarritoController` y `BoletaController`. registro probado en Swagger (201, 20 oct); el login sigue pendiente de confirmación manual. Ver [23](docs/referencia/23-catalogo-de-endpoints.md) |
+| Configuración base | `open-in-view: false`, handlers 415 y 400, `PageResponse`, zona horaria, `OpenApiConfig` y CORS: arranque confirmado (20 oct) y paginación con `@ParameterObject` en productos y boletas (20 nov). Ver [20](docs/referencia/20-configuracion-base-explicada.md) |
+| Blogs e imágenes (`BlogController`, `ImagenController`, `AlmacenamientoService`) | **Revisados el 6 nov**: el detalle público usa `BlogPublicoResponse` (sin datos del autor) y la gestión (`/api/v1/blogs/gestion/{id}`) usa `BlogResponse` con `autorCorreo`. `GET /api/v1/imagenes/**` exige personal; `/uploads/**` sigue público con cabeceras `nosniff` y CSP. Tests en verde. Ver [cambios recientes](docs/estado/cambios-recientes.md) y [guía 18](docs/guias/18-subida-de-imagenes.md) |
+| Formulario de contacto (`V6`, `Contacto`, `ContactoController`) | **Escrito el 3 nov y probado el 6 nov**: `POST /api/v1/contactos` **público** y lectura (`GET /api/v1/contactos` y `/{id}`) solo para `ADMINISTRADOR`. 14 tests en verde. Falta un límite de envíos contra spam. Ver [guía 19](docs/guias/19-formulario-de-contacto.md) y [referencia 28](docs/referencia/28-contacto-explicado.md) |
 | `jwt.secret` y `DB_PASSWORD` | **Sin valor por defecto** (3 y 6 nov): si faltan, la app no arranca. `ConfiguracionValidator` también rechaza los placeholders de `.env.example`. Ver [26](docs/referencia/26-configuracion-yaml-explicada.md) |
-| Pruebas | `.\mvnw.cmd test -Dtest="*Test"`: **249 tests, 0 fallos** (11 nov). `contextLoads` **también en verde** contra MySQL 8.4 el 11 nov, con `V8` aplicada |
+| Pruebas | `.\mvnw.cmd test -Dtest="*Test"`: **269 `@Test` en 32 clases, 0 fallos** (20 nov); `contextLoads` en verde con `V9` aplicada. No hay tests propios de Categoría, Producto, Carrito ni Boleta (ver [guía 15](docs/guias/15-pruebas.md)) |
 | `Dockerfile` y servicio `backend` del compose | Vacío / comentado |
+
+> **Integración React corregida el 20 nov:** se detectó que el frontend llamaba a `/api/blogs`,
+> `/api/imagenes`, `/api/usuarios` y `/api/auth/**` sin versión, mientras el backend solo publica
+> `/api/v1/**`. Eso hacía que el login respondiera 401 antes de validar credenciales. Todos los
+> servicios del frontend ya usan `/api/v1/...` y sus tests fueron actualizados; la suite pasa
+> (23 archivos / 84 tests) y el build de Vite compila. Queda pendiente la comprobación manual en
+> navegador. Ver [guía 17](docs/guias/17-integracion-con-react.md).
 
 ## Reglas de oro
 
 1. **Spring no lee el `.env`.** Lo lee Docker Compose; a Spring hay que pasarle las variables al arrancar. Para eso está `scripts/dev.sh` (o `scripts/dev.ps1` en Windows).
-2. **Una migración aplicada no se edita.** Los cambios son archivos nuevos (`V9__...` en adelante; `V1` a `V8` ya existen). Mientras `V1` y `V2` solo existan en tu máquina, puedes recrearlas con `docker compose down -v`.
+2. **Una migración aplicada no se edita.** Los cambios son archivos nuevos (`V10__...` en adelante; `V1` a `V9` ya existen). Mientras `V1` y `V2` solo existan en tu máquina, puedes recrearlas con `docker compose down -v`.
 3. **Los scripts de `docker/mysql-init` y las claves `MYSQL_*` solo se aplican al crear el volumen.**
 4. **`docker compose down -v` borra los datos.** Nunca en producción.
 5. **La app en producción usa `tecnofactory_app`**, nunca `root`.
@@ -145,3 +153,6 @@ El lanzador levanta MySQL en el puerto **3307** (deja libre el 3306 para otro My
 13. **Ocultar un botón en el frontend no protege nada**: la regla real está en `SecurityConfig`.
 14. **Todo `Pageable` que recibe un controller lleva `@ParameterObject`**; si no, Swagger lo manda como un solo parámetro JSON y la paginación no funciona. Un `?sort=` con un campo que no existe devuelve 400, no 500. Ver [23](docs/referencia/23-catalogo-de-endpoints.md#paginación).
 15. **Una imagen subida se valida por su contenido, no por el `Content-Type`** que declara el cliente. Un tipo de archivo nuevo exige agregar su firma en `AlmacenamientoService`. Ver [guía 18](docs/guias/18-subida-de-imagenes.md).
+16. **Todas las rutas de la API llevan el prefijo `/api/v1`.** Una ruta sin versionar cae en `anyRequest().denyAll()` y devuelve 401/403. Ver [23](docs/referencia/23-catalogo-de-endpoints.md).
+17. **El precio final lo calcula el backend** (`Precios.conDescuento`, redondeo al peso) y viaja en `precioFinal` en productos, carrito y boletas. Ver [30](docs/referencia/30-catalogo-y-precios.md).
+18. **Una URL del frontend no prueba la integración**: los tests mockean `fetch`. Comprueba siempre que la ruta escrita coincida con el `@RequestMapping` del backend (`/api/v1/...`). Si el login da 401 con «Se requiere un token válido», la ruta probablemente esté sin versionar.

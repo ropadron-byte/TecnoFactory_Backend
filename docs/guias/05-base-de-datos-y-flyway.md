@@ -18,6 +18,7 @@ Flyway es como el **historial de obras de un edificio**: cada migración es un p
 | `V6__contacto.sql` | Crea la tabla `contacto` |
 | `V7__unicidad_region_comuna.sql` | Agrega `UNIQUE` a `region.nombre_region` y `comuna.nombre_comuna` (las entidades ya lo declaraban) |
 | `V8__google_auth.sql` | Agrega `usuario.google_id` (único) y permite `contrasenia NULL` para las cuentas creadas solo con Google |
+| `V9__catalogo_inicial.sql` | Inserta el catálogo de la tienda: 21 productos, 6 categorías (agrega `Audio` y `Smartphones`) y 63 URLs de imagen. No crea tablas |
 
 El administrador **no** está en ninguna migración: se crea por código al arrancar ([guía 12](12-administrador-inicial.md)).
 
@@ -32,6 +33,7 @@ El administrador **no** está en ninguna migración: se crea por código al arra
 | Relaciones de imágenes (V5) | `blog_imagen`, `producto_imagen`, `categoria_imagen` |
 
 Son **17 tablas de negocio** (13 de `V1` + 3 de `V5` + `contacto` de `V6`), más `flyway_schema_history`.
+`V9` no agrega tablas: solo datos. Las 9 migraciones se aplican en orden en arranques nuevos.
 
 Dos ideas de diseño importantes:
 
@@ -42,7 +44,7 @@ Dos ideas de diseño importantes:
 
 Crear una migración nueva son tres pasos, sin ningún comando:
 
-1. Crear `src/main/resources/db/migration/V9__descripcion.sql` (las versiones 1 a 8 ya existen).
+1. Crear `src/main/resources/db/migration/V10__descripcion.sql` (las versiones 1 a 9 ya existen).
 2. Escribir el SQL.
 3. Arrancar la app: Flyway aplica lo que falte.
 
