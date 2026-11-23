@@ -60,6 +60,7 @@ El lanzador levanta MySQL en el puerto **3307** (deja libre el 3306 para otro My
 | 17 | [Usar la API desde React](docs/guias/17-integracion-con-react.md) |
 | 18 | [Subida de imágenes](docs/guias/18-subida-de-imagenes.md) |
 | 19 | [Formulario de contacto](docs/guias/19-formulario-de-contacto.md) |
+| 20 | [Publicar el frontend en Vercel y conectarlo a la API](docs/guias/20-despliegue-frontend-vercel.md) |
 
 ## Referencia técnica
 

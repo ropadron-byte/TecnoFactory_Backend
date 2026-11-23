@@ -36,6 +36,8 @@ Antes de buscar la solución, **escribe tu propia interpretación** de lo que di
 | Swagger: el cuadro `pageable` con `{ "page": 0, ... }` falla o no ordena | Falta `@ParameterObject` en el `Pageable` del controller | Agrégala (ver [23](../referencia/23-catalogo-de-endpoints.md)) |
 | El test `contextLoads` falla con `Could not resolve placeholder 'jwt.secret'` | `jwt.secret` ya no tiene valor por defecto | El test define el suyo; en la app usa `./scripts/dev.sh` |
 | El frontend da error de CORS | Origen no permitido | `CORS_ORIGINS` |
+| En Vercel: `localhost:8080`, *Mixed Content* o 403 solo al escribir | URL absoluta en el frontend o falta el dominio de Vercel en `CORS_ORIGINS` | [Guía 20](../guias/20-despliegue-frontend-vercel.md) |
+| Certbot: `NXDOMAIN` | El dominio no existe en el DNS público (`eva03.drr.lat` es interno) | Usa `186-64-113-33.sslip.io` ([guía 20](../guias/20-despliegue-frontend-vercel.md)) |
 | Cambié el YAML y no hace nada | Propiedad mal escrita (Spring la ignora) | Revisa el nombre exacto |
 
 ## Si sigue sin salir

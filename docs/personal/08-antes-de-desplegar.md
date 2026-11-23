@@ -34,11 +34,14 @@ Debe mostrar **solo** `SELECT, INSERT, UPDATE, DELETE` sobre `tecnofactory.*` (s
 - [ ] Swagger apagado. *(Ya en `prod`.)*
 - [ ] Logs en `WARN` para librerías e `INFO` para tu código. *(Ya en `prod`.)*
 - [ ] `show-sql` apagado.
-- [ ] `CORS_ORIGINS` con el dominio real del frontend (no `localhost`).
+- [ ] `CORS_ORIGINS` con el dominio real del frontend (no `localhost`). Con Vercel: `https://tecno-factory-react-version.vercel.app`, sin `/` final.
 
 ## Seguridad pendiente
 
-- [ ] **HTTPS** (sin él, las claves y los tokens viajan en claro).
+- [ ] **HTTPS** (sin él, las claves y los tokens viajan en claro). *Nginx + Let's Encrypt ya responde en `https://186-64-113-33.sslip.io` (23 nov); falta que `vercel.json` apunte a esa dirección y no a `http://186.64.113.33:8081`.*
+- [ ] **Puerto 8081 cerrado al exterior** (`127.0.0.1:8081:8080` en el compose del servidor): `firewalld` está apagado y Docker publica el puerto a todo internet.
+- [ ] **SSH de `root` solo con llave** (o `fail2ban`): el servidor recibe decenas de intentos fallidos de contraseña por hora.
+- [ ] Renovación del certificado comprobada: `certbot renew --dry-run` (vence el 21 feb 2027).
 - [ ] **Límite de intentos de login** (contra fuerza bruta).
 - [ ] Revisar que cada ruta nueva tenga su regla de rol: `SecurityConfig` termina en `anyRequest().denyAll()`.
 - [ ] Confirmar que `GET /api/v1/imagenes/**` exige personal y que `/uploads/**` sigue público con `X-Content-Type-Options: nosniff` y `Content-Security-Policy: default-src 'none'`.
@@ -65,4 +68,4 @@ Debe mostrar **solo** `SELECT, INSERT, UPDATE, DELETE` sobre `tecnofactory.*` (s
 
 ## Para saber más
 
-[Guía 04: perfiles](../guias/04-perfiles-y-configuracion-base.md) · [Guía 06](../guias/06-ejecutar-local-y-prod.md) · [Guía 16: hoja de ruta](../guias/16-hoja-de-ruta.md)
+[Guía 04: perfiles](../guias/04-perfiles-y-configuracion-base.md) · [Guía 06](../guias/06-ejecutar-local-y-prod.md) · [Guía 16: hoja de ruta](../guias/16-hoja-de-ruta.md) · [Guía 20: Vercel y la API](../guias/20-despliegue-frontend-vercel.md)

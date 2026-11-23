@@ -21,6 +21,8 @@ React es la **ventanilla de atención**: muestra formularios y botones. La API e
 
 CORS solo se aplica a `/api/v1/**`.
 
+> **En producción (Vercel) no se llama a la API por su dirección.** El frontend usa rutas relativas (`/api/v1/...`) y `vercel.json` las reenvía al servidor, así que el navegador nunca ve `localhost` ni la IP. Aun así, `CORS_ORIGINS` debe incluir el dominio de Vercel. Ver [guía 20](20-despliegue-frontend-vercel.md).
+
 ## Estado real del cliente React
 
 El [README](../../README.md) ya documenta la app React. Hoy conviven dos estilos de llamada en el cliente:
@@ -259,8 +261,10 @@ Para empezar, `sessionStorage` con vida de token corta (1 hora) es un compromiso
 | El login funciona en Swagger pero no desde React | Falta `Content-Type: application/json` | Agrégalo |
 | 401 en todo tras iniciar sesión | La cabecera no se envía o dice `Bearer Bearer` | Revisa `Authorization: Bearer <token>` |
 | El preflight (`OPTIONS`) falla | Cabecera no permitida | Solo `Authorization` y `Content-Type` están permitidas |
+| En Vercel la consola muestra `localhost:8080` o *Mixed Content* | El frontend usa una URL absoluta y se salta `vercel.json` | Rutas relativas y *Redeploy*; ver [guía 20](20-despliegue-frontend-vercel.md) |
+| En Vercel el `GET` funciona pero el `POST` da 403 | Falta el dominio de Vercel en `CORS_ORIGINS` | Defínelo en el `.env` del servidor y recrea el contenedor |
 | El login da 401 con «Se requiere un token válido» | La ruta quedó sin `/api/v1` (antes pasaba en auth/usuarios/blogs/imágenes) | Versiona la ruta en el servicio; ver [Estado real del cliente React](#estado-real-del-cliente-react) |
 
 ## Para saber más
 
-[Referencia 23: catálogo de endpoints](../referencia/23-catalogo-de-endpoints.md) · [Guía 11: seguridad y login](11-seguridad-y-login.md) · [Guía 10: errores](10-errores-de-la-api.md) · [Referencia 29: login con Google](../referencia/29-login-con-google-explicado.md)
+[Guía 20: publicar en Vercel](20-despliegue-frontend-vercel.md) · [Referencia 23: catálogo de endpoints](../referencia/23-catalogo-de-endpoints.md) · [Guía 11: seguridad y login](11-seguridad-y-login.md) · [Guía 10: errores](10-errores-de-la-api.md) · [Referencia 29: login con Google](../referencia/29-login-con-google-explicado.md)

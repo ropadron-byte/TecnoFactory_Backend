@@ -145,6 +145,10 @@ Formato: **Decisión · Motivo · Alternativa descartada · Consecuencia.**
 ### D29. CORS por variable (`CORS_ORIGINS`)
 - **Motivo:** el origen del frontend cambia entre desarrollo y producción; por defecto solo `http://localhost:5173`.
 
+### D37. El frontend en Vercel llega a la API mediante `rewrites`, no por URL absoluta
+- **Motivo:** una página `https://` no puede llamar a `http://IP:puerto` (*mixed content*) y `localhost` apunta al computador de cada visitante. Con `rewrites` en `vercel.json`, el navegador solo habla con Vercel (mismo origen) y Vercel reenvía `/api/**` y `/uploads/**` al servidor.
+- **Consecuencias:** el frontend usa rutas relativas; `CORS_ORIGINS` debe incluir el dominio de Vercel (Vercel reenvía `Origin` en las escrituras); el tramo Vercel → servidor debe ir por HTTPS (Nginx con `186-64-113-33.sslip.io`, porque `eva03.drr.lat` no existe en el DNS público). Ver [guía 20](../guias/20-despliegue-frontend-vercel.md).
+
 ## Pruebas
 
 ### D30. Los tests de service y controller no usan la base
@@ -157,7 +161,7 @@ Formato: **Decisión · Motivo · Alternativa descartada · Consecuencia.**
 | Dónde guarda React el token | `localStorage` (simple, expuesto a XSS) o cookie `HttpOnly` (más segura, exige ajustes de CORS y CSRF) |
 | Revocación de tokens | Lista de tokens anulados (Redis) o *refresh tokens*; ver D34 |
 | Límite de intentos de login | Contador en memoria, Redis o regla en el proxy inverso (aún sin implementar) |
-| HTTPS | Terminar TLS en Nginx/Caddy o en el balanceador (aún sin configurar) |
+| HTTPS | **Nginx con Let's Encrypt ya está en el servidor** (23 nov, `186-64-113-33.sslip.io`); falta apuntar `vercel.json` a `https://` y cerrar el puerto 8081 al exterior (ver [guía 20](../guias/20-despliegue-frontend-vercel.md)) |
 | Fecha de la tabla `contacto` | Definir si se registra automáticamente o la aporta el formulario |
 | Detalle por parámetro en `HandlerMethodValidationException` | Hoy el handler responde «Parámetros inválidos» sin `detalles`; ampliarlo para decir qué parámetro falló |
 | Limpieza de imágenes huérfanas | Job programado que compare disco y base, o dejarlo manual; ver D35 |

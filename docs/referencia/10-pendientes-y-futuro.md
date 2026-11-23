@@ -188,7 +188,7 @@ Ver el [Escenario 3 de 07](07-ejecucion-local-y-prod.md#escenario-3-prod-real-pr
 - [ ] `Dockerfile` del backend y `.dockerignore`.
 - [ ] Servicio `backend` activo en el compose, con los dos usuarios.
 - [ ] MySQL sin publicar en el host (usa un `docker-compose.override.yml` solo en tu máquina).
-- [ ] Nginx o Caddy con HTTPS (certificados con Let's Encrypt).
+- [x] Nginx con HTTPS (Let's Encrypt) en `eva03` para `186-64-113-33.sslip.io` (23 nov). Pendiente: usarlo desde `vercel.json` y cerrar el 8081. Ver [guía 20](../guias/20-despliegue-frontend-vercel.md).
 - [ ] Servicios `redis` y `mailpit`/SMTP si se implementaron.
 - [ ] Respaldos programados (`cron` + `mysqldump`), copiados fuera del servidor, con **restauración probada**.
 - [ ] Monitoreo: `/actuator/health` en un chequeo externo (UptimeRobot o similar).
@@ -202,7 +202,7 @@ Ver el [Escenario 3 de 07](07-ejecucion-local-y-prod.md#escenario-3-prod-real-pr
 - Guardar el token JWT y manejar su expiración (1 hora) con renovación o reingreso.
 - Manejar el formato de error uniforme del `GlobalExceptionHandler`.
 - Build estático servido por Nginx en el mismo servidor.
-- Configurar la URL de la API por variable de entorno del build.
+- Configurar la URL de la API por variable de entorno del build. En Vercel se resolvió con `rewrites` y rutas relativas ([guía 20](../guias/20-despliegue-frontend-vercel.md)).
 
 ---
 

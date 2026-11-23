@@ -63,7 +63,12 @@ Guía completa: [21-seguridad-jwt-y-roles-explicada.md](../referencia/21-segurid
 - [x] **Usuarios con roles:** `PUT /api/v1/usuarios/me` y `POST /api/v1/usuarios/vendedores` están implementados (el rol nunca viene del cliente).
 - [x] **`GET /api/v1/usuarios` paginado** (administrador y vendedor, solo lectura): implementado el 20 nov con 4 tests.
 - [x] **Reglas por rol de cada entidad nueva**: `Categoria` (escritura: administrador), `Producto` (lectura pública, administración: personal), `Carrito` y `Boletas` (sesión), con `anular` solo para administrador. Todo antes de `.anyRequest().denyAll()`. Ver [21](../referencia/21-seguridad-jwt-y-roles-explicada.md).
-- [ ] **Límite de intentos de login** y **HTTPS** antes de un despliegue real.
+- [ ] **Límite de intentos de login** antes de un despliegue real.
+- [ ] **HTTPS de punta a punta** (23 nov): Nginx ya responde en `https://186-64-113-33.sslip.io`; falta cambiar los `destination` de `vercel.json` a `https://186-64-113-33.sslip.io/...` y publicar el backend solo en `127.0.0.1:8081`. Ver [guía 20](../guias/20-despliegue-frontend-vercel.md).
+- [ ] **`CORS_ORIGINS` en el servidor** con `https://tecno-factory-react-version.vercel.app` y probar un `POST` a través de Vercel (que no dé 403 «Invalid CORS request»).
+- [ ] **Subir `vercel.json` al repositorio del frontend** y comprobar con *Redeploy* que la consola ya no muestra `localhost:8080`.
+- [ ] **Alinear `docker-compose.prod.yml` con el servidor**: el repositorio publica `8080:8080`; el servidor corre `8081→8080` porque el 8080 lo ocupa otro proyecto.
+- [ ] **Endurecer el SSH de `eva03`** (llave en vez de contraseña de `root`, o `fail2ban`).
 - [ ] **Confirmar la revisión del 3 nov** (ver la entrada del Historial): `./mvnw test` (cubierto por los 204 tests del 6 nov), arranque con `./scripts/dev.sh` y la prueba de paginación en Swagger. **No se pudo compilar** en el entorno de revisión.
 - [x] **`POST /api/v1/imagenes/productos` no registraba la imagen en `imagen_url`**: resuelto el 3 nov. La asignación a productos y categorías ya se hace desde `ProductoRequest` e `imagenes` de `CategoriaRequest`, por **URL** (no por id de imagen). Ver [30](../referencia/30-catalogo-y-precios.md).
 - [ ] **Mover `JwtServiceTest` y `UserDetailsServiceImplTest`** a `src/test/.../security/` (hoy están en `service/`; `JwtServiceTest` declara el paquete `security` y compila igual, pero la carpeta no coincide).
@@ -126,6 +131,16 @@ Guía: [19](../guias/19-formulario-de-contacto.md) · Referencia: [28](../refere
 
 ## Historial
 
+
+### 23 nov 2026: frontend en Vercel conectado a la API del servidor
+
+La web desplegada en Vercel pedía los datos a `http://localhost:8080` y no cargaban categorías, productos ni blogs. Se resolvió con dos piezas que se complementan; la guía completa es la [20](../guias/20-despliegue-frontend-vercel.md).
+
+- **`vercel.json` con `rewrites` (frontend):** `/api/:path*` y `/uploads/:path*` se reenvían a `186.64.113.33:8081` y el resto a `/index.html`. El navegador solo habla con Vercel, así que desaparecen `localhost`, el *mixed content* y el preflight de CORS. Es la pieza que hace funcionar el despliegue.
+- **Nginx con HTTPS (servidor):** proxy inverso `186-64-113-33.sslip.io` → `127.0.0.1:8081`, con `setsebool -P httpd_can_network_connect 1` por SELinux y certificado de Let's Encrypt (vence el 21 feb 2027, renovación automática). `eva03.drr.lat` no sirve para Certbot (`NXDOMAIN`: solo existe como nombre interno).
+- **Hallazgos del servidor:** el backend corre en Docker como `8081→8080`; el 8080 del host lo ocupa el Java de otro proyecto (no se debe matar); `firewalld` está apagado y SSH recibe muchos intentos fallidos.
+- **Qué falta:** que `vercel.json` use el HTTPS de Nginx (hoy el tramo Vercel → servidor va en HTTP), `CORS_ORIGINS` con el dominio de Vercel, cerrar el 8081 al exterior y probar una subida de imagen de casi 5 MB a través de Vercel. Ver Pendiente.
+- **Cómo comprobar:** `curl -i https://tecno-factory-react-version.vercel.app/api/v1/categorias` debe responder 200 con JSON, y en F12 → Network las llamadas deben ir al dominio de Vercel.
 
 ### 20 nov 2026: catálogo, carrito, boletas y versión de la API
 
