@@ -15,10 +15,6 @@ COPY mvnw pom.xml ./
 # Evita fallos típicos si mvnw se editó en Windows (saltos de línea CRLF o sin permiso de ejecución).
 RUN sed -i 's/\r$//' mvnw && chmod +x mvnw
 
-# El pom primero: mientras no cambie, Docker reutiliza las dependencias ya descargadas.
-RUN --mount=type=cache,target=/root/.m2 \
-    ./mvnw -B -q dependency:go-offline
-
 COPY src ./src
 # Los tests de Testcontainers necesitan Docker dentro del build; se corren aparte (./mvnw test).
 # `target` vive en un caché de BuildKit: al cambiar una migración SQL o un archivo Java,
