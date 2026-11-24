@@ -1,0 +1,78 @@
+# Producción simple: MySQL + backend.
+# Va en la RAÍZ del proyecto, junto al Dockerfile.
+# Uso: docker compose -f docker-compose.prod.yml up -d --build --wait
+#
+# Nota Red Hat: los montajes llevan ":z" / ":Z" para que SELinux (activo por defecto)
+# permita al contenedor leer/escribir esas carpetas.
+
+services:
+  db:
+    image: mysql:8.4
+    container_name: tecnofactory-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: tecnofactory
+      MYSQL_USER: tecnofactory_migrator
+      MYSQL_PASSWORD: ${MIGRATOR_PASSWORD}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
+      TZ: America/Santiago
+    # Sin "ports": la base solo se ve desde el backend, no desde afuera.
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql-init:/docker-entrypoint-initdb.d:ro,z
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    logging: &logs
+      driver: json-file
+      options: { max-size: "10m", max-file: "5" }
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.runtime
+    image: tecnofactory-backend:latest
+    container_name: tecnofactory-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      LOGGING_LEVEL_ORG_FLYWAYDB: INFO
+      DB_URL: jdbc:mysql://db:3306/tecnofactory
+      DB_USER: tecnofactory_app
+      DB_PASSWORD: ${APP_DB_PASSWORD}
+      FLYWAY_USER: tecnofactory_migrator
+      FLYWAY_PASSWORD: ${MIGRATOR_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      UPLOADS_DIR: /app/uploads
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_RUN: ${ADMIN_RUN:-11111111}
+      ADMIN_RUN_DV: ${ADMIN_RUN_DV:-1}
+      ADMIN_NOMBRE: ${ADMIN_NOMBRE:-Administrador}
+      ADMIN_APELLIDOS: ${ADMIN_APELLIDOS:-TecnoFactory}
+      ADMIN_FECHA_NACIMIENTO: ${ADMIN_FECHA_NACIMIENTO:-2000-01-01}
+      ADMIN_DIRECCION: ${ADMIN_DIRECCION:-Por definir}
+      ADMIN_TELEFONO: ${ADMIN_TELEFONO:-+56900000000}
+      ADMIN_COMUNA: ${ADMIN_COMUNA:-13101}
+    volumes:
+      # La carpeta debe pertenecer al uid 1000 (lo hace deploy.sh).
+      - ${UPLOADS_HOST_DIR:-./uploads}:/app/uploads:Z
+    mem_limit: 768m
+    logging: *logs
+
+
+volumes:
+  mysql_data:

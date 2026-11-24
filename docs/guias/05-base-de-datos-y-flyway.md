@@ -57,6 +57,18 @@ docker exec -it tecnofactory-db mysql -utecnofactory_migrator -p tecnofactory \
   -e "SELECT version, description, success FROM flyway_schema_history;"
 ```
 
+## Trampa al desplegar: el SQL viaja dentro del JAR
+
+Escribir `V10__...sql` en tu computador **no basta** para que producción lo aplique. El flujo actual compila el JAR en tu máquina (`./mvnw -B -q package -DskipTests`), lo copia a la raíz como `app.jar` y `Dockerfile.runtime` mete ese archivo en la imagen `tecnofactory-backend:latest`. Las migraciones de `src/main/resources/db/migration` quedan **dentro del JAR**. En el contenedor no se monta esa carpeta: el backend monta solo `uploads/` y MySQL monta `docker/mysql-init`, nunca `db/migration`.
+
+Por eso `docker compose -f docker-compose.prod.yml up -d` **sin `--build`** reutiliza la imagen antigua: Flyway solo ve las migraciones que tenía el JAR viejo. La forma correcta de levantar o actualizar producción es:
+
+```bash
+docker compose -f docker-compose.prod.yml up -d --build --wait --wait-timeout 900
+```
+
+`--build` sigue siendo obligatorio para que el JAR nuevo entre en la imagen, pero **ya no compila en el servidor**: `Dockerfile.runtime` solo copia `app.jar`. Antes `mvn package` tardaba ~208 s en eva03; ahora el build de la imagen es de segundos. Ver [referencia 07](../referencia/07-ejecucion-local-y-prod.md#1-dockerfile-en-la-raíz) y [guía 20](20-despliegue-frontend-vercel.md).
+
 ## Reglas que no hay que olvidar
 
 1. **Una migración aplicada no se edita nunca más** (daría `Migration checksum mismatch`). Cambio nuevo = versión nueva.
@@ -74,6 +86,7 @@ docker exec -it tecnofactory-db mysql -utecnofactory_migrator -p tecnofactory \
 | `Detected failed migration` | Una migración anterior falló a medias |
 | La migración no corre y no hay error | Nombre mal escrito o carpeta equivocada |
 | `Schema-validation: missing column` | Una entidad nombra una columna que no existe en `V1` |
+| En prod Flyway se queda en `V9` aunque en el host haya un SQL nuevo | Se levantó con `up -d` sin `--build`: la imagen antigua no trae ese SQL. Usa el comando de arriba |
 
 ## Para saber más
 

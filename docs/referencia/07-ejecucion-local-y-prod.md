@@ -367,35 +367,27 @@ Aquí todo corre en Docker en el servidor: MySQL y backend en la misma red inter
 - [ ] Las entidades coinciden con las tablas de `V1__...sql`. Con `ddl-auto: validate`, si no coinciden la app no arranca y el error dice qué falta. Los problemas del esquema original (camelCase, `DECIMAL`, ids sin `AUTO_INCREMENT`) ya están resueltos en `V1`. Lo que sigue pudiendo fallar es el tipo Java: `region` y `comuna` usan `INT` (`Integer`), el resto de ids `BIGINT` (`Long`); ver la tabla de mapeo en [06](06-base-de-datos.md#mapeo-a-entidades-java).
 - [ ] `.env` del servidor con claves **nuevas y generadas**, distintas a desarrollo.
 - [ ] Permisos del `.env`: `chmod 600 .env`.
-- [ ] `Dockerfile` escrito (hoy está vacío).
-- [ ] Servicio `backend` activado en el compose (hoy está comentado).
+- [x] `Dockerfile.runtime` escrito y `docker-compose.prod.yml` con el servicio `backend` activo.
+- [ ] `.env` del servidor con claves **nuevas y generadas**, distintas a desarrollo.
+- [ ] Permisos del `.env`: `chmod 600 .env`.
 - [ ] MySQL **sin publicar** en el host (o publicado solo en el 3307 para administrarlo).
 
-### 1. `Dockerfile` (en la raíz)
+### 1. Los dos Dockerfiles
 
-```dockerfile
-FROM eclipse-temurin:21-jdk AS build
-WORKDIR /app
-COPY .mvn/ .mvn/
-COPY mvnw pom.xml ./
-COPY src/ src/
-RUN ./mvnw -q package -DskipTests
+| Archivo | Uso | Qué hace |
+| --- | --- | --- |
+| `Dockerfile.runtime` | **Producción** (el compose de prod apunta a él) | Copia un `app.jar` ya compilado en una JRE alpine. Sin Maven. |
+| `Dockerfile` | Alternativa para compilar dentro de Docker | Multi-etapa con JDK y `mvnw package`. |
 
-FROM eclipse-temurin:21-jre
-WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+El flujo normal es compilar en la máquina de desarrollo (donde hay CPU/RAM), copiar el resultado a la raíz y dejar que la VPS solo ejecute el JAR:
+
+```bash
+./mvnw -B -q package -DskipTests
+cp target/TecnoFactory-0.0.1-SNAPSHOT.jar app.jar
+docker compose -f docker-compose.prod.yml up -d --build --wait --wait-timeout 900
 ```
 
-Agrega también un `.dockerignore` para que el `.env` y la basura no entren a la imagen:
-
-```
-.env
-.git
-target
-*.md
-```
+`Dockerfile.runtime` añade `JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=55 -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError"` y un `HEALTHCHECK` con `--start-period=900s`. El `.dockerignore` excluye `uploads/`, `.env`, `.git/` y `target/`; por eso el JAR compilado se copia como `app.jar` en la raíz. Ese archivo está en `.gitignore`: es un artefacto local.
 
 ### 2. `docker-compose.yml` para producción
 
@@ -485,9 +477,17 @@ Igual que el [paso 8 del Escenario 2](#8-verificar-el-comportamiento-de-prod). A
 ### 6. Actualizar una versión ya desplegada
 
 ```bash
-git pull
-docker compose up -d --build backend
+# En desarrollo: compilar el JAR y copiarlo al servidor
+./mvnw -B -q package -DskipTests
+cp target/TecnoFactory-0.0.1-SNAPSHOT.jar app.jar
+scp app.jar root@TU_SERVIDOR:/ruta/al/proyecto/
+
+# En el servidor (mantiene el mapeo 8081:8080 de eva03)
+cd /ruta/al/proyecto
+docker compose -f docker-compose.prod.yml up -d --build --wait --wait-timeout 900
 ```
+
+> **Regla de oro (23 nov 2026):** usa siempre `-f docker-compose.prod.yml --build --wait`. Sin `--build`, Compose reutiliza `tecnofactory-backend:latest` y no mete el JAR nuevo; los SQL de `src/main/resources/db/migration` viajan dentro del JAR y el contenedor no monta esa carpeta. Con `--wait`, el comando no termina hasta que el health check dice `UP`.
 
 Flyway aplica automáticamente las migraciones nuevas al arrancar. **No** uses `down -v` en producción: borra los datos.
 

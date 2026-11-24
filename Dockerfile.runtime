@@ -1,0 +1,33 @@
+# Imagen de producción a partir de un JAR ya compilado.
+# El build se hace en la máquina de desarrollo (donde hay CPU/RAM) y aquí solo
+# se copia el artefacto: en la VPS el `docker compose ... --build` tarda segundos.
+#
+# Uso: copiar app.jar a la raíz del proyecto y construir con este Dockerfile.
+
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+
+# Usuario sin privilegios: si alguien vulnera la app, no es root dentro del contenedor.
+RUN addgroup -S -g 1000 app && adduser -S -u 1000 -G app app \
+    && mkdir -p /app/uploads && chown app:app /app/uploads
+
+COPY --chown=app:app app.jar app.jar
+
+USER app
+
+# SerialGC y un heap moderado: la VPS de producción tiene 1 CPU y ~1 GiB, y el
+# contenedor del backend está limitado a 768m en el compose.
+ENV SPRING_PROFILES_ACTIVE=prod \
+    UPLOADS_DIR=/app/uploads \
+    TZ=America/Santiago \
+    JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=55 -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError"
+
+EXPOSE 8080
+VOLUME /app/uploads
+
+# Flyway aplica V10-V18 al arrancar. En una VPS lenta eso puede tardar minutos;
+# start-period evita que Docker marque el contenedor como unhealthy mientras tanto.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=900s --retries=3 \
+    CMD wget -qO- http://localhost:8080/actuator/health | grep -q '"status":"UP"' || exit 1
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

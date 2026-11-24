@@ -5,8 +5,8 @@ La documentación tiene **tres lugares**, según lo que necesites:
 | Necesito... | Carpeta |
 | --- | --- |
 | **Hacer algo** (levantar, agregar una entidad, arreglar un fallo) | [`docs/personal/`](docs/personal/00-empieza-aqui.md): manual por tareas |
-| **Entender un tema rápido**, con analogías | [`docs/guias/`](docs/guias/01-el-proyecto-en-una-pagina.md): 19 guías cortas |
-| **Todo el detalle**, línea por línea | [`docs/referencia/`](docs/referencia/): 31 documentos técnicos |
+| **Entender un tema rápido**, con analogías | [`docs/guias/`](docs/guias/01-el-proyecto-en-una-pagina.md): 20 guías cortas |
+| **Todo el detalle**, línea por línea | [`docs/referencia/`](docs/referencia/): 30 documentos técnicos |
 | **Saber qué cambió y qué falta** | [`docs/estado/cambios-recientes.md`](docs/estado/cambios-recientes.md) |
 
 **Primera vez:** empieza por [Empieza aquí](docs/personal/00-empieza-aqui.md).
@@ -128,7 +128,7 @@ El lanzador levanta MySQL en el puerto **3307** (deja libre el 3306 para otro My
 | Formulario de contacto (`V6`, `Contacto`, `ContactoController`) | **Escrito el 3 nov y probado el 6 nov**: `POST /api/v1/contactos` **público** y lectura (`GET /api/v1/contactos` y `/{id}`) solo para `ADMINISTRADOR`. 14 tests en verde. Falta un límite de envíos contra spam. Ver [guía 19](docs/guias/19-formulario-de-contacto.md) y [referencia 28](docs/referencia/28-contacto-explicado.md) |
 | `jwt.secret` y `DB_PASSWORD` | **Sin valor por defecto** (3 y 6 nov): si faltan, la app no arranca. `ConfiguracionValidator` también rechaza los placeholders de `.env.example`. Ver [26](docs/referencia/26-configuracion-yaml-explicada.md) |
 | Pruebas | `.\mvnw.cmd test -Dtest="*Test"`: **269 `@Test` en 32 clases, 0 fallos** (20 nov); `contextLoads` en verde con `V9` aplicada. No hay tests propios de Categoría, Producto, Carrito ni Boleta (ver [guía 15](docs/guias/15-pruebas.md)) |
-| `Dockerfile` y servicio `backend` del compose | Vacío / comentado |
+| `Dockerfile.runtime` y servicio `backend` del compose | **Producción sin compilar en la VPS**: el JAR se genera en desarrollo, se copia como `app.jar` y la imagen solo lo ejecuta. `--build` sigue siendo obligatorio para meter el JAR nuevo; el build baja de ~208 s a segundos. Healthcheck con `start-period=900s`. Ver [guía 05](docs/guias/05-base-de-datos-y-flyway.md) y [referencia 07](docs/referencia/07-ejecucion-local-y-prod.md) |
 
 > **Integración React corregida el 20 nov:** se detectó que el frontend llamaba a `/api/blogs`,
 > `/api/imagenes`, `/api/usuarios` y `/api/auth/**` sin versión, mientras el backend solo publica
@@ -157,3 +157,4 @@ El lanzador levanta MySQL en el puerto **3307** (deja libre el 3306 para otro My
 16. **Todas las rutas de la API llevan el prefijo `/api/v1`.** Una ruta sin versionar cae en `anyRequest().denyAll()` y devuelve 401/403. Ver [23](docs/referencia/23-catalogo-de-endpoints.md).
 17. **El precio final lo calcula el backend** (`Precios.conDescuento`, redondeo al peso) y viaja en `precioFinal` en productos, carrito y boletas. Ver [30](docs/referencia/30-catalogo-y-precios.md).
 18. **Una URL del frontend no prueba la integración**: los tests mockean `fetch`. Comprueba siempre que la ruta escrita coincida con el `@RequestMapping` del backend (`/api/v1/...`). Si el login da 401 con «Se requiere un token válido», la ruta probablemente esté sin versionar.
+19. **En producción, `up -d` sin `--build` reutiliza la imagen antigua**: el JAR se construye en desarrollo y `Dockerfile.runtime` lo mete en la imagen; el contenedor no monta `db/migration`. Usa siempre `docker compose -f docker-compose.prod.yml up -d --build --wait --wait-timeout 900`. Ver [guía 05](docs/guias/05-base-de-datos-y-flyway.md) y [guía 20](docs/guias/20-despliegue-frontend-vercel.md).

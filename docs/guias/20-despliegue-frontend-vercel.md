@@ -75,6 +75,20 @@ Sin `/` final y sin `*`. Después hay que **recrear** el contenedor para que lea
 
 > Las *preview deployments* de Vercel usan otros dominios (`...-git-rama-usuario.vercel.app`). Si quieres probar escrituras desde una de ellas, agrégala a `CORS_ORIGINS` (separadas por coma) o prueba en el dominio principal.
 
+## ⚠ Regla de oro: reconstruir la imagen al desplegar
+
+Cada vez que cambie el código **o un SQL de `src/main/resources/db/migration`**, levanta producción así:
+
+```bash
+docker compose -f docker-compose.prod.yml up -d --build --wait --wait-timeout 900
+```
+
+Las opciones importan: `-f` elige el archivo de producción, `--build` mete el JAR nuevo en la imagen, `--wait` espera a que el backend esté sano y `--wait-timeout` da margen en una VPS lenta.
+
+¿Por qué `--build` es obligatorio? Porque el JAR se hornea en la imagen: se compila en la máquina de desarrollo, se copia como `app.jar` y `Dockerfile.runtime` lo mete en la imagen. En producción el backend solo monta `uploads/`; el servicio `db` monta `docker/mysql-init`, **nunca `db/migration`**. Un SQL nuevo escrito en el host no existe dentro del contenedor si la imagen no se reconstruye con el JAR nuevo.
+
+En eva03 (1 CPU y 962 MiB) **ya no se compila en el servidor**: `Dockerfile.runtime` solo copia el JAR preconstruido, así que el build baja de ~208 s a segundos. El healthcheck usa `start-period=900s` para no declarar *unhealthy* mientras arranca. Cada cambio de código exige recompilar el JAR en desarrollo y volver a copiarlo.
+
 ## Por qué sslip.io
 
 `eva03.drr.lat` es solo el nombre interno del servidor: **no existe en el DNS público** (Certbot respondió `NXDOMAIN`), así que Let's Encrypt no puede emitir un certificado para él. `sslip.io` devuelve la IP que lleva el nombre: `186-64-113-33.sslip.io` resuelve a `186.64.113.33` sin registrar nada, y Let's Encrypt sí puede validarlo.

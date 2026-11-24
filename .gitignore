@@ -1,5 +1,6 @@
 HELP.md
 target/
+app.jar
 
 ### Variables de entorno ###
 .env
