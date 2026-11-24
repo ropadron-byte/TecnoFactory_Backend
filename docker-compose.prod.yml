@@ -1,6 +1,6 @@
 # Producción simple: MySQL + backend.
 # Va en la RAÍZ del proyecto, junto al Dockerfile.
-# Uso: docker compose -f docker-compose.prod.yml up -d --build --wait
+# Uso: docker compose -f docker-compose.prod.yml up -d --build --wait --wait-timeout 900
 #
 # Nota Red Hat: los montajes llevan ":z" / ":Z" para que SELinux (activo por defecto)
 # permita al contenedor leer/escribir esas carpetas.
