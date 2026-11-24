@@ -25,8 +25,8 @@ ENV SPRING_PROFILES_ACTIVE=prod \
 EXPOSE 8080
 VOLUME /app/uploads
 
-# Flyway aplica V10-V18 al arrancar. En una VPS lenta eso puede tardar minutos;
-# start-period evita que Docker marque el contenedor como unhealthy mientras tanto.
+# En una VPS lenta el arranque de Flyway puede tardar; start-period evita que
+# Docker marque el contenedor como unhealthy mientras la app termina de iniciar.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=900s --retries=3 \
     CMD wget -qO- http://localhost:8080/actuator/health | grep -q '"status":"UP"' || exit 1
 
