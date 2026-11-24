@@ -131,13 +131,18 @@ Guía: [19](../guias/19-formulario-de-contacto.md) · Referencia: [28](../refere
 
 ## Historial
 
-### 23 nov 2026: build de producción sin compilar en la VPS
+### 23 nov 2026: vuelta al despliegue de dos comandos en la VPC
 
-- **Problema:** en eva03 (1 CPU, 962 MiB), `docker compose -f docker-compose.prod.yml up -d --build` tardaba ~208 s en `mvn package` dentro del contenedor; parecía colgado y se canceló a los 210 s. El arranque real del backend era de ~121 s y Flyway estaba bien: en la base solo existían `V1`–`V9`.
-- **Solución:** el JAR se compila en la máquina de desarrollo, se copia como `app.jar` y el nuevo **`Dockerfile.runtime`** solo lo mete en una imagen JRE alpine. `docker-compose.prod.yml` apunta a ese Dockerfile, fija `LOGGING_LEVEL_ORG_FLYWAYDB: INFO` y conserva el mapeo `8081:8080`.
-- **Comando correcto:** `docker compose -f docker-compose.prod.yml up -d --build --wait --wait-timeout 900`. Sin `--build` se reutiliza la imagen antigua y Flyway no ve los SQL nuevos. Ver [guía 05](../guias/05-base-de-datos-y-flyway.md), [guía 20](../guias/20-despliegue-frontend-vercel.md) y [referencia 07](../referencia/07-ejecucion-local-y-prod.md).
-- **Cómo comprobarlo:** en el servidor, `SELECT version, success FROM flyway_schema_history ORDER BY installed_rank;` debe devolver hasta `V9` con `success=1` (la versión simple; los datos adicionales se insertan a mano). No hace falta `down -v`.
-- **Nota:** `app.jar` es un artefacto local ignorado por Git. Cada cambio de código exige recompilarlo y volver a copiarlo al servidor.
+- **Problema:** se probó un `Dockerfile.runtime` que solo copiaba un `app.jar` preconstruido. Como ese JAR no está versionado, `git pull` + `up --build` fallaba en eva03 con `"/app.jar": not found`. El contenedor anterior seguía arriba, pero no se podía reconstruir sin copiar el JAR desde la laptop.
+- **Solución:** se restauró `docker-compose.prod.yml` con **`build: .`** y se borró `Dockerfile.runtime`. El `Dockerfile` multi-etapa vuelve a compilar desde `src/` dentro de Docker, igual que antes. Se conserva el mapeo `8081:8080` y el `main` simple con `V1`–`V9`.
+- **Flujo en el servidor (dos comandos):**
+  ```bash
+  git pull --ff-only
+  docker compose -f docker-compose.prod.yml up -d --build --wait --wait-timeout 900
+  ```
+  Para bajar: `docker compose -f docker-compose.prod.yml down`. `down -v` borra el volumen de MySQL y solo se usa en local.
+- **Aviso:** en eva03 (1 CPU, 962 MiB) el build tarda unos minutos; no pulses `^C`. El `Dockerfile` ya lleva `MAVEN_OPTS` acotados y caché de `target/`. Ver [guía 05](../guias/05-base-de-datos-y-flyway.md), [guía 20](../guias/20-despliegue-frontend-vercel.md) y [referencia 07](../referencia/07-ejecucion-local-y-prod.md).
+- **Cómo comprobarlo:** `SELECT version, success FROM flyway_schema_history ORDER BY installed_rank;` debe devolver hasta `V9` con `success=1`. No hace falta `down -v`.
 
 ### 23 nov 2026: frontend en Vercel conectado a la API del servidor
 

@@ -34,9 +34,7 @@ services:
       options: { max-size: "10m", max-file: "5" }
 
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile.runtime
+    build: .
     image: tecnofactory-backend:latest
     container_name: tecnofactory-backend
     restart: unless-stopped

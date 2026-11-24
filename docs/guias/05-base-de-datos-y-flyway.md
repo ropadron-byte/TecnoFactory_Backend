@@ -59,7 +59,7 @@ docker exec -it tecnofactory-db mysql -utecnofactory_migrator -p tecnofactory \
 
 ## Trampa al desplegar: el SQL viaja dentro del JAR
 
-Escribir `V10__...sql` en tu computador **no basta** para que producción lo aplique. El flujo actual compila el JAR en tu máquina (`./mvnw -B -q package -DskipTests`), lo copia a la raíz como `app.jar` y `Dockerfile.runtime` mete ese archivo en la imagen `tecnofactory-backend:latest`. Las migraciones de `src/main/resources/db/migration` quedan **dentro del JAR**. En el contenedor no se monta esa carpeta: el backend monta solo `uploads/` y MySQL monta `docker/mysql-init`, nunca `db/migration`.
+Escribir `V10__...sql` en tu computador **no basta** para que producción lo aplique. El `Dockerfile` de la raíz hace `COPY src ./src` y compila el JAR con Maven **dentro de Docker**; las migraciones de `src/main/resources/db/migration` quedan **dentro del JAR** que se mete en la imagen `tecnofactory-backend:latest`. En el contenedor no se monta esa carpeta: el backend monta solo `uploads/` y MySQL monta `docker/mysql-init`, nunca `db/migration`.
 
 Por eso `docker compose -f docker-compose.prod.yml up -d` **sin `--build`** reutiliza la imagen antigua: Flyway solo ve las migraciones que tenía el JAR viejo. La forma correcta de levantar o actualizar producción es:
 
@@ -67,7 +67,7 @@ Por eso `docker compose -f docker-compose.prod.yml up -d` **sin `--build`** reut
 docker compose -f docker-compose.prod.yml up -d --build --wait --wait-timeout 900
 ```
 
-`--build` sigue siendo obligatorio para que el JAR nuevo entre en la imagen, pero **ya no compila en el servidor**: `Dockerfile.runtime` solo copia `app.jar`. Antes `mvn package` tardaba ~208 s en eva03; ahora el build de la imagen es de segundos. Ver [referencia 07](../referencia/07-ejecucion-local-y-prod.md#1-dockerfile-en-la-raíz) y [guía 20](20-despliegue-frontend-vercel.md).
+`--build` es obligatorio porque reconstruye el JAR desde `src/` y mete los SQL nuevos en la imagen. En eva03 (1 CPU y ~1 GiB) el primer build tarda unos minutos —no lo canceles—; el `Dockerfile` limita la memoria de Maven y guarda `target/` en caché de BuildKit para que los siguientes sean más rápidos. Ver [referencia 07](../referencia/07-ejecucion-local-y-prod.md#1-dockerfile-en-la-raíz) y [guía 20](20-despliegue-frontend-vercel.md).
 
 ## Reglas que no hay que olvidar
 

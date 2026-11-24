@@ -83,11 +83,11 @@ Cada vez que cambie el código **o un SQL de `src/main/resources/db/migration`**
 docker compose -f docker-compose.prod.yml up -d --build --wait --wait-timeout 900
 ```
 
-Las opciones importan: `-f` elige el archivo de producción, `--build` mete el JAR nuevo en la imagen, `--wait` espera a que el backend esté sano y `--wait-timeout` da margen en una VPS lenta.
+Las opciones importan: `-f` elige el archivo de producción, `--build` compila de nuevo el JAR desde `src/` y lo mete en la imagen, `--wait` espera a que el backend esté sano y `--wait-timeout` da margen en una VPS lenta.
 
-¿Por qué `--build` es obligatorio? Porque el JAR se hornea en la imagen: se compila en la máquina de desarrollo, se copia como `app.jar` y `Dockerfile.runtime` lo mete en la imagen. En producción el backend solo monta `uploads/`; el servicio `db` monta `docker/mysql-init`, **nunca `db/migration`**. Un SQL nuevo escrito en el host no existe dentro del contenedor si la imagen no se reconstruye con el JAR nuevo.
+¿Por qué `--build` es obligatorio? Porque el JAR se hornea en la imagen: el `Dockerfile` copia `src/` y ejecuta Maven durante la construcción. En producción el backend solo monta `uploads/`; el servicio `db` monta `docker/mysql-init`, **nunca `db/migration`**. Un SQL nuevo escrito en el host no existe dentro del contenedor si la imagen no se reconstruye.
 
-En eva03 (1 CPU y 962 MiB) **ya no se compila en el servidor**: `Dockerfile.runtime` solo copia el JAR preconstruido, así que el build baja de ~208 s a segundos. El healthcheck usa `start-period=900s` para no declarar *unhealthy* mientras arranca. Cada cambio de código exige recompilar el JAR en desarrollo y volver a copiarlo.
+En eva03 (1 CPU y 962 MiB) el build tarda unos minutos. El `Dockerfile` limita `MAVEN_OPTS` y guarda `target/` en caché de BuildKit para acelerar las reconstrucciones. **No pulses `^C` aunque parezca lento**: el healthcheck solo empieza a contar cuando la app ya arrancó. Para bajar el stack usa `docker compose -f docker-compose.prod.yml down`; `down -v` borra además el volumen de MySQL y solo tiene sentido en local.
 
 ## Por qué sslip.io
 
